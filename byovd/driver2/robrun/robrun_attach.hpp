@@ -4,20 +4,35 @@
 #include "robrun_il2cpp.hpp"
 #include "../../../dma/src/engine/offsets.h"
 
-inline uintptr_t ResolveKlassWord(RobRunMem& mem, uintptr_t gameAssembly, uintptr_t typeInfoRva)
+inline bool MatchesKlassName(RobRunMem& mem, uintptr_t klass, const char* name)
 {
-    uintptr_t word = mem.Read<uintptr_t>(gameAssembly + typeInfoRva);
-  uintptr_t cur = word;
+    if (!IsPtr(klass) || !name)
+        return false;
+    uintptr_t namePtr = mem.Read<uintptr_t>(klass + offsets::il2cpp::Class_Name);
+    if (!IsPtr(namePtr))
+        return false;
+    return mem.ReadString(namePtr, 80) == name;
+}
+
+inline uintptr_t ResolveKlassWord(RobRunMem& mem, uintptr_t gameAssembly, uintptr_t typeInfoRva,
+                                  const char* name, const char* nameSpace = nullptr)
+{
+    uintptr_t cur = mem.Read<uintptr_t>(gameAssembly + typeInfoRva);
     for (int depth = 0; depth < 4; ++depth) {
-        if (!IsPtr(cur))
-            break;
-        if (cur == word && depth == 0) {
-            // Il2CppClass* is often stored directly in the TypeInfo slot.
+        if (!cur)
+            return 0;
+        if (MatchesKlassName(mem, cur, name))
             return cur;
+        if (nameSpace) {
+            uintptr_t ns = mem.Read<uintptr_t>(cur + offsets::il2cpp::Class_Namespace);
+            if (IsPtr(ns) && mem.ReadString(ns, 80) == nameSpace && MatchesKlassName(mem, cur, name))
+                return cur;
         }
+        if (!IsPtr(cur))
+            return 0;
         cur = mem.Read<uintptr_t>(cur);
     }
-    return word;
+    return 0;
 }
 
 struct RobRunWorld {
@@ -47,7 +62,7 @@ inline RobRunWorld AttachBattleWorld(RobRunMem& mem, uint32_t pid, uintptr_t gam
     };
     uintptr_t battleKlass = 0;
     for (uintptr_t rva : slots) {
-        battleKlass = ResolveKlassWord(mem, gameAssembly, rva);
+        battleKlass = ResolveKlassWord(mem, gameAssembly, rva, "BattleModel", "Game.Battle");
         if (IsPtr(battleKlass))
             break;
     }
@@ -71,9 +86,12 @@ inline RobRunWorld AttachBattleWorld(RobRunMem& mem, uint32_t pid, uintptr_t gam
     }
 
     // Fallback: scan for BattleEntitiesModel klass directly.
-    uintptr_t entitiesKlass = ResolveKlassWord(mem, gameAssembly, offsets::typeinfo::BattleEntitiesModel);
+    uintptr_t entitiesKlass =
+        ResolveKlassWord(mem, gameAssembly, offsets::typeinfo::BattleEntitiesModel,
+                         "BattleEntitiesModel", "Game.Battle");
     if (!IsPtr(entitiesKlass))
-        entitiesKlass = ResolveKlassWord(mem, gameAssembly, offsets::typeinfo::BattleEntitiesModelDump);
+        entitiesKlass = ResolveKlassWord(mem, gameAssembly, offsets::typeinfo::BattleEntitiesModelDump,
+                                           "BattleEntitiesModel", "Game.Battle");
     if (!IsPtr(entitiesKlass))
         return w;
     const auto entityHits = HeapScanKlass(mem, pid, entitiesKlass, imageLo, imageHi, 8);

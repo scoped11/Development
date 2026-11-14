@@ -14,6 +14,25 @@
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "winmm.lib")
 
+namespace {
+struct MonitorPick {
+    int want = 0;
+    int cur = 0;
+    RECT rc{};
+    bool hit = false;
+};
+
+BOOL CALLBACK PickMonitor(HMONITOR, HDC, LPRECT rc, LPARAM lp) {
+    auto* w = reinterpret_cast<MonitorPick*>(lp);
+    if (w->cur++ == w->want) {
+        w->rc = *rc;
+        w->hit = true;
+        return FALSE;
+    }
+    return TRUE;
+}
+}
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
     HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -150,7 +169,35 @@ bool Renderer::InitImGui() {
     ImGui_ImplWin32_Init(m_hwnd);
     ImGui_ImplDX11_Init(m_device, m_context);
 
+    ImFontConfig fontCfg;
+    fontCfg.OversampleH = 3;
+    fontCfg.OversampleV = 2;
+    fontCfg.PixelSnapH = true;
+    const char* fontPaths[] = {
+        "C:\\Windows\\Fonts\\segoeuib.ttf",
+        "C:\\Windows\\Fonts\\seguisb.ttf",
+        "C:\\Windows\\Fonts\\segoeui.ttf",
+        "C:\\Windows\\Fonts\\arialbd.ttf",
+        "C:\\Windows\\Fonts\\arial.ttf"
+    };
+    ImFont* loaded = nullptr;
+    for (const char* path : fontPaths) {
+        loaded = io.Fonts->AddFontFromFileTTF(path, 16.0f, &fontCfg, io.Fonts->GetGlyphRangesDefault());
+        if (loaded)
+            break;
+    }
+    if (loaded) {
+        io.FontDefault = loaded;
+        m_espFont = loaded;
+    } else {
+        m_espFont = io.Fonts->AddFontDefault();
+    }
+
     return true;
+}
+
+ImFont* Renderer::EspFont() const {
+    return m_espFont ? m_espFont : ImGui::GetFont();
 }
 
 // =============================================================================
@@ -226,7 +273,7 @@ void Renderer::ApplyFullscreen(bool enable, int width, int height) {
         if (height <= 0)
             height = GetSystemMetrics(SM_CYSCREEN);
         SetWindowLongPtr(m_hwnd, GWL_STYLE, WS_POPUP);
-        SetWindowPos(m_hwnd, HWND_TOPMOST, 0, 0, width, height,
+        SetWindowPos(m_hwnd, HWND_TOPMOST, m_wantFsX, m_wantFsY, width, height,
             SWP_FRAMECHANGED | SWP_SHOWWINDOW);
         m_lastFullscreenW = width;
         m_lastFullscreenH = height;
@@ -350,15 +397,26 @@ void Renderer::SyncOverlayWindow(const GeneralConfig& general, bool interactWith
     }
 
     m_wantSplashChrome = false;
+    MonitorPick walk;
+    walk.want = general.overlayMonitor < 0 ? 0 : general.overlayMonitor;
+    EnumDisplayMonitors(nullptr, nullptr, PickMonitor, reinterpret_cast<LPARAM>(&walk));
     int fsW = general.gameScreenWidth;
     int fsH = general.gameScreenHeight;
-    if (fsW <= 0)
-        fsW = GetSystemMetrics(SM_CXSCREEN);
-    if (fsH <= 0)
-        fsH = GetSystemMetrics(SM_CYSCREEN);
+    int fsX = 0, fsY = 0;
+    if (walk.hit) {
+        fsX = walk.rc.left;
+        fsY = walk.rc.top;
+        if (fsW <= 0) fsW = walk.rc.right - walk.rc.left;
+        if (fsH <= 0) fsH = walk.rc.bottom - walk.rc.top;
+    } else {
+        if (fsW <= 0) fsW = GetSystemMetrics(SM_CXSCREEN);
+        if (fsH <= 0) fsH = GetSystemMetrics(SM_CYSCREEN);
+    }
     m_wantFullscreen = general.fullscreenOverlay;
     m_wantFsW = fsW;
     m_wantFsH = fsH;
+    m_wantFsX = fsX;
+    m_wantFsY = fsY;
     m_wantSinglePc = !general.fuserMode;
 
     if (!general.fullscreenOverlay) {

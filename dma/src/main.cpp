@@ -3,13 +3,14 @@
 #include <shellapi.h>
 
 #include "core/memory.h"
-#include "engine/engine.h"
+#include "game/session.hpp"
 #include "render/renderer.h"
 #include "render/splash.h"
 #include "render/menu.h"
 #include "features/esp.h"
 #include "features/radar.h"
 #include "features/aimbot.h"
+#include "features/hud.h"
 #include "config/config.h"
 #include "core/kmbox_usb.h"
 #include "app.h"
@@ -27,7 +28,7 @@
 #include <share.h>
 
 std::atomic<bool> g_running = true;
-static UnityEngine g_engine;
+static RobRunSession g_session;
 static std::atomic<bool> g_fpgaReleased{false};
 static HANDLE g_fpgaCloseDone = nullptr;
 static thread_local const char* g_crashStage = "startup";
@@ -73,8 +74,8 @@ void RequestUninjectAndDisconnect() {
     g_running = false;
     KmboxUsb::Get().ClearMoves();
     KmboxUsb::Get().Disconnect();
-    g_engine.SetMemoryAimTarget(false, {}, {}, 0.f);
-    g_engine.Shutdown();
+    g_session.SetMemoryAimTarget(false, {}, {}, 0.f);
+    g_session.Shutdown();
     ReleaseFpgaNow();
     Renderer::Get().RequestExit();
     std::cout << "[*] Uninject: overlay exit, FPGA/VMM disconnected\n" << std::flush;
@@ -190,11 +191,11 @@ void GlobalsWorker() {
     while (g_running) {
         if (Memory::Get().IsConnected() && Memory::Get().MotionBurstDepth() == 0) {
             g_crashStage = "CacheGlobals";
-            g_engine.CacheGlobals();
+            g_session.CacheGlobals();
             g_crashStage = "GlobalsWorker sleep";
         }
         int sleepMs = Config::Get().general.updateRateGlobals;
-        if (!g_engine.IsInGame())
+        if (!g_session.IsInGame())
             sleepMs = 16;
         std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
     }
@@ -206,12 +207,12 @@ void ActorWorker() {
         int rateMs = Config::Get().general.updateRateActors;
         if (rateMs < 8) rateMs = 8;
         if (rateMs > 2000) rateMs = 2000;
-        if (mem.IsConnected() && g_engine.IsInGame() && mem.MotionBurstDepth() == 0) {
+        if (mem.IsConnected() && g_session.IsInGame() && mem.MotionBurstDepth() == 0) {
             g_crashStage = "CacheActors";
-            g_engine.CacheActors();
+            g_session.CacheActors();
             g_crashStage = "ActorWorker sleep";
             rateMs = Config::Get().general.updateRateActors;
-        } else if (mem.IsConnected() && !g_engine.IsInGame()) {
+        } else if (mem.IsConnected() && !g_session.IsInGame()) {
             rateMs = Config::Get().general.updateRateActors;
         }
         if (rateMs < 8) rateMs = 8;
@@ -226,13 +227,14 @@ void PositionWorker() {
         if (rateMs < 1 || rateMs > 8) rateMs = 1;
         const auto period = std::chrono::milliseconds(rateMs);
         const auto start = std::chrono::steady_clock::now();
-        if (Memory::Get().IsConnected() && g_engine.IsInGame()) {
+        if (Memory::Get().IsConnected() && g_session.IsInGame()) {
             g_crashStage = "CachePositions";
             Memory::Get().BeginMotionBurst();
-            g_engine.CachePositions();
-            g_engine.ServiceMemoryAim();
+            g_session.CachePositions();
+            g_session.WriteFreecam();
+            g_session.ServiceMemoryAim();
             Memory::Get().EndMotionBurst();
-            g_engine.ApplyGun();
+            g_session.ApplyGun();
             g_crashStage = "PositionWorker sleep";
         }
         const auto elapsed = std::chrono::steady_clock::now() - start;
@@ -266,8 +268,8 @@ void ConnectionWorker() {
             }
 
             Splash::SetStage("Attached — mapping GameAssembly", 0.70f);
-            if (g_engine.Initialize(cfg.processName)) {
-                std::cout << "[+] Unity engine initialized — starting data workers\n";
+            if (g_session.Initialize(cfg.processName)) {
+                std::cout << "[+] Game session ready — starting data workers\n";
             }
         } else if (!mem.EnsureIl2CppReady()) {
             Splash::SetStage("Pinning GameAssembly (TypeInfo)", 0.82f);
@@ -275,15 +277,15 @@ void ConnectionWorker() {
             continue;
         }
 
-        if (!g_engine.ReadyForOverlay()) {
-            Splash::SetProgress(0.90f);
-            std::this_thread::sleep_for(std::chrono::milliseconds(80));
+        if (!g_session.ReadyForOverlay()) {
+            Splash::SetStage("Pinning Game chain", 0.92f);
+            g_session.CacheGlobals();
             continue;
         }
 
         Splash::SetStage("Ready", 1.f);
         Splash::MarkReady();
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 }
 
@@ -326,7 +328,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     std::signal(SIGABRT, SignalHandler);
     std::signal(SIGSEGV, SignalHandler);
 
-    Memory::Get().Log("========================================\n  ROB RUN DMA\n========================================\n");
+    Memory::Get().Log("========================================\n  ROB RUN DMA (build 2026-11-14)\n========================================\n");
     Memory::Get().ReclaimDevice();
     SpawnFpgaGuard();
 
@@ -369,6 +371,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         if (f2Down && !f2Was)
             cfg.assist.aim.enabled = !cfg.assist.aim.enabled;
         f2Was = f2Down;
+        static bool f6Was = false;
+        const bool f6Down = (GetAsyncKeyState(VK_F6) & 0x8000) != 0;
+        if (f6Down && !f6Was)
+            cfg.general.freeCam = !cfg.general.freeCam;
+        f6Was = f6Down;
 
         Splash::Tick();
         const bool splashUp = Splash::Covering();
@@ -386,7 +393,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         std::vector<GameEntity> entities;
         GameEntity localPlayer;
         CameraData camera;
-        g_engine.CopyRenderState(entities, localPlayer, camera);
+        g_session.CopyRenderState(entities, localPlayer, camera);
         auto& assist = cfg.assist;
         static uint32_t s_kmboxRetryMs = 0;
         static bool s_kmboxProfileApplied = false;
@@ -412,8 +419,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         int gameW = cfg.general.gameScreenWidth;
         int gameH = cfg.general.gameScreenHeight;
         if (gameW <= 0 || gameH <= 0) {
-            gameW = g_engine.DetectedWidth();
-            gameH = g_engine.DetectedHeight();
+            gameW = g_session.DetectedWidth();
+            gameH = g_session.DetectedHeight();
         }
         float scaleX = 1.f;
         float scaleY = 1.f;
@@ -430,15 +437,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
         g_crashStage = "Menu render";
         Menu::Render(entities, localPlayer, camera);
+        g_session.UpdateFreecam(ImGui::GetIO().DeltaTime, Menu::IsOpen());
         const bool menuInteract =
             Menu::IsOpen() || ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard;
         Renderer::Get().SyncOverlayWindow(cfg.general, menuInteract);
         g_crashStage = "Radar render";
         Radar::Render(entities, localPlayer, camera, cfg.radar);
+        Hud::Render(entities, localPlayer, camera, cfg);
 
         Aimbot::RenderFov(assist.aim, overlayW, overlayH);
         if (assist.aim.enabled && camera.valid)
-            Aimbot::Tick(entities, localPlayer, camera, assist.aim, overlayW, overlayH, scaleX, scaleY, g_engine);
+            Aimbot::Tick(entities, localPlayer, camera, assist.aim, overlayW, overlayH, scaleX, scaleY, g_session);
 
         if (cfg.esp.enabled && camera.valid) {
             g_crashStage = "ESP render";
@@ -454,9 +463,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     actorThread.join();
     posThread.join();
 
-    g_engine.SetMemoryAimTarget(false, {}, {}, 0.f);
+    g_session.SetMemoryAimTarget(false, {}, {}, 0.f);
     Aimbot::Reset();
-    g_engine.Shutdown();
+    g_session.Shutdown();
     ReleaseFpgaNow();
     Splash::Shutdown();
     Renderer::Get().Shutdown();

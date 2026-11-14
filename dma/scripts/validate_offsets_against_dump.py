@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-check src/engine/offsets.h field constants against dump.cs."""
+"""Cross-check src/game/offsets.h field constants against dump.cs."""
 
 from __future__ import annotations
 
@@ -8,7 +8,11 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-DUMP = REPO.parent / "dumps" / "2026-11-12" / "dump.cs"
+_DUMPS = REPO.parent / "dumps"
+DUMP = Path(sys.argv[1]) if len(sys.argv) > 1 else None
+if DUMP is None:
+    candidates = sorted(_DUMPS.glob("*/dump.cs"), key=lambda p: p.stat().st_mtime, reverse=True)
+    DUMP = candidates[0] if candidates else _DUMPS / "2026-11-12" / "dump.cs"
 
 
 def normalize_field_name(name: str) -> str:

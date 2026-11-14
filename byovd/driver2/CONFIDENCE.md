@@ -36,7 +36,9 @@ Pass → `driver2/confidence.json` with `"all_pass_85": true` and per-profile `s
 | Post-map | `0x808` delete user symlink (keep mapper handle; client re-opens device) |
 | Runner | Always passes `--driver2` on bypass/ioctl |
 
-**Still not implemented:** module stomp, IOCTL hijack-only comm, kdmapper-full — pool execution remains a lab risk.
+**Stomp:** in-tree (`docs/STOMP_BYPASS.md`); not scored until VM S2 gates pass — default map still **pool** execution (lab risk).
+
+**Still not implemented:** IOCTL hijack-only comm, kdmapper-full.
 
 ## Live ranked
 

@@ -1,0 +1,50 @@
+;
+; Driver2LabAttest.inf — attribution / lab identity for Hardware Dev Center INF review.
+; Service driver only (Driver2.sys). Private attestation — not for public distribution.
+;
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%ManufacturerName%
+CatalogFile=Driver2LabAttest.cat
+DriverVer=11/14/2026,1.0.0.0
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+Driver2.sys = 1,,
+
+[Manufacturer]
+%ManufacturerName%=Standard,NTamd64
+
+[Standard.NTamd64]
+%DeviceDesc%=Driver2_Device, Root\Driver2LabAttest
+
+[Driver2_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Driver2_Device.NT.Services]
+AddService = Driver2Lab,%SPSVCINST_ASSOCSERVICE%, Driver2_Service_Inst
+
+[Driver2_Service_Inst]
+DisplayName    = %ServiceDesc%
+ServiceType    = 1
+StartType      = 3
+ErrorControl   = 1
+ServiceBinary  = %12%\Driver2.sys
+
+[Drivers_Dir]
+Driver2.sys
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="DriverLab Research"
+DiskName="Driver2 Lab Attest Source"
+DeviceDesc="Driver2 Lab Kernel Driver"
+ServiceDesc="Driver2 Lab (private attest)"

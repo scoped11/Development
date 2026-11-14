@@ -136,7 +136,7 @@ See **`VEHICLE_STEALTH.md`**. Product stance:
 - [x] PiDDB / CI hash / WdFilter hygiene (pre–`DriverEntry`)
 - [x] Vehicle IOCTL map (no separate fake `DRIVER_OBJECT`)
 - [x] Optional symlink hide (`--driver2-hide-symlink`) — breaks reopen; dev default is **off**
-- [ ] Module stomp — **roadmap** (not in tree)
+- [x] Module stomp — `Driver2Stomp.sys` + `mapper_nal --stomp` (**lab**, `docs/STOMP_BYPASS.md`)
 - [ ] IOCTL hijack on resident GPU/filter driver — **Lane D** (not driver2)
 
 ### Anti-cheat interaction (lab)

@@ -4,7 +4,7 @@
 // ============================================================================
 // ROB RUN (Unity IL2CPP) — offsets
 //
-// Dump: dumps/2026-11-13-r2 (Il2CppDumper 6.7.48, metadata v39, 216 DummyDlls).
+// Dump: 2026-11-14 (Il2CppDumper, metadata v39). Synced 2026-11-14 UTC. GameAssembly SizeOfImage 0x8fdc000.
 // Steam buildid 26615022. PE SizeOfImage 0x8FDC000. Getters rechecked on the live DLL:
 //   Game.get_GameModel                         0x904DA0  [rcx+0xD0]
 //   GameModel.get_BattleModel                  0x7EB6B0  [rcx+0x10]
@@ -29,7 +29,7 @@
 
 namespace offsets {
 
-    // PE SizeOfImage for this Steam build. File size on disk is smaller (0x8D04A00).
+    // PE SizeOfImage for this Steam build. File size on disk is smaller (~0x8D01800).
     constexpr size_t kDumpGameAssemblySize = 0x8FDC000ULL;
     constexpr size_t kLiveGameAssemblySize = 0x8FDC000ULL;
     // Previous Steam build (this morning, 0x8CFE600) if the game was not restarted.
@@ -155,6 +155,8 @@ namespace offsets {
         constexpr uintptr_t MovementView = 0x20; // CharacterMovementView
         constexpr uintptr_t FollowCamera = 0x58;
         constexpr uintptr_t LookRotation = 0x80;
+        constexpr uintptr_t RendersVisible = 0xB0;
+        constexpr uintptr_t CustomizationView = 0xB8;
         constexpr uintptr_t HeadPosition = 0xE8;
     }
 
@@ -232,6 +234,7 @@ namespace offsets {
 
     namespace battle_model {
         constexpr uintptr_t BattleEntities = 0x90;
+        constexpr uintptr_t ShotInput = 0x110; // Game.Battle.Inputs.InputModel
         constexpr uintptr_t BattleCamera = 0x358;
     }
 
@@ -256,15 +259,45 @@ namespace offsets {
         constexpr uintptr_t NotSpawnedCharacters = 0x10;
         constexpr uintptr_t BattleCharacters = 0x18;
         constexpr uintptr_t Containers = 0x20;
+        constexpr uintptr_t AccessEntities = 0x28;
+        constexpr uintptr_t SecurityAlarms = 0x30;
         constexpr uintptr_t Loots = 0x38;
-        constexpr uintptr_t StaticLoots = 0x98;   // _staticLootObjects
-        constexpr uintptr_t RandomLoots = 0xA0;   // _randomLootObjects
-        constexpr uintptr_t LootInventories = 0x160;
+        constexpr uintptr_t VehicleLoots = 0x40;
+        constexpr uintptr_t Doors = 0x48;
         constexpr uintptr_t Vehicles = 0x58;
         constexpr uintptr_t Cars = 0x60;
         constexpr uintptr_t Helicopters = 0x68;
+        constexpr uintptr_t BreakableColliderSets = 0x70;
+        constexpr uintptr_t UnlockEntities = 0x80;
+        constexpr uintptr_t BreachEntities = 0x88;
+        constexpr uintptr_t StaticLoots = 0x98;
+        constexpr uintptr_t RandomLoots = 0xA0;
+        constexpr uintptr_t LootNodes = 0xB0;
+        constexpr uintptr_t SecurityPanels = 0xB8;
+        constexpr uintptr_t Cargos = 0xC8;
+        constexpr uintptr_t CollectionCargos = 0xD0;
+        constexpr uintptr_t BuildingCargos = 0x100;
+        constexpr uintptr_t SafeDoors = 0x110;
+        constexpr uintptr_t Storages = 0x128;
+        constexpr uintptr_t StorageInventories = 0x130;
+        constexpr uintptr_t PlotContainerInventories = 0x138;
+        constexpr uintptr_t PlotContainers = 0x140;
+        constexpr uintptr_t Shelvings = 0x148;
+        constexpr uintptr_t Plots = 0x150;
+        constexpr uintptr_t LootInventories = 0x160;
+        constexpr uintptr_t ContainerInventories = 0x168;
+        constexpr uintptr_t Buildings = 0x190;
         constexpr uintptr_t Grenades = 0x1A0;
+        constexpr uintptr_t HideObjects = 0x1B0;
+        constexpr uintptr_t PlayerObservers = 0x1C0;
+        constexpr uintptr_t FurnitureLoots = 0x220;
+        constexpr uintptr_t FurnitureLootInventories = 0x228;
+        constexpr uintptr_t BuildingLoots = 0x238;
         constexpr uintptr_t CashLoot = 0x268;
+        constexpr uintptr_t DefenseBlockPublic = 0x278;
+        constexpr uintptr_t DefenseBlockPrivate = 0x280;
+        constexpr uintptr_t LootableObjectGroups = 0x310;
+        constexpr uintptr_t CashWithdrawal = 0x460;
     }
 
     // Models.Models.BattleCharacter.BattleCharacterModel
@@ -274,7 +307,14 @@ namespace offsets {
         constexpr uintptr_t Transform = 0x58;            // TransformModel
         constexpr uintptr_t ReplicatedTransform = 0x60; // CharacterReplicatedTransformModel
         constexpr uintptr_t LookDirection = 0x70;       // LookDirectionModel
+        constexpr uintptr_t ReplicatedLook = 0x78;      // ReplicatedLookDirectionModel
+        constexpr uintptr_t LastLook = 0x88;            // LastLookDirectionModel
+        constexpr uintptr_t Input = 0x98;               // InputModel (BattleInputData)
+        constexpr uintptr_t LookInput = 0xB0;           // LookDirectionInputModel
+        constexpr uintptr_t Fire = 0xC0;                // FireModel
         constexpr uintptr_t IsDead = 0xF0;              // IPrimitiveModel<bool>
+        constexpr uintptr_t ShotArgs = 0xF8;            // ShotArgsModel
+        constexpr uintptr_t ShotInterp = 0x108;         // ShotInterpolationModel
         constexpr uintptr_t Skeleton = 0x138;           // SkeletonModel
         constexpr uintptr_t IsSprinting = 0x148;        // IPrimitiveModel<bool>
         constexpr uintptr_t Crouch = 0x160;             // CrouchModel
@@ -285,6 +325,8 @@ namespace offsets {
         constexpr uintptr_t Knockout = 0x298;           // KnockoutModel
         constexpr uintptr_t KnockdownLeave = 0x2D8;     // KnockdownLeaveStateModel, IsActive at +0x10
         constexpr uintptr_t Role = 0x208;               // IPrimitiveModel<PlayerRoleDescription>
+        constexpr uintptr_t Customization = 0x230;      // ICustomizationModel
+        constexpr uintptr_t CopCustomize = 0x2C8;       // CopCustomizeModel
     }
 
     namespace knockout {
@@ -346,11 +388,35 @@ namespace offsets {
         constexpr uintptr_t Forward = 0x10;
         constexpr uintptr_t Yaw = 0x1C;
         constexpr uintptr_t Pitch = 0x20;
+        constexpr uintptr_t PackedBytes = 0x14; // Value + Yaw + Pitch
+    }
+
+    namespace look_input {
+        constexpr uintptr_t X = 0x10;
+        constexpr uintptr_t Y = 0x14;
+        constexpr uintptr_t Contains = 0x18;
+    }
+
+    namespace last_look {
+        constexpr uintptr_t Yaw = 0x10;
+        constexpr uintptr_t Pitch = 0x14;
+        constexpr uintptr_t Direction = 0x18;
+    }
+
+    namespace shot_interp {
+        constexpr uintptr_t Position = 0x10;
+        constexpr uintptr_t LookDirection = 0x1C;
+    }
+
+    namespace shot_args {
+        constexpr uintptr_t Position = 0x10;  // IPrimitiveData<Vector3>
+        constexpr uintptr_t Direction = 0x18; // IPrimitiveData<Vector3>
     }
 
     // BattleCharacterPrivateModel
     namespace private_model {
         constexpr uintptr_t Health = 0x1B0; // HealthModel
+        constexpr uintptr_t Armor = 0x178;  // ArmorModel
         constexpr uintptr_t WeaponSpreadArgs = 0x220; // WeaponSpreadArgsModel
         constexpr uintptr_t WeaponSpread = 0x228;     // IPrimitiveModel<float>
         constexpr uintptr_t CheatSprint = 0x238; // IPrimitiveModel<bool>
@@ -361,6 +427,51 @@ namespace offsets {
         constexpr uintptr_t Spread = 0x14;
         constexpr uintptr_t ShotOffsetX = 0x20;
         constexpr uintptr_t ShotOffsetY = 0x24;
+    }
+
+    namespace armor {
+        constexpr uintptr_t Amount = 0x20; // IAmmoModel
+    }
+
+    namespace ammo_model {
+        constexpr uintptr_t Data = 0x10; // IPrimitiveData<int>
+    }
+
+    namespace fire {
+        constexpr uintptr_t IsFiring = 0x10; // IPrimitiveData<bool>
+    }
+
+    namespace shot_input {
+        constexpr uintptr_t Triggered = 0x10; // bool
+        constexpr uintptr_t FrameCount = 0x14;
+        constexpr uintptr_t Mode = 0x18; // Holding=0 Press=1 PressAndHolding=2
+    }
+
+    namespace battle_input {
+        constexpr uintptr_t Data = 0x10;
+        constexpr uintptr_t HasInput = 0x108;
+        constexpr uintptr_t IsShot = 0x3C; // Data + IsShotInput 0x2C
+    }
+
+    namespace battle_camera_updater {
+        constexpr uintptr_t Model = 0x10;
+        constexpr uintptr_t Camera = 0x18;
+        constexpr uintptr_t Follow = 0x20; // Cinemachine3rdPersonFollow
+    }
+
+    namespace customization_view {
+        constexpr uintptr_t ColorModel = 0xD0;
+        constexpr uintptr_t BodyMaterials = 0x88;
+        constexpr uintptr_t HairMaterials = 0x90;
+        constexpr uintptr_t BeardMaterials = 0x80;
+        constexpr uintptr_t HeadMaterial = 0xA8;
+    }
+
+    namespace customization_color {
+        constexpr uintptr_t Skin = 0x10;
+        constexpr uintptr_t Hair = 0x20;
+        constexpr uintptr_t Beard = 0xA0;
+        constexpr uintptr_t ColorSize = 0x10; // UnityEngine.Color
     }
 
     // HealthModel
@@ -481,6 +592,7 @@ namespace offsets {
     }
 
     namespace slot_data {
+        constexpr uintptr_t PublicId = 0x28; // IPrimitiveData<long>
         constexpr uintptr_t Nickname = 0x30; // IPrimitiveData<string>
         constexpr uintptr_t ClanTag = 0x38;  // IPrimitiveData<string>
     }
@@ -556,8 +668,11 @@ namespace offsets {
     }
 
     namespace inventory_item {
+        constexpr uintptr_t Type = 0x20;         // InventoryItemType (byte)
         constexpr uintptr_t Rarity = 0x30;       // RarityItem
+        constexpr uintptr_t WeaponFunc = 0x50;
         constexpr uintptr_t BasePriceFunc = 0x78; // Func<int>
+        constexpr uintptr_t DecoderFunc = 0x180;
     }
 
     namespace il2cpp_delegate {
@@ -572,7 +687,235 @@ namespace offsets {
     namespace container {
         constexpr uintptr_t Description = 0x18; // LocationContainerDescription
         constexpr uintptr_t Position = 0x28;    // PositionModel, floats at +0x10
+        constexpr uintptr_t UnlockState = 0x30;
         constexpr uintptr_t IsEmpty = 0x38;     // IPrimitiveModel<bool>
+        constexpr uintptr_t DrillEndTs = 0x40;  // IPrimitiveModel<long>
+    }
+
+    namespace location_container {
+        constexpr uintptr_t InventoryEntityId = 0x24;
+        constexpr uintptr_t ContainerDescriptionFunc = 0x28;
+        constexpr uintptr_t Position = 0x30;
+        constexpr uintptr_t IsCashWithdrawal = 0x79;
+    }
+
+    namespace container_desc {
+        constexpr uintptr_t TypeFunc = 0x20;
+        constexpr uintptr_t DrillFunc = 0x28;
+    }
+
+    namespace container_inventory {
+        constexpr uintptr_t Id = 0x10;
+        constexpr uintptr_t Inventory = 0x18;
+    }
+
+    namespace inventory_model {
+        constexpr uintptr_t Slots = 0x18;
+    }
+
+    namespace inventory_slots {
+        constexpr uintptr_t Models = 0x10;
+    }
+
+    namespace inventory_slot {
+        constexpr uintptr_t ItemModel = 0x18;
+    }
+
+    namespace inventory_slot_item {
+        constexpr uintptr_t Data = 0x10;
+    }
+
+    namespace hide_object {
+        constexpr uintptr_t OccupantId = 0x10; // -1 empty
+        constexpr uintptr_t Description = 0x18;
+    }
+
+    namespace hide_desc {
+        constexpr uintptr_t Position = 0x30;
+        constexpr uintptr_t Orientation = 0x3C;
+        constexpr uintptr_t HideObjectFunc = 0x28;
+    }
+
+    namespace plot {
+        constexpr uintptr_t Data = 0x10;
+        constexpr uintptr_t Id = 0x18;
+        constexpr uintptr_t Slot = 0x20;
+        constexpr uintptr_t Description = 0x28;
+        constexpr uintptr_t MainBuilding = 0x58;
+        constexpr uintptr_t MainBuildingLoot = 0x80;
+        constexpr uintptr_t ClanBonus = 0xA8;
+        constexpr uintptr_t Vip = 0xB0;
+    }
+
+    namespace customization {
+        constexpr uintptr_t Data = 0x10;
+    }
+
+    namespace customization_data {
+        constexpr uintptr_t Sex = 0x20;
+        constexpr uintptr_t Beard = 0x28;
+        constexpr uintptr_t Body = 0x30;
+        constexpr uintptr_t Hair = 0x38;
+        constexpr uintptr_t SkinColor = 0x70;
+        constexpr uintptr_t Bag = 0x78;
+        constexpr uintptr_t FBody = 0xB0;
+        constexpr uintptr_t FHair = 0xB8;
+        constexpr uintptr_t FSkinColor = 0xE0;
+        constexpr uintptr_t FBag = 0xE8;
+    }
+
+    namespace cop_customize {
+        constexpr uintptr_t Data = 0x10;
+    }
+
+    namespace main_building {
+        constexpr uintptr_t Storages = 0x40;
+        constexpr uintptr_t Shelvings = 0x50;
+        constexpr uintptr_t Doors = 0x80;
+        constexpr uintptr_t PlotContainers = 0x90;
+        constexpr uintptr_t DefenseBlock = 0xA8;
+    }
+
+    namespace defense_public {
+        constexpr uintptr_t Description = 0x10;
+        constexpr uintptr_t RaidLockTs = 0x18;
+        constexpr uintptr_t IsRaided = 0x20;
+        constexpr uintptr_t IsSlotsEmpty = 0x28;
+    }
+
+    namespace defense_private {
+        constexpr uintptr_t Id = 0x10;
+        constexpr uintptr_t BaseDefensePoints = 0x14;
+        constexpr uintptr_t DefensePoints = 0x28;
+    }
+
+    namespace location_defense {
+        constexpr uintptr_t EntityIds = 0x20;
+        constexpr uintptr_t Position = 0x28;
+    }
+
+    namespace defense_ids {
+        constexpr uintptr_t PublicId = 0x10;
+        constexpr uintptr_t PrivateId = 0x14;
+    }
+
+    namespace description_model {
+        constexpr uintptr_t Value = 0x10;
+    }
+
+    namespace builder_door {
+        constexpr uintptr_t DoorModel = 0x28;
+    }
+
+    namespace door_model {
+        constexpr uintptr_t State = 0x30;
+    }
+
+    namespace door_state {
+        constexpr uintptr_t Value = 0x10;
+    }
+
+    namespace plot_data {
+        constexpr uintptr_t OwnerPublicId = 0x28; // IPrimitiveData<long>
+        constexpr uintptr_t VipEndTs = 0x38;
+    }
+
+    namespace plot_desc {
+        constexpr uintptr_t Position = 0x10;
+        constexpr uintptr_t Orientation = 0x1C;
+    }
+
+    namespace plot_container {
+        constexpr uintptr_t Description = 0x10;
+        constexpr uintptr_t Position = 0x38;
+        constexpr uintptr_t IsEmpty = 0x40;
+        constexpr uintptr_t Breach = 0x48;
+    }
+
+    namespace shelving {
+        constexpr uintptr_t Description = 0x18;
+        constexpr uintptr_t CargoInventory = 0x20;
+        constexpr uintptr_t Breach = 0x40;
+    }
+
+    namespace cargo {
+        constexpr uintptr_t Id = 0x18;
+        constexpr uintptr_t Description = 0x28;
+        constexpr uintptr_t Transform = 0x30;
+    }
+
+    namespace building {
+        constexpr uintptr_t Id = 0x38;
+        constexpr uintptr_t Description = 0x40;
+        constexpr uintptr_t Cameras = 0x70;
+        constexpr uintptr_t SafeDoor = 0xB8;
+        constexpr uintptr_t SecurityAlarm = 0xC8;
+    }
+
+    namespace building_desc {
+        constexpr uintptr_t Position = 0x30;
+        constexpr uintptr_t Cameras = 0xC0;
+        constexpr uintptr_t HideObjects = 0xC8;
+        constexpr uintptr_t TypeFunc = 0x28;
+    }
+
+    namespace cameras_model {
+        constexpr uintptr_t Descriptions = 0x10;
+        constexpr uintptr_t Models = 0x18;
+    }
+
+    namespace camera_model {
+        constexpr uintptr_t IsBroken = 0x10; // IPrimitiveData<bool>
+        constexpr uintptr_t Description = 0x28;
+    }
+
+    namespace location_camera {
+        constexpr uintptr_t Position = 0x30;
+        constexpr uintptr_t Orientation = 0x3C;
+    }
+
+    namespace safe_door {
+        constexpr uintptr_t IsUnlocked = 0x10;
+        constexpr uintptr_t UnlockEndTs = 0x18;
+        constexpr uintptr_t Description = 0x28;
+    }
+
+    namespace furniture_loot {
+        constexpr uintptr_t Position = 0x18;
+        constexpr uintptr_t HasCargo = 0x30;
+        constexpr uintptr_t FurnitureType = 0x48;
+        constexpr uintptr_t FurnitureId = 0x50;
+    }
+
+    namespace loot_node {
+        constexpr uintptr_t Description = 0x10;
+        constexpr uintptr_t IsEmpty = 0x30;
+    }
+
+    namespace loot_node_desc {
+        constexpr uintptr_t LootFunc = 0x30;
+        constexpr uintptr_t Position = 0x38;
+    }
+
+    namespace cash_withdrawal {
+        constexpr uintptr_t ContainerEntityId = 0x18;
+        constexpr uintptr_t InteractPoint = 0x1C;
+    }
+
+    namespace grenade_desc {
+        constexpr uintptr_t InstantDamage = 0x30;
+        constexpr uintptr_t Radius = 0x38;
+        constexpr uintptr_t InstantBlind = 0x3C;
+        constexpr uintptr_t Smoke = 0x3D;
+    }
+
+    namespace list {
+        constexpr uintptr_t Items = 0x10;
+        constexpr uintptr_t Size = 0x18;
+    }
+
+    namespace clan_bonus {
+        constexpr uintptr_t Tag = 0x10;
     }
 
     namespace grenade {

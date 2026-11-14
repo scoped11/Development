@@ -1,5 +1,7 @@
 #include "radar.h"
+#include "game/names.hpp"
 #include "imgui.h"
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <string>
@@ -19,7 +21,10 @@ void Radar::Render(const std::vector<GameEntity>& entities,
 
     const float size = config.size;
     ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - size - 28.f, 24.f), ImGuiCond_FirstUseEver);
+    if (config.posX >= 0.f && config.posY >= 0.f)
+        ImGui::SetNextWindowPos(ImVec2(config.posX, config.posY), ImGuiCond_Always);
+    else
+        ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - size - 28.f, 24.f), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(size + 12.f, size + 36.f), ImGuiCond_Always);
     ImGui::SetNextWindowBgAlpha(0.88f);
     ImGui::Begin("##RadarFloat", nullptr,
@@ -89,19 +94,13 @@ void Radar::Render(const std::vector<GameEntity>& entities,
         switch (ent.type) {
             case EntityType::Player:
                 if (!config.showPlayers) continue;
-                {
-                    std::string role = ent.role;
-                    for (char& c : role)
-                        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-                    const auto& esp = Config::Get().esp;
-                    if (role.find("cop") != std::string::npos) colour = esp.copColour;
-                    else if (role.find("robber") != std::string::npos) colour = esp.robberColour;
-                    else colour = esp.playerColour;
-                }
+                colour = config.roleColours ? Names::RoleColour(ent.role, Config::Get().esp) : config.playerColour;
                 break;
             case EntityType::Item:
+            case EntityType::DeathBag:
+            case EntityType::Cargo:
                 if (!config.showItems) continue;
-                colour = config.itemColour;
+                colour = ent.type == EntityType::Cargo ? Config::Get().esp.cargoColour : config.itemColour;
                 break;
             case EntityType::Vehicle:
                 if (!config.showVehicles) continue;
@@ -116,8 +115,20 @@ void Radar::Render(const std::vector<GameEntity>& entities,
                 colour = config.grenadeColour;
                 break;
             case EntityType::Container:
+            case EntityType::Rack:
+            case EntityType::Atm:
+            case EntityType::Safe:
+            case EntityType::Vault:
                 if (!config.showContainers) continue;
                 colour = config.containerColour;
+                break;
+            case EntityType::Base:
+                if (!config.showBases) continue;
+                colour = Config::Get().esp.baseColour;
+                break;
+            case EntityType::Camera:
+                if (!config.showCameras) continue;
+                colour = Config::Get().esp.cameraColour;
                 break;
             default:
                 continue;
@@ -148,8 +159,17 @@ void Radar::Render(const std::vector<GameEntity>& entities,
             radarY < radarPos.y + margin || radarY > radarPos.y + size - margin)
             continue;
 
-        float dotSize = (ent.type == EntityType::Item) ? 2.5f : 3.5f;
-        dl->AddCircleFilled(ImVec2(radarX, radarY), dotSize, ToImCol(colour));
+        const ImU32 col = ToImCol(colour);
+        if (config.arrowBlips && ent.type == EntityType::Player) {
+            float ang = std::atan2f(ent.aimForward.x, ent.aimForward.z);
+            ImVec2 tip(radarX + std::sinf(ang) * 6.f, radarY - std::cosf(ang) * 6.f);
+            ImVec2 a(radarX - std::cosf(ang) * 3.5f, radarY - std::sinf(ang) * 3.5f);
+            ImVec2 b(radarX + std::cosf(ang) * 3.5f, radarY + std::sinf(ang) * 3.5f);
+            dl->AddTriangleFilled(tip, a, b, col);
+        } else {
+            float dotSize = (ent.type == EntityType::Item) ? 2.5f : 3.5f;
+            dl->AddCircleFilled(ImVec2(radarX, radarY), dotSize, col);
+        }
 
         int typeIndex = static_cast<int>(ent.type) - 1;
         if (typeIndex >= 0 && typeIndex < 4) counts[typeIndex]++;
@@ -163,4 +183,71 @@ void Radar::Render(const std::vector<GameEntity>& entities,
 
     ImGui::Dummy(ImVec2(size, size + 20));
     ImGui::End();
+
+    if (config.bigRadar && localPlayer.position.IsValid()) {
+        ImGui::SetNextWindowSize(ImVec2(560.f, 620.f), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Big Radar");
+        static float panX = 0.f, panZ = 0.f, zoom = 1.f;
+        if (config.follow) {
+            panX = localPlayer.position.x;
+            panZ = localPlayer.position.z;
+        }
+        ImGui::SliderFloat("Zoom##big", &zoom, 0.2f, 6.f, "%.1fx");
+        ImGui::SameLine();
+        if (ImGui::Button("Recenter")) {
+            panX = localPlayer.position.x;
+            panZ = localPlayer.position.z;
+        }
+        ImDrawList* big = ImGui::GetWindowDrawList();
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        float bs = ImGui::GetContentRegionAvail().x;
+        if (bs < 120.f) bs = 120.f;
+        ImGui::InvisibleButton("##bigmap", ImVec2(bs, bs));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+            ImVec2 d = ImGui::GetIO().MouseDelta;
+            float bscale = (350.f / bs) / std::max(0.2f, zoom);
+            panX -= d.x * bscale;
+            panZ += d.y * bscale;
+        }
+        if (ImGui::IsItemHovered() && std::fabs(ImGui::GetIO().MouseWheel) > 0.f)
+            zoom = std::clamp(zoom + ImGui::GetIO().MouseWheel * 0.15f, 0.2f, 6.f);
+        big->AddRectFilled(p, ImVec2(p.x + bs, p.y + bs), ToImCol(config.backgroundColour));
+        float bcx = p.x + bs * 0.5f, bcy = p.y + bs * 0.5f;
+        float bscale = (350.f / bs) / std::max(0.2f, zoom);
+        auto plot = [&](float wx, float wz, float& ox, float& oy) {
+            ox = bcx + (wx - panX) / bscale;
+            oy = bcy - (wz - panZ) / bscale;
+        };
+        float lx, ly;
+        plot(localPlayer.position.x, localPlayer.position.z, lx, ly);
+        big->AddCircleFilled(ImVec2(lx, ly), 5.f, ToImCol(config.localColour));
+        for (const auto& ent : entities) {
+            if (!ent.IsValid() || ent.isLocalPlayer) continue;
+            Colour c;
+            float sz = 3.5f;
+            switch (ent.type) {
+                case EntityType::Player:
+                    if (!config.showPlayers) continue;
+                    c = config.roleColours ? Names::RoleColour(ent.role, Config::Get().esp) : config.playerColour;
+                    sz = 4.5f;
+                    break;
+                case EntityType::Base:
+                    if (!config.showBases) continue;
+                    c = Config::Get().esp.baseColour;
+                    sz = 5.f;
+                    break;
+                case EntityType::Vehicle:
+                    if (!config.showVehicles) continue;
+                    c = config.vehicleColour;
+                    break;
+                default:
+                    continue;
+            }
+            float rx, ry;
+            plot(ent.position.x, ent.position.z, rx, ry);
+            if (rx < p.x || rx > p.x + bs || ry < p.y || ry > p.y + bs) continue;
+            big->AddCircleFilled(ImVec2(rx, ry), sz, ToImCol(c));
+        }
+        ImGui::End();
+    }
 }

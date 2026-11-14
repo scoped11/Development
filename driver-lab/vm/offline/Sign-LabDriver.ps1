@@ -33,6 +33,6 @@ if (-not $signtool) {
 }
 
 # /ph page hashes — full Authenticode for kernel CI (trust via lab CA, not testsigning BCD).
-& $signtool.FullName sign /v /fd SHA256 /f $pfx /p $pw /ph $SysPath
+& $signtool.FullName sign /v /fd SHA256 /f $pfx /p $pw /ph /d "VmLab kernel driver (lab)" $SysPath
 if ($LASTEXITCODE -ne 0) { throw "signtool failed $LASTEXITCODE" }
 Write-Host "[+] Signed $SysPath"

@@ -20,7 +20,7 @@ static uint64_t ParseU64(const char* s)
 static void Usage()
 {
     printf("Driver2Client — direct IOCTL to mapped Driver2.sys\n\n");
-    printf("  Driver2Client.exe probe\n");
+    printf("  Driver2Client.exe [--device \\\\.\\WCIFS] probe\n");
     printf("  Driver2Client.exe ace-strengthen [hex_features=3f]\n");
     printf("  Driver2Client.exe ace-delta [hex_features=1f]\n");
     printf("  Driver2Client.exe eac-improve [hex_features=7f]\n");
@@ -34,7 +34,13 @@ static void Usage()
 
 int main(int argc, char** argv)
 {
-    if (argc < 2) { Usage(); return 1; }
+    int base = 1;
+    if (argc >= 3 && !strcmp(argv[1], "--device")) {
+        Driver2SetDeviceName(nullptr);
+        BetestSetDeviceOverride(argv[2]);
+        base = 3;
+    }
+    if (argc <= base) { Usage(); return 1; }
 
     HANDLE h = Driver2Open();
     if (h == INVALID_HANDLE_VALUE) {
@@ -47,7 +53,7 @@ int main(int argc, char** argv)
         return 3;
     }
 
-    const char* cmd = argv[1];
+    const char* cmd = argv[base];
     if (!strcmp(cmd, "ace-strengthen")) {
         uint32_t feat = ACE_STR_ALL;
         if (argc >= 3) feat = (uint32_t)strtoul(argv[2], nullptr, 16);

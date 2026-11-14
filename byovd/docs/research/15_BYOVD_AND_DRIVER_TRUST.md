@@ -46,7 +46,7 @@ Classic **kdmapper** (Intel `iqvw64e` IOCTL map path) often tries to erase load 
 | **MmUnloadedDrivers** | Zero `KLDR_DATA_TABLE_ENTRY.BaseDllName.Length` on vehicle driver so `MiRememberUnloadedDriver` skips append | **Not implemented** in mapper (random names or stale slots can still appear — see lab WinDbg dumps) |
 | **PsLoadedModuleList** | Sometimes unlink (PG-sensitive) | **Optional** `DkomUnlinkDriver` for BYOVD `.sys` name — only in non–`--rw-only` post-map sweep [PG-unsafe] |
 | **Payload residence** | Pool RWX allocation | **`ManualMap` → `ExAllocatePool`/BYOVD alloc** — **non-image-backed** unless module stomping is added |
-| **Module stomping** | Copy payload into signed victim `SizeOfImage`, wipe pool copy | **Not implemented** (no `WritePhysPage` / `PostStompFinalize` path) |
+| **Module stomping** | Copy payload into signed victim `SizeOfImage`, wipe pool copy | **Lab implementation** — `docs/STOMP_BYPASS.md`, `src/mapper/stomp.cpp` (no live gate yet) |
 | **IOCTL surface** | New device | Betest `IoCreateDevice` under NAL `DRIVER_OBJECT` or dynamic names — enumerable |
 
 `BetestDriver.c` **DeepHide** can zero **Betest’s own** `DriverSection` names when an IOCTL requests it; that is not the same as cleaning the **BYOVD vehicle** driver’s PiDDB/MmUnloaded records at map time.

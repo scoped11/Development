@@ -43,7 +43,7 @@ These exist in research / tooling. **In-tree** means we already have a recipe. *
 | **A3** | Signed OEM driver not on public LOL list | Out | Different vehicle | Same **class** once listed; not a hide |
 | **A4** | WHQL driver you ship (EV cert) | Out | Legal load path | EAC still scans **behavior** + image |
 | **H2** | Shared memory / pipe / socket UM↔KM | Partial (IOCTL wrap) | Quieter than new `\Device\Cheat` | RwTest wrap is this idea on vehicle |
-| **H3** | Module stomp / PE in signed `.text` | Documented as gap (`04`) | Hide pool PE | Residual disk vs memory; **not default** |
+| **H3** | Module stomp / PE in signed `.text` | **`STOMP_BYPASS.md`** (lab) | Hide pool PE | Residual disk vs memory; **not default** |
 | **DBG** | WinDbg / KDNET / livekd | Out | Lab I gold | EAC anti-debug; use **after** snapshot or no EAC |
 | **ETW** | ETW / WPR traces of EAC | Out | How EAC behaves | Defensive / measurement |
 | **NET** | Steam/EOS traffic (TLS intercept) | Out | Matchmaking / report path | Not R/W; legal/ToS |

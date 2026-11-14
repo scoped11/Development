@@ -41,7 +41,7 @@ Marker test: `0x1122334455667788` via `process_rw.exe` after prove map.
 | Map-time vehicle wrap | HAL tramp + real `DRIVER_OBJECT` | `02_architecture.md` |
 | Live ranked host | Hijack **non-AC** dispatch (Lane E) | `driver-lab/docs/22_live_hijack_method.md` |
 
-**Not in kit:** module stomp, PiDDB scrub, IOCTL-only hijack without engineering (see catalog § “What is not”).
+**Stomp:** lab path in tree (`byovd/docs/STOMP_BYPASS.md`). **Not in kit:** PiDDB scrub, IOCTL-only hijack without engineering (see catalog § “What is not”).
 
 ## 5. AC profile quick reference
 

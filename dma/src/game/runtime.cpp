@@ -1,5 +1,7 @@
-#include "engine.h"
+#include "session.hpp"
 #include "offsets.h"
+#include "names.hpp"
+#include "config/config.h"
 #include "core/memory.h"
 #include "core/scatter.h"
 #include "features/skeleton_pose.h"
@@ -16,6 +18,10 @@
 #include <unordered_set>
 #include <fstream>
 #include <vector>
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
 
 namespace {
 
@@ -115,134 +121,36 @@ bool ApplyCameraAxes(FMinimalViewInfo& view, const Vector3& forward,
     return true;
 }
 
-float Clamp01(float v) {
-    if (!(v > 0.f)) return 0.f;
-    return v > 1.f ? 1.f : v;
-}
-
-float Lerp(float a, float b, float t) {
-    return a + (b - a) * t;
-}
-
-bool SaneRigDistance(float d) {
-    return std::isfinite(d) && d >= 0.2f && d <= 12.f;
-}
-
-bool SaneRigOffset(float v) {
-    return std::isfinite(v) && std::fabsf(v) <= 3.5f;
-}
-
-// Cinemachine puts the lens one arm-length above the shoulder and
-// CameraDistance behind the hand. root is the follow target.
-bool PlaceRigCamera(const float* raw, bool aiming, const Vector3& root,
-                    const Vector3& forward, Vector3& eye,
-                    float& outDist, float& outSide) {
-    if (!raw || !FinitePosition(root)) return false;
-    float ox = raw[0];
-    float oy = raw[1];
-    float oz = raw[2];
-    float arm = raw[3];
-    float side = raw[4];
-    float dist = raw[5];
-    if (!SaneRigOffset(ox) || !SaneRigOffset(oy) || !SaneRigOffset(oz)) return false;
-    if (!SaneRigOffset(arm)) arm = 0.f;
-    if (!SaneRigDistance(dist)) return false;
-    if (!(side >= -0.05f && side <= 1.05f)) side = 1.f;
-
-    auto at = [&](int offset) {
-        return raw[(offset - static_cast<int>(offsets::third_person::ShoulderOffset)) / 4];
-    };
-    if (aiming) {
-        float w = Clamp01(at(offsets::third_person::WeightAiming));
-        float mode = Clamp01(at(offsets::third_person::WeightAimMode));
-        auto blend = [&](float base, float third, float first) {
-            return Lerp(Lerp(base, third, w), Lerp(base, first, w), mode);
-        };
-        float a3x = at(offsets::third_person::ShoulderOffsetAimed3);
-        float a3y = at(offsets::third_person::ShoulderOffsetAimed3 + 4);
-        float a3z = at(offsets::third_person::ShoulderOffsetAimed3 + 8);
-        float a1x = at(offsets::third_person::ShoulderOffsetAimed1);
-        float a1y = at(offsets::third_person::ShoulderOffsetAimed1 + 4);
-        float a1z = at(offsets::third_person::ShoulderOffsetAimed1 + 8);
-        if (SaneRigOffset(a3x) && SaneRigOffset(a3y) && SaneRigOffset(a3z) &&
-            SaneRigOffset(a1x) && SaneRigOffset(a1y) && SaneRigOffset(a1z)) {
-            ox = blend(ox, a3x, a1x);
-            oy = blend(oy, a3y, a1y);
-            oz = blend(oz, a3z, a1z);
-        }
-        float arm3 = at(offsets::third_person::VerticalArmLengthAimed3);
-        float arm1 = at(offsets::third_person::VerticalArmLengthAimed1);
-        if (SaneRigOffset(arm3) && SaneRigOffset(arm1))
-            arm = blend(arm, arm3, arm1);
-        float dist3 = at(offsets::third_person::CameraDistanceAimed3);
-        float dist1 = at(offsets::third_person::CameraDistanceAimed1);
-        if (SaneRigDistance(dist3) && dist1 >= 0.f && dist1 <= 12.f && std::isfinite(dist1))
-            dist = blend(dist, dist3, dist1);
-        float live = at(offsets::third_person::CameraDistanceLive);
-        if (SaneRigDistance(live))
-            dist = live;
-    }
-
-    float sideClamped = Clamp01(side);
-    ox = Lerp(-ox, ox, sideClamped);
-
-    Vector3 flat{ forward.x, 0.f, forward.z };
-    float flatLen = flat.Length();
-    if (flatLen < 0.2f)
-        flat = { 0.f, 0.f, 1.f };
-    else
-        flat = flat / flatLen;
-    Vector3 look = forward.Normalized();
-    Vector3 right = Vector3{ 0.f, 1.f, 0.f }.Cross(flat);
-    Vector3 hand = root + right * ox + Vector3{ 0.f, 1.f, 0.f } * (oy + arm) + flat * oz;
-    eye = hand - look * dist;
-    if (!FinitePosition(eye)) return false;
-    if (eye.Distance(root) > 15.f) return false;
-    if ((root - eye).Dot(look) < 0.15f) return false;
-    outDist = dist;
-    outSide = sideClamped;
-    return true;
-}
-
 } // namespace
 
-bool UnityEngine::Initialize(const std::string&) {
+bool RobRunSession::Initialize(const std::string&) {
     m_inGame = false;
     m_battleEntities = 0;
     m_gameKlass = 0;
     m_gameObject.store(0);
     m_gameSearchRetry = {};
-    m_heapSearchRetry = {};
-    m_gomRetry = {};
     m_battleEvalFails = 0;
     m_battleKlass = 0;
     m_viewUpdater.store(0);
     m_viewUpdaterKlass = 0;
-    m_brainKlass = 0;
-    m_updaterKlass = 0;
-    m_brainSearched = false;
-    m_brainFallbackDone = false;
-    m_brainCount.store(0);
-    m_brainReject.store(0);
-    m_rig.store(0);
-    m_rigKind.store(0);
-    m_rigKlass = 0;
-    m_rigSearched = false;
-    m_rigStringTried = false;
     m_battleCamera.store(0);
-    m_battleCameraKlass.store(0);
     m_battleModel.store(0);
-    m_battleCameraSearched = false;
     m_followPos.store(0);
+    m_shotInput.store(0);
+    m_fireFlag.store(0);
+    m_followCamNative.store(0);
+    m_cameraFollow.store(0);
+    m_freecamOn.store(false);
+    ClearSilentAim();
     m_gameAssembly = 0;
     m_moduleReady.store(false);
     m_espReady.store(false);
     SetStatus("Waiting for GameAssembly.dll");
-    std::cout << "[*] ROB RUN engine ready\n";
+    std::cout << "[*] Rob Run DMA session ready (shoulder camera)\n";
     return Memory::Get().IsConnected();
 }
 
-void UnityEngine::Shutdown() {
+void RobRunSession::Shutdown() {
     m_inGame = false;
     m_battleEntities.store(0);
     m_gameObject.store(0);
@@ -253,22 +161,15 @@ void UnityEngine::Shutdown() {
     m_moduleReady.store(false);
     m_espReady.store(false);
     m_battleKlass = 0;
-    m_brainKlass = 0;
-    m_updaterKlass = 0;
-    m_brainSearched = false;
-    m_brainFallbackDone = false;
-    m_brainCount.store(0);
-    m_brainReject.store(0);
-    m_rig.store(0);
-    m_rigKind.store(0);
-    m_rigKlass = 0;
-    m_rigSearched = false;
-    m_rigStringTried = false;
     m_battleCamera.store(0);
-    m_battleCameraKlass.store(0);
     m_battleModel.store(0);
-    m_battleCameraSearched = false;
     m_followPos.store(0);
+    m_shotInput.store(0);
+    m_fireFlag.store(0);
+    m_followCamNative.store(0);
+    m_cameraFollow.store(0);
+    m_freecamOn.store(false);
+    ClearSilentAim();
     m_recoilObject.store(0);
     m_recoilKlass.store(0);
     m_fakeSpread.store(0);
@@ -284,7 +185,7 @@ void UnityEngine::Shutdown() {
     m_camera = {};
 }
 
-void UnityEngine::SetStatus(const std::string& text) {
+void RobRunSession::SetStatus(const std::string& text) {
     const bool splash = Splash::Covering();
     {
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -306,44 +207,56 @@ void UnityEngine::SetStatus(const std::string& text) {
         Splash::SetStage(text.c_str());
 }
 
-bool UnityEngine::EnsureModule() {
+bool RobRunSession::EnsureModule() {
     if (m_gameAssembly) return true;
     auto& mem = Memory::Get();
     m_gameAssembly = mem.GetModuleBase("GameAssembly.dll");
     m_gameAssemblySize = mem.GetModuleSize("GameAssembly.dll");
     if (!m_gameAssembly) return false;
+    if (!m_gameAssemblySize)
+        m_gameAssemblySize = mem.ReadPeImageSize(m_gameAssembly);
+    m_gameAssemblyPriorBuild = offsets::IsPriorGameAssemblySize(m_gameAssemblySize);
+  // Hardcoded TypeInfo RVAs from offsets.h — no module scan before first DMA read.
+    ResolveGameKlass();
+    ResolveBattleKlass();
+    mem.EnsureUnityPlayer();
+    if (m_gameKlass)
+        FindGameObject();
     m_moduleReady.store(true);
     std::cout << "[+] GameAssembly.dll @ 0x" << std::hex << m_gameAssembly
-              << " size 0x" << m_gameAssemblySize << std::dec << "\n";
+              << " size 0x" << m_gameAssemblySize << std::dec
+              << " build=" << (m_gameAssemblyPriorBuild ? "prior" : "current")
+              << " gameKlass=0x" << std::hex << m_gameKlass
+              << " battleKlass=0x" << m_battleKlass << std::dec << "\n";
     return true;
 }
 
-std::string UnityEngine::ReadKlassName(uintptr_t klass) const {
+std::string RobRunSession::ReadKlassName(uintptr_t klass) const {
     if (!IsPtr(klass)) return {};
     uintptr_t namePtr = Memory::Get().Read<uintptr_t>(klass + offsets::il2cpp::Class_Name);
     if (!IsPtr(namePtr)) return {};
     return Memory::Get().ReadString(namePtr, 80);
 }
 
-std::string UnityEngine::ReadEnumId(uintptr_t description) const {
+std::string RobRunSession::ReadEnumId(uintptr_t description) const {
     if (!IsPtr(description)) return {};
     uintptr_t str = Memory::Get().Read<uintptr_t>(description + offsets::identified::Id);
     return ReadIl2CppString(str);
 }
 
-std::string UnityEngine::ReadModelEnumId(uintptr_t primitiveModel) const {
+std::string RobRunSession::ReadModelEnumId(uintptr_t primitiveModel) const {
     uintptr_t slot = ModelValueAddress(primitiveModel);
     if (!slot) return {};
     return ReadEnumId(Memory::Get().Read<uintptr_t>(slot));
 }
 
-std::string UnityEngine::ReadDataEnumId(uintptr_t primitive) const {
+std::string RobRunSession::ReadDataEnumId(uintptr_t primitive) const {
     uintptr_t slot = PrimitiveValueAddress(primitive);
     if (!slot) return {};
     return ReadEnumId(Memory::Get().Read<uintptr_t>(slot));
 }
 
-std::string UnityEngine::ReadIl2CppString(uintptr_t address) const {
+std::string RobRunSession::ReadIl2CppString(uintptr_t address) const {
     if (!IsPtr(address)) return {};
     int length = Memory::Get().Read<int>(address + offsets::il2cpp::String_Length);
     if (length <= 0 || length > 64) return {};
@@ -362,19 +275,19 @@ std::string UnityEngine::ReadIl2CppString(uintptr_t address) const {
     return out;
 }
 
-uintptr_t UnityEngine::PrimitiveValueAddress(uintptr_t primitive) const {
+uintptr_t RobRunSession::PrimitiveValueAddress(uintptr_t primitive) const {
     if (!IsPtr(primitive)) return 0;
     return primitive + offsets::il2cpp::Primitive_Value;
 }
 
-uintptr_t UnityEngine::ModelValueAddress(uintptr_t primitiveModel) const {
+uintptr_t RobRunSession::ModelValueAddress(uintptr_t primitiveModel) const {
     if (!IsPtr(primitiveModel)) return 0;
     uintptr_t data = Memory::Get().Read<uintptr_t>(
         primitiveModel + offsets::il2cpp::PrimitiveModel_Data);
     return PrimitiveValueAddress(data);
 }
 
-uintptr_t UnityEngine::DictionaryObject(uintptr_t dict, int maxCount) const {
+uintptr_t RobRunSession::DictionaryObject(uintptr_t dict, int maxCount) const {
     if (!IsPtr(dict) || maxCount < 0) return 0;
     auto& mem = Memory::Get();
 
@@ -410,7 +323,7 @@ uintptr_t UnityEngine::DictionaryObject(uintptr_t dict, int maxCount) const {
     return 0;
 }
 
-bool UnityEngine::ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out, int maxCount) const {
+bool RobRunSession::ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out, int maxCount) const {
     out.clear();
     dict = DictionaryObject(dict, maxCount);
     if (!dict) return false;
@@ -445,7 +358,7 @@ bool UnityEngine::ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out, 
     return true;
 }
 
-bool UnityEngine::EvaluateBattleEntities(uintptr_t object, BattleCandidate& result) const {
+bool RobRunSession::EvaluateBattleEntities(uintptr_t object, BattleCandidate& result) const {
     result = {};
     result.address = object;
     if (!IsPtr(object)) return false;
@@ -522,7 +435,7 @@ bool UnityEngine::EvaluateBattleEntities(uintptr_t object, BattleCandidate& resu
     return true;
 }
 
-bool UnityEngine::ValidateBattleEntities(uintptr_t object, int& outCount, bool& outHasPlayer) const {
+bool RobRunSession::ValidateBattleEntities(uintptr_t object, int& outCount, bool& outHasPlayer) const {
     BattleCandidate candidate;
     if (!EvaluateBattleEntities(object, candidate)) {
         outCount = -1;
@@ -534,18 +447,18 @@ bool UnityEngine::ValidateBattleEntities(uintptr_t object, int& outCount, bool& 
     return true;
 }
 
-bool UnityEngine::MatchesKlassName(uintptr_t klass, const char* name) const {
+bool RobRunSession::MatchesKlassName(uintptr_t klass, const char* name) const {
     if (!IsPtr(klass) || !name)
         return false;
     return ReadKlassName(klass) == name;
 }
 
-bool UnityEngine::IsBattleKlass(uintptr_t klass) const {
+bool RobRunSession::IsBattleKlass(uintptr_t klass) const {
     return IsNamedKlass(klass, "BattleEntitiesModel", "Game.Battle") ||
            MatchesKlassName(klass, "BattleEntitiesModel");
 }
 
-uintptr_t UnityEngine::KlassFromTypeInfoWord(uintptr_t word, const char* name,
+uintptr_t RobRunSession::KlassFromTypeInfoWord(uintptr_t word, const char* name,
                                              const char* nameSpace) const {
     auto& mem = Memory::Get();
     uintptr_t cur = word;
@@ -561,76 +474,8 @@ uintptr_t UnityEngine::KlassFromTypeInfoWord(uintptr_t word, const char* name,
     return 0;
 }
 
-uintptr_t UnityEngine::FindKlassByName(const char* name) const {
-    if (!name || !m_gameAssembly)
-        return 0;
-    auto& mem = Memory::Get();
-    const size_t length = std::strlen(name) + 1;
 
-    auto tryRefs = [&](uintptr_t str) -> uintptr_t {
-        if (!IsPtr(str) || mem.ReadString(str, 80) != name)
-            return 0;
-        auto refs = mem.SearchHeap(&str, sizeof(str), 8, 32, true);
-        for (uintptr_t ref : refs) {
-            if (ref < offsets::il2cpp::Class_Name)
-                continue;
-            const uintptr_t cand = ref - offsets::il2cpp::Class_Name;
-            if (MatchesKlassName(cand, name))
-                return cand;
-        }
-        return 0;
-    };
-
-    const uintptr_t gaEnd = m_gameAssembly + m_gameAssemblySize;
-    constexpr uintptr_t kChunk = 0x400000;
-    static uintptr_t cursor = 0;
-    if (cursor < m_gameAssembly || cursor >= gaEnd)
-        cursor = m_gameAssembly;
-    const uintptr_t hi = (std::min)(gaEnd, cursor + kChunk);
-    auto inModule = mem.SearchRange(name, length, 1, 8, cursor, hi, 12);
-    cursor = hi >= gaEnd ? m_gameAssembly : hi;
-    for (uintptr_t str : inModule) {
-        if (uintptr_t klass = tryRefs(str))
-            return klass;
-    }
-    return 0;
-}
-
-uintptr_t UnityEngine::FindNamedKlassNearGame(const char* name, const char* nameSpace) {
-    if (!name || !m_gameKlass)
-        return 0;
-    auto& mem = Memory::Get();
-    uintptr_t namePtr = 0;
-    if (!mem.ReadOk(m_gameKlass + offsets::il2cpp::Class_Name, namePtr) || !IsPtr(namePtr))
-        return 0;
-    const size_t length = std::strlen(name) + 1;
-    const uintptr_t span = 0x300000;
-    const uintptr_t lo = namePtr > span ? namePtr - span : 0x10000;
-    const uintptr_t mid = lo + 0x400000;
-    auto hunt = [&](uintptr_t a, uintptr_t b) {
-        if (b <= a)
-            return std::vector<uintptr_t>{};
-        return mem.SearchRange(name, length, 1, 8, a, b, 80);
-    };
-    auto strings = hunt(lo, (std::min)(mid, namePtr + span));
-    if (strings.empty() && namePtr + span > mid)
-        strings = hunt(mid, namePtr + span);
-    for (uintptr_t str : strings) {
-        if (mem.ReadString(str, 80) != name)
-            continue;
-        auto refs = mem.SearchHeap(&str, sizeof(str), 8, 32, true);
-        for (uintptr_t ref : refs) {
-            if (ref < offsets::il2cpp::Class_Name)
-                continue;
-            const uintptr_t cand = ref - offsets::il2cpp::Class_Name;
-            if (IsNamedKlass(cand, name, nameSpace) || MatchesKlassName(cand, name))
-                return cand;
-        }
-    }
-    return 0;
-}
-
-bool UnityEngine::IsNamedKlass(
+bool RobRunSession::IsNamedKlass(
     uintptr_t klass, const char* name, const char* nameSpace) const {
     if (!IsPtr(klass) || !name || !nameSpace) return false;
     if (ReadKlassName(klass) != name) return false;
@@ -640,34 +485,8 @@ bool UnityEngine::IsNamedKlass(
     return Memory::Get().ReadString(ns, 80) == nameSpace;
 }
 
-uintptr_t UnityEngine::ScanTypeInfoRegionForKlass(const char* name, const char* nameSpace) {
-    if (!m_gameAssembly || m_gameAssemblySize < 0x8200000)
-        return 0;
-    auto& mem = Memory::Get();
-    auto scanWindow = [&](uintptr_t lo, uintptr_t hi) -> uintptr_t {
-        if (lo + 8 > m_gameAssemblySize)
-            return 0;
-        if (hi > m_gameAssemblySize)
-            hi = m_gameAssemblySize;
-        for (uintptr_t rva = lo; rva + 8 <= hi; rva += 8) {
-            const uintptr_t raw = mem.Read<uintptr_t>(m_gameAssembly + rva);
-            const uintptr_t klass = KlassFromTypeInfoWord(raw, name, nameSpace);
-            if (!klass)
-                continue;
-            m_battleTypeInfoRva = rva;
-            std::cout << "[+] " << name << " TypeInfo slot rva 0x" << std::hex << rva << std::dec << "\n"
-                      << std::flush;
-            return klass;
-        }
-        return 0;
-    };
 
-    if (uintptr_t klass = scanWindow(0x08100000, 0x08200000))
-        return klass;
-    return scanWindow(0x07800000, 0x08600000);
-}
-
-uintptr_t UnityEngine::ResolveNamedKlass(
+uintptr_t RobRunSession::ResolveNamedKlass(
     const char* name, const char* nameSpace,
     const uintptr_t* slots, size_t slotCount) {
     auto& mem = Memory::Get();
@@ -692,7 +511,7 @@ uintptr_t UnityEngine::ResolveNamedKlass(
     return 0;
 }
 
-uintptr_t UnityEngine::ResolveBattleKlass() {
+uintptr_t RobRunSession::ResolveBattleKlass() {
     if (m_battleKlass && IsBattleKlass(m_battleKlass))
         return m_battleKlass;
 
@@ -755,47 +574,6 @@ uintptr_t UnityEngine::ResolveBattleKlass() {
         }
     }
 
-    static bool scannedNear = false;
-    if (!scannedNear) {
-        scannedNear = true;
-        const uintptr_t centers[] = {
-            offsets::typeinfo::BattleEntitiesModel,
-            offsets::typeinfo::BattleEntitiesModelDump,
-        };
-        for (uintptr_t center : centers) {
-            for (int delta = -0x400; delta <= 0x400; delta += 8) {
-                uintptr_t rva = 0;
-                if (delta >= 0) {
-                    rva = center + static_cast<uintptr_t>(delta);
-                } else {
-                    const uintptr_t back = static_cast<uintptr_t>(-delta);
-                    if (center < back)
-                        continue;
-                    rva = center - back;
-                }
-                if (rva + 8 > m_gameAssemblySize)
-                    continue;
-                uintptr_t word = 0;
-                if (!mem.ReadOk(m_gameAssembly + rva, word))
-                    continue;
-                const uintptr_t klass =
-                    KlassFromTypeInfoWord(word, "BattleEntitiesModel", "Game.Battle");
-                if (klass)
-                    return accept(rva, klass);
-            }
-        }
-    }
-
-    static bool namedTried = false;
-    if (!namedTried) {
-        namedTried = true;
-        ResolveGameKlass();
-        if (uintptr_t klass = FindKlassByName("BattleEntitiesModel"))
-            return accept(0, klass);
-        if (uintptr_t klass = FindNamedKlassNearGame("BattleEntitiesModel", "Game.Battle"))
-            return accept(0, klass);
-    }
-
     auto now = std::chrono::steady_clock::now();
     if (m_klassMiss && now - m_klassRetry < std::chrono::milliseconds(400))
         return 0;
@@ -804,7 +582,7 @@ uintptr_t UnityEngine::ResolveBattleKlass() {
     return 0;
 }
 
-uintptr_t UnityEngine::ResolveGameKlass() {
+uintptr_t RobRunSession::ResolveGameKlass() {
     if (m_gameKlass)
         return m_gameKlass;
 
@@ -835,25 +613,22 @@ uintptr_t UnityEngine::ResolveGameKlass() {
     return 0;
 }
 
-uintptr_t UnityEngine::BattleEntitiesFromGameModel(uintptr_t gameModel) {
+uintptr_t RobRunSession::BattleEntitiesFromGameModel(uintptr_t gameModel) {
     if (!IsPtr(gameModel))
         return 0;
     auto& mem = Memory::Get();
-    uintptr_t modelHeader = 0;
-    if (mem.ReadOk(gameModel, modelHeader) &&
-        !MatchesKlassName(modelHeader, "GameModel"))
-        return 0;
     uintptr_t battleModel = 0;
     if (!mem.ReadOk(gameModel + offsets::game_model::BattleModel, battleModel) || !IsPtr(battleModel))
         return 0;
-    uintptr_t battleHeader = 0;
-    if (mem.ReadOk(battleModel, battleHeader) &&
-        !MatchesKlassName(battleHeader, "BattleModel"))
-        return 0;
     m_battleModel.store(battleModel);
     uintptr_t camera = 0;
-    if (mem.ReadOk(battleModel + offsets::battle_model::BattleCamera, camera) && IsPtr(camera))
-        m_battleCamera.store(camera);
+    if (mem.ReadOk(battleModel + offsets::battle_model::BattleCamera, camera) && IsPtr(camera)) {
+        if (m_battleCamera.load() != camera) {
+            m_battleCamera.store(camera);
+            std::cout << "[+] BattleCamera @ 0x" << std::hex << camera << std::dec
+                      << " (BattleModel+0x358)\n" << std::flush;
+        }
+    }
     uintptr_t battleEntities = 0;
     if (!mem.ReadOk(battleModel + offsets::battle_model::BattleEntities, battleEntities) ||
         !IsPtr(battleEntities))
@@ -861,7 +636,7 @@ uintptr_t UnityEngine::BattleEntitiesFromGameModel(uintptr_t gameModel) {
     return battleEntities;
 }
 
-uintptr_t UnityEngine::BattleEntitiesFromGame(uintptr_t game) {
+uintptr_t RobRunSession::BattleEntitiesFromGame(uintptr_t game) {
     if (!IsPtr(game))
         return 0;
     auto& mem = Memory::Get();
@@ -871,7 +646,7 @@ uintptr_t UnityEngine::BattleEntitiesFromGame(uintptr_t game) {
     return BattleEntitiesFromGameModel(gameModel);
 }
 
-bool UnityEngine::LooksLikeGame(uintptr_t object, uintptr_t gameKlass) const {
+bool RobRunSession::LooksLikeGame(uintptr_t object, uintptr_t gameKlass) const {
     if (!IsPtr(object) || !gameKlass)
         return false;
     auto& mem = Memory::Get();
@@ -879,18 +654,10 @@ bool UnityEngine::LooksLikeGame(uintptr_t object, uintptr_t gameKlass) const {
     if (!mem.ReadOk(object, header) || header != gameKlass)
         return false;
     uintptr_t gameModel = 0;
-    if (!mem.ReadOk(object + offsets::game::GameModel, gameModel))
-        return false;
-    if (!IsPtr(gameModel))
-        return false;
-    uintptr_t modelHeader = 0;
-    if (mem.ReadOk(gameModel, modelHeader) &&
-        !MatchesKlassName(modelHeader, "GameModel"))
-        return false;
-    return true;
+    return mem.ReadOk(object + offsets::game::GameModel, gameModel) && IsPtr(gameModel);
 }
 
-uintptr_t UnityEngine::FindGameViaStatics(uintptr_t gameKlass) {
+uintptr_t RobRunSession::FindGameViaStatics(uintptr_t gameKlass) {
     if (!gameKlass)
         return 0;
     auto& mem = Memory::Get();
@@ -907,247 +674,8 @@ uintptr_t UnityEngine::FindGameViaStatics(uintptr_t gameKlass) {
     return 0;
 }
 
-uintptr_t UnityEngine::FindGameViaHeap(uintptr_t gameKlass) {
-    if (!gameKlass)
-        return 0;
-    auto& mem = Memory::Get();
-    if (mem.MotionBurstDepth() > 0)
-        return 0;
-    const auto hits = mem.SearchHeap(&gameKlass, sizeof(gameKlass), 8, 24, true);
-    static int heapLogs = 0;
-    if (heapLogs < 12 || (heapLogs % 8) == 0) {
-        Memory::Get().Log("[*] heap Game klass hits %zu\n", hits.size());
-        std::cout << "[*] heap Game klass hits " << hits.size();
-        if (!hits.empty()) {
-            uintptr_t header = 0;
-            uintptr_t model = 0;
-            mem.ReadOk(hits[0], header);
-            mem.ReadOk(hits[0] + offsets::game::GameModel, model);
-            std::cout << " first 0x" << std::hex << hits[0]
-                      << " hdr 0x" << header << " model 0x" << model << std::dec;
-        }
-        std::cout << "\n" << std::flush;
-    }
-    ++heapLogs;
-    uintptr_t withModel = 0;
-    for (uintptr_t hit : hits) {
-        if (m_gameAssemblySize && hit >= m_gameAssembly &&
-            hit < m_gameAssembly + m_gameAssemblySize)
-            continue;
-        if (!LooksLikeGame(hit, gameKlass))
-            continue;
-        uintptr_t gameModel = 0;
-        if (mem.ReadOk(hit + offsets::game::GameModel, gameModel) && IsPtr(gameModel)) {
-            if (BattleEntitiesFromGameModel(gameModel))
-                return hit;
-            if (!withModel)
-                withModel = hit;
-        } else if (!withModel) {
-            withModel = hit;
-        }
-    }
-    return withModel;
-}
 
-uintptr_t UnityEngine::FindGameViaUnityEntry(uintptr_t gameKlass) {
-    if (!gameKlass)
-        return 0;
-    auto& mem = Memory::Get();
-    if (mem.MotionBurstDepth() > 0)
-        return 0;
-    uintptr_t unityKlass = 0;
-    static bool loggedEntry = false;
-    for (uintptr_t rva : offsets::typeinfo::UnityEntryAwake) {
-        uintptr_t word = 0;
-        if (!mem.ReadOk(m_gameAssembly + rva, word))
-            continue;
-        if (!loggedEntry) {
-            mem.Log("[*] UnityEntry slot rva 0x%llx word 0x%llx name=%s\n",
-                    static_cast<unsigned long long>(rva),
-                    static_cast<unsigned long long>(word),
-                    ReadKlassName(word).c_str());
-        }
-        uintptr_t klass = KlassFromTypeInfoWord(word, "UnityEntry", "Start");
-        if (!klass)
-            klass = KlassFromTypeInfoWord(word, "UnityEntry", "");
-        if (!klass && MatchesKlassName(word, "UnityEntry"))
-            klass = word;
-        if (!klass)
-            continue;
-        unityKlass = klass;
-        break;
-    }
-    loggedEntry = true;
-    static bool nearTried = false;
-    if (!unityKlass && !nearTried) {
-        nearTried = true;
-        unityKlass = FindNamedKlassNearGame("UnityEntry", "Start");
-        if (unityKlass)
-            mem.Log("[+] UnityEntry klass via name 0x%llx\n",
-                    static_cast<unsigned long long>(unityKlass));
-    }
-    if (!unityKlass)
-        return 0;
-    const auto hits = mem.SearchHeap(&unityKlass, sizeof(unityKlass), 8, 8, true);
-    for (uintptr_t hit : hits) {
-        if (m_gameAssemblySize && hit >= m_gameAssembly &&
-            hit < m_gameAssembly + m_gameAssemblySize)
-            continue;
-        uintptr_t game = 0;
-        if (!mem.ReadOk(hit + offsets::unity_entry::Game, game) || !IsPtr(game))
-            continue;
-        if (LooksLikeGame(game, gameKlass)) {
-            std::cout << "[+] Game via UnityEntry @ 0x" << std::hex << hit
-                      << " game=0x" << game << std::dec << "\n" << std::flush;
-            return game;
-        }
-    }
-    return 0;
-}
-
-uintptr_t UnityEngine::FindBattleViaHeap() {
-    const auto now = std::chrono::steady_clock::now();
-    if (m_heapSearchRetry.time_since_epoch().count() != 0 &&
-        now - m_heapSearchRetry < std::chrono::milliseconds(120))
-        return 0;
-    m_heapSearchRetry = now;
-
-    const uintptr_t klass = ResolveBattleKlass();
-    if (!klass)
-        return 0;
-    auto& mem = Memory::Get();
-    if (mem.MotionBurstDepth() > 0)
-        return 0;
-    const auto hits = mem.SearchHeap(&klass, sizeof(klass), 8, 32, true);
-    BattleCandidate best;
-    for (uintptr_t hit : hits) {
-        if (m_gameAssemblySize && hit >= m_gameAssembly &&
-            hit < m_gameAssembly + m_gameAssemblySize)
-            continue;
-        BattleCandidate candidate;
-        if (!EvaluateBattleEntities(hit, candidate))
-            continue;
-        if (candidate.score > best.score)
-            best = candidate;
-    }
-    return best.address;
-}
-
-uintptr_t UnityEngine::FindBattleViaBattleModel() {
-    auto& mem = Memory::Get();
-    if (mem.MotionBurstDepth() > 0)
-        return 0;
-    static auto retry = std::chrono::steady_clock::time_point{};
-    const auto now = std::chrono::steady_clock::now();
-    if (retry.time_since_epoch().count() != 0 &&
-        now - retry < std::chrono::milliseconds(180))
-        return 0;
-    retry = now;
-    const uintptr_t slots[] = {
-        offsets::typeinfo::BattleModel,
-        offsets::typeinfo::BattleModelDump,
-    };
-    uintptr_t klass = 0;
-    for (uintptr_t rva : slots) {
-        uintptr_t slotted = 0;
-        if (!mem.ReadOk(m_gameAssembly + rva, slotted))
-            continue;
-        klass = KlassFromTypeInfoWord(slotted, "BattleModel", "Game.Battle");
-        if (!klass)
-            klass = KlassFromTypeInfoWord(slotted, "BattleModel", "");
-        if (klass)
-            break;
-    }
-    static bool logged = false;
-    if (!klass)
-        klass = FindKlassByName("BattleModel");
-    if (!klass) {
-        if (!logged) {
-            logged = true;
-            uintptr_t word = 0;
-            mem.ReadOk(m_gameAssembly + offsets::typeinfo::BattleModel, word);
-            mem.Log("[*] BattleModel TypeInfo word 0x%llx name=%s\n",
-                    static_cast<unsigned long long>(word),
-                    ReadKlassName(word).c_str());
-        }
-        return 0;
-    }
-    if (!logged) {
-        logged = true;
-        mem.Log("[+] BattleModel klass @ 0x%llx\n",
-                static_cast<unsigned long long>(klass));
-    }
-    const auto hits = mem.SearchHeap(&klass, sizeof(klass), 8, 16, true);
-    for (uintptr_t hit : hits) {
-        if (m_gameAssemblySize && hit >= m_gameAssembly &&
-            hit < m_gameAssembly + m_gameAssemblySize)
-            continue;
-        uintptr_t header = 0;
-        if (!mem.ReadOk(hit, header) || header != klass)
-            continue;
-        uintptr_t battleEntities = 0;
-        if (!mem.ReadOk(hit + offsets::battle_model::BattleEntities, battleEntities) ||
-            !IsPtr(battleEntities))
-            continue;
-        m_battleModel.store(hit);
-        uintptr_t camera = 0;
-        if (mem.ReadOk(hit + offsets::battle_model::BattleCamera, camera) && IsPtr(camera))
-            m_battleCamera.store(camera);
-        return battleEntities;
-    }
-    return 0;
-}
-
-uintptr_t UnityEngine::FindBattleViaGameModel() {
-    auto& mem = Memory::Get();
-    if (mem.MotionBurstDepth() > 0)
-        return 0;
-    static auto retry = std::chrono::steady_clock::time_point{};
-    const auto now = std::chrono::steady_clock::now();
-    if (retry.time_since_epoch().count() != 0 &&
-        now - retry < std::chrono::milliseconds(180))
-        return 0;
-    retry = now;
-    const uintptr_t slots[] = {
-        offsets::typeinfo::GameModel,
-        offsets::typeinfo::GameModelDump,
-    };
-    uintptr_t klass = 0;
-    for (uintptr_t rva : slots) {
-        uintptr_t slotted = 0;
-        if (!mem.ReadOk(m_gameAssembly + rva, slotted))
-            continue;
-        klass = KlassFromTypeInfoWord(slotted, "GameModel", "Game");
-        if (!klass)
-            klass = KlassFromTypeInfoWord(slotted, "GameModel", "");
-        if (klass)
-            break;
-    }
-    if (!klass)
-        klass = FindKlassByName("GameModel");
-    if (!klass)
-        return 0;
-    static bool logged = false;
-    if (!logged) {
-        logged = true;
-        mem.Log("[+] GameModel klass @ 0x%llx\n",
-                static_cast<unsigned long long>(klass));
-    }
-    const auto hits = mem.SearchHeap(&klass, sizeof(klass), 8, 16, true);
-    for (uintptr_t hit : hits) {
-        if (m_gameAssemblySize && hit >= m_gameAssembly &&
-            hit < m_gameAssembly + m_gameAssemblySize)
-            continue;
-        uintptr_t header = 0;
-        if (!mem.ReadOk(hit, header) || header != klass)
-            continue;
-        if (const uintptr_t battle = BattleEntitiesFromGameModel(hit))
-            return battle;
-    }
-    return 0;
-}
-
-uintptr_t UnityEngine::GameFromNativeGameObject(uintptr_t nativeGo, uintptr_t gameKlass) const {
+uintptr_t RobRunSession::GameFromNativeGameObject(uintptr_t nativeGo, uintptr_t gameKlass) const {
     if (!IsPtr(nativeGo) || !gameKlass)
         return 0;
     auto& mem = Memory::Get();
@@ -1188,13 +716,12 @@ uintptr_t UnityEngine::GameFromNativeGameObject(uintptr_t nativeGo, uintptr_t ga
     return 0;
 }
 
-uintptr_t UnityEngine::GameFromNativeGameObjects(const std::vector<uintptr_t>& nativeGos,
+uintptr_t RobRunSession::GameFromNativeGameObjects(const std::vector<uintptr_t>& nativeGos,
                                                  uintptr_t gameKlass) const {
     if (nativeGos.empty() || !gameKlass)
         return 0;
     auto& mem = Memory::Get();
     auto& sc = mem.BorrowScatter();
-    sc.SetMaxQueued(768);
 
     const size_t n = (std::min)(nativeGos.size(), size_t{128});
     std::vector<int> count(n, 0);
@@ -1287,258 +814,50 @@ uintptr_t UnityEngine::GameFromNativeGameObjects(const std::vector<uintptr_t>& n
     return 0;
 }
 
-uintptr_t UnityEngine::FindGameViaGom(uintptr_t gameKlass) {
+uintptr_t RobRunSession::FindGameViaGom(uintptr_t gameKlass) {
     if (!gameKlass)
         return 0;
     auto& mem = Memory::Get();
     if (mem.MotionBurstDepth() > 0)
         return 0;
-    if (!mem.UnityPlayerBase()) {
-        static auto lastTry = std::chrono::steady_clock::time_point{};
-        const auto t = std::chrono::steady_clock::now();
-        if (lastTry.time_since_epoch().count() != 0 &&
-            t - lastTry < std::chrono::milliseconds(400))
-            return 0;
-        lastTry = t;
+    if (!mem.UnityPlayerBase())
         mem.EnsureUnityPlayer();
-    }
     const uintptr_t unityPlayer = mem.UnityPlayerBase();
-    if (!unityPlayer) {
-        SetStatus("Waiting for UnityPlayer.dll");
+    if (!unityPlayer)
         return 0;
-    }
 
-    const uintptr_t gomSlot = unityPlayer + offsets::unity_player::GameObjectManager;
     uintptr_t gomPtr = 0;
-    if (!mem.ReadOk(gomSlot, gomPtr) || !IsPtr(gomPtr)) {
-        static bool logged = false;
-        if (!logged) {
-            logged = true;
-            mem.Log("[*] GOM slot 0x%llx empty\n",
-                    static_cast<unsigned long long>(gomSlot));
-        }
+    if (!mem.ReadOk(unityPlayer + offsets::unity_player::GameObjectManager, gomPtr) || !IsPtr(gomPtr))
         return 0;
-    }
 
-    uint8_t gomRaw[0x28]{};
-    if (!mem.ReadRaw(gomPtr, gomRaw, sizeof(gomRaw)))
+    uintptr_t node = 0;
+    if (!mem.ReadOk(gomPtr + offsets::gom::EmbeddedList + offsets::gom::ListFirst, node) || !IsPtr(node))
         return 0;
-    uintptr_t buckets = 0;
-    uint64_t mask = 0;
-    uint64_t maskAlt = 0;
-    memcpy(&buckets, gomRaw + offsets::gom::Buckets, sizeof(buckets));
-    memcpy(&mask, gomRaw + offsets::gom::Count, sizeof(mask));
-    memcpy(&maskAlt, gomRaw + offsets::gom::MaskAlt, sizeof(maskAlt));
-
-    auto hashEntries = [](uint64_t word) -> size_t {
-        const uint32_t m = static_cast<uint32_t>(word);
-        if (m >= 8 && (m & 7u) == 0) {
-            const uint32_t n = m >> 3;
-            if (n <= 1023 && (n & (n + 1u)) == 0)
-                return static_cast<size_t>(n) + 1;
-        }
-        if (m != 0 && m <= 8191 && (m & (m + 1u)) == 0)
-            return static_cast<size_t>(m) + 1;
-        return 0;
-    };
-    size_t entries = hashEntries(mask);
-    if (!entries)
-        entries = hashEntries(maskAlt);
-    if (entries > 512)
-        entries = 512;
-
-    std::vector<uintptr_t> lists;
-    lists.reserve(entries ? entries : 8);
-    if (IsPtr(buckets) && entries) {
-        std::vector<uint8_t> bucketRaw(entries * offsets::gom::EntryStride);
-        if (mem.ReadRaw(buckets, bucketRaw.data(), bucketRaw.size())) {
-            for (size_t i = 0; i < entries; ++i) {
-                const uint8_t* e = bucketRaw.data() + i * offsets::gom::EntryStride;
-                int hash = 0;
-                uintptr_t list8 = 0;
-                uintptr_t list10 = 0;
-                memcpy(&hash, e, sizeof(hash));
-                memcpy(&list8, e + 8, sizeof(list8));
-                memcpy(&list10, e + offsets::gom::EntryList, sizeof(list10));
-                if (hash == offsets::gom::EmptyHash || hash == offsets::gom::DeletedHash)
-                    continue;
-                if (IsPtr(list8))
-                    lists.push_back(list8);
-                if (IsPtr(list10) && list10 != list8)
-                    lists.push_back(list10);
-            }
-        }
-    }
-    lists.push_back(gomPtr + offsets::gom::EmbeddedList);
-
-    static bool loggedGom = false;
-    if (!loggedGom) {
-        loggedGom = true;
-        mem.Log("[*] GOM ptr 0x%llx buckets 0x%llx entries %zu lists %zu\n",
-                static_cast<unsigned long long>(gomPtr),
-                static_cast<unsigned long long>(buckets), entries, lists.size());
-    }
 
     auto& sc = mem.BorrowScatter();
-    sc.SetMaxQueued(768);
-
-    struct GomCursor {
-        std::vector<uintptr_t> frontier;
-        std::unordered_set<uintptr_t> seenNode;
-        std::unordered_set<uintptr_t> seenGo;
-        int depth = 0;
-        bool primed = false;
-    };
-    GomCursor cursor;
-    if (!cursor.primed || cursor.frontier.empty()) {
-        cursor = {};
-        cursor.primed = true;
-        std::vector<uintptr_t> firstNode(lists.size(), 0);
-        for (size_t i = 0; i < lists.size(); ++i)
-            sc.Prepare(lists[i] + offsets::gom::ListFirst, &firstNode[i]);
-        sc.Execute();
-        for (uintptr_t node : firstNode) {
-            if (IsPtr(node) && cursor.seenNode.insert(node).second)
-                cursor.frontier.push_back(node);
-        }
-    }
-
     std::vector<uintptr_t> gos;
-    for (int hop = 0; hop < 4 && !cursor.frontier.empty() && gos.size() < 48; ++hop) {
-        const size_t take = (std::min)(cursor.frontier.size(), size_t{24});
-        std::vector<uintptr_t> nodes(cursor.frontier.begin(),
-                                     cursor.frontier.begin() + static_cast<std::ptrdiff_t>(take));
-        cursor.frontier.erase(cursor.frontier.begin(),
-                              cursor.frontier.begin() + static_cast<std::ptrdiff_t>(take));
-        std::vector<uintptr_t> nodeNext(nodes.size(), 0);
-        std::vector<uintptr_t> nodeGo(nodes.size(), 0);
-        for (size_t i = 0; i < nodes.size(); ++i) {
-            sc.Prepare(nodes[i] + offsets::gom::NodeNext, &nodeNext[i]);
-            sc.Prepare(nodes[i] + offsets::gom::NodeObject, &nodeGo[i]);
-        }
-        if (!nodes.empty())
-            sc.Execute();
-        for (size_t i = 0; i < nodes.size(); ++i) {
-            if (IsPtr(nodeGo[i]) && cursor.seenGo.insert(nodeGo[i]).second)
-                gos.push_back(nodeGo[i]);
-            if (IsPtr(nodeNext[i]) && cursor.seenNode.insert(nodeNext[i]).second)
-                cursor.frontier.push_back(nodeNext[i]);
-        }
-    }
-
-    struct Head {
-        uintptr_t comps10 = 0;
-        uintptr_t comps20 = 0;
-        int count = 0;
-    };
-    const size_t n = (std::min)(gos.size(), size_t{24});
-    std::vector<Head> heads(n);
-    for (size_t i = 0; i < n; ++i) {
-        sc.Prepare(gos[i] + 0x10, &heads[i].comps10);
-        sc.Prepare(gos[i] + offsets::game_object::Components, &heads[i].comps20);
-        sc.Prepare(gos[i] + offsets::game_object::ComponentCount, &heads[i].count);
-    }
-    if (n)
+    gos.reserve(32);
+    uintptr_t cur = node;
+    for (int i = 0; i < 32 && IsPtr(cur); ++i) {
+        if (mem.MotionBurstDepth() > 0)
+            return 0;
+        uintptr_t next = 0;
+        uintptr_t go = 0;
+        sc.Prepare(cur + offsets::gom::NodeNext, &next);
+        sc.Prepare(cur + offsets::gom::NodeObject, &go);
         sc.Execute();
-
-    std::vector<uintptr_t> native;
-    native.reserve(n * 16);
-    int liveCount = 0;
-    int withComps = 0;
-    for (size_t i = 0; i < n; ++i) {
-        int c = heads[i].count;
-        if (c < 1 || c > 24)
-            continue;
-        ++liveCount;
-        if (c > 12)
-            c = 12;
-        uintptr_t comps = IsPtr(heads[i].comps20) ? heads[i].comps20 : heads[i].comps10;
-        if (!IsPtr(comps))
-            continue;
-        ++withComps;
-        const size_t base = native.size();
-        native.resize(base + static_cast<size_t>(c) * 2, 0);
-        for (int k = 0; k < c; ++k) {
-            const uintptr_t pair = comps + static_cast<uintptr_t>(k) * offsets::game_object::ComponentStride;
-            sc.Prepare(pair, &native[base + static_cast<size_t>(k) * 2]);
-            sc.Prepare(pair + 0x08, &native[base + static_cast<size_t>(k) * 2 + 1]);
-        }
+        if (IsPtr(go))
+            gos.push_back(go);
+        if (!IsPtr(next) || next == node || next == cur)
+            break;
+        cur = next;
     }
-    if (!native.empty())
-        sc.Execute();
-
-    std::vector<uintptr_t> managed;
-    for (uintptr_t ptr : native) {
-        if (IsPtr(ptr))
-            managed.push_back(ptr);
-    }
-    std::vector<uintptr_t> klass(managed.size(), 0);
-    std::vector<uintptr_t> gameField(managed.size(), 0);
-    for (size_t i = 0; i < managed.size(); ++i) {
-        sc.Prepare(managed[i], &klass[i]);
-        sc.Prepare(managed[i] + offsets::unity_entry::Game, &gameField[i]);
-        for (uintptr_t off : { uintptr_t{0x10}, uintptr_t{0x18}, uintptr_t{0x28}, uintptr_t{0x30} })
-            sc.Prepare(managed[i] + off, &gameField[i]);
-    }
-    // The loop above overwrites gameField with the last offset. Read the
-    // managed slots properly instead.
-    (void)gameField;
-    if (!managed.empty())
-        sc.Execute();
-
-    std::vector<uintptr_t> inner;
-    for (size_t i = 0; i < managed.size(); ++i) {
-        if (klass[i] == gameKlass) {
-            cursor = {};
-            return managed[i];
-        }
-    }
-    struct Slot { uintptr_t managed = 0; uintptr_t off = 0; };
-    std::vector<Slot> slots;
-    for (uintptr_t obj : managed) {
-        for (uintptr_t off : { uintptr_t{0x10}, uintptr_t{0x18}, uintptr_t{0x28}, uintptr_t{0x30} })
-            slots.push_back({ obj, off });
-    }
-    std::vector<uintptr_t> slotPtr(slots.size(), 0);
-    for (size_t i = 0; i < slots.size(); ++i)
-        sc.Prepare(slots[i].managed + slots[i].off, &slotPtr[i]);
-    if (!slots.empty())
-        sc.Execute();
-    std::vector<uintptr_t> maybe;
-    std::vector<uintptr_t> maybeKlass;
-    for (uintptr_t p : slotPtr) {
-        if (!IsPtr(p))
-            continue;
-        maybe.push_back(p);
-    }
-    maybeKlass.assign(maybe.size(), 0);
-    for (size_t i = 0; i < maybe.size(); ++i)
-        sc.Prepare(maybe[i], &maybeKlass[i]);
-    if (!maybe.empty())
-        sc.Execute();
-    for (size_t i = 0; i < maybe.size(); ++i) {
-        if (maybeKlass[i] == gameKlass) {
-            cursor = {};
-            return maybe[i];
-        }
-    }
-
-    char detail[192];
-    snprintf(detail, sizeof(detail),
-             "UnityPlayer+0x%llx  objects %zu  with components %d",
-             static_cast<unsigned long long>(offsets::unity_player::GameObjectManager),
-             n, withComps);
-    SetStatus("In menu");
-    Splash::SetDetail(detail);
-    static int gomNoGame = 0;
-    if (gomNoGame < 6) {
-        ++gomNoGame;
-        mem.Log("[*] %s\n", detail);
-    }
-    return 0;
+    if (gos.empty())
+        return 0;
+    return GameFromNativeGameObjects(gos, gameKlass);
 }
 
-uintptr_t UnityEngine::FindGameObject() {
+uintptr_t RobRunSession::FindGameObject() {
     auto& mem = Memory::Get();
     const uintptr_t klass = ResolveGameKlass();
     if (!klass)
@@ -1555,39 +874,28 @@ uintptr_t UnityEngine::FindGameObject() {
         cached = 0;
     }
 
-    const auto now = std::chrono::steady_clock::now();
-    if (m_gameSearchRetry.time_since_epoch().count() != 0 &&
-        now - m_gameSearchRetry < std::chrono::milliseconds(80))
-        return cached;
-    m_gameSearchRetry = now;
-
-    // After Game is known, players, loot, and the match camera are direct reads:
-    //   Game+0xD0 → GameModel+0x10 → BattleModel+0x90 / +0x358.
-    // No heap walk. The Game instance is the object on UnityEntry+0x28,
-    // reached from the fixed UnityPlayer GameObjectManager slot.
+    // Game+0xD0 → GameModel+0x10 → BattleModel+0x90 / +0x358. No heap scan.
+    // Game lives on UnityEntry+0x28; UnityPlayer GOM slot is a fixed RVA.
     if (const uintptr_t viaStatics = FindGameViaStatics(klass)) {
         m_gameObject.store(viaStatics);
+        BattleEntitiesFromGame(viaStatics);
         return viaStatics;
     }
-    const bool gomDue = m_gomRetry.time_since_epoch().count() == 0 ||
-                        now - m_gomRetry >= std::chrono::milliseconds(200);
-    if (!gomDue)
-        return cached;
-    m_gomRetry = now;
     const uintptr_t viaGom = FindGameViaGom(klass);
     if (!viaGom)
-        return cached;
+        return 0;
     m_gameObject.store(viaGom);
-    if (viaGom != cached) {
-        std::cout << "[+] Game @ 0x" << std::hex << viaGom << std::dec
-                  << " via UnityPlayer GOM\n" << std::flush;
-        Memory::Get().Log("[+] Game @ 0x%llx via UnityPlayer GOM\n",
-                          static_cast<unsigned long long>(viaGom));
-    }
+    BattleEntitiesFromGame(viaGom);
+    std::cout << "[+] Game @ 0x" << std::hex << viaGom << std::dec
+              << " via UnityPlayer+0x" << std::hex
+              << offsets::unity_player::GameObjectManager << std::dec
+              << " UnityEntry+0x28\n" << std::flush;
+    Memory::Get().Log("[+] Game @ 0x%llx via UnityPlayer GOM\n",
+                      static_cast<unsigned long long>(viaGom));
     return viaGom;
 }
 
-bool UnityEngine::CommitBattleWorld(const BattleCandidate& best, const char* source) {
+bool RobRunSession::CommitBattleWorld(const BattleCandidate& best, const char* source) {
     const uintptr_t prevBattle = m_battleEntities.exchange(best.address);
     if (prevBattle != best.address) {
         ++m_battleEpoch;
@@ -1612,11 +920,11 @@ bool UnityEngine::CommitBattleWorld(const BattleCandidate& best, const char* sou
     }
     m_inGame = true;
     SetStatus("In match — waiting for shoulder camera");
-    Splash::SetDetail("BattleEntities is live. ESP draws when the camera pose is valid.");
+    Splash::SetDetail("BattleModel+0x358 lens (shoulder). ESP waits until that pose is valid.");
     return true;
 }
 
-void UnityEngine::SyncLinkStatusFromModules() {
+void RobRunSession::SyncLinkStatusFromModules() {
     if (!Memory::Get().IsConnected())
         return;
     auto& mem = Memory::Get();
@@ -1628,7 +936,7 @@ void UnityEngine::SyncLinkStatusFromModules() {
         SetStatus("Attached — check process name or launch Rob Run");
 }
 
-bool UnityEngine::FindBattleEntities() {
+bool RobRunSession::FindBattleEntities() {
     if (!EnsureModule()) {
         SetStatus("GameAssembly.dll not loaded yet");
         return false;
@@ -1690,7 +998,7 @@ bool UnityEngine::FindBattleEntities() {
     return false;
 }
 
-bool UnityEngine::ResolveVectorPosition(uintptr_t primitive, GameEntity& entity) const {
+bool RobRunSession::ResolveVectorPosition(uintptr_t primitive, GameEntity& entity) const {
     uintptr_t value = PrimitiveValueAddress(primitive);
     if (!value) return false;
     entity.posVec = value;
@@ -1698,7 +1006,7 @@ bool UnityEngine::ResolveVectorPosition(uintptr_t primitive, GameEntity& entity)
     return true;
 }
 
-bool UnityEngine::ResolveTransform(uintptr_t transform, GameEntity& entity) const {
+bool RobRunSession::ResolveTransform(uintptr_t transform, GameEntity& entity) const {
     if (!IsPtr(transform)) return false;
     auto& mem = Memory::Get();
     uintptr_t x = mem.Read<uintptr_t>(transform + offsets::transform::X);
@@ -1742,7 +1050,7 @@ static void CacheSkeletonPose(GameEntity& entity) {
     entity.skeletonAimReady = entity.skeletonHead.IsValid();
 }
 
-void UnityEngine::ReadSkeleton(uintptr_t character, GameEntity& entity) const {
+void RobRunSession::ReadSkeleton(uintptr_t character, GameEntity& entity) const {
     entity.boneCount = 0;
     entity.boneStride = 0;
     entity.boneLocal = 0;
@@ -1907,7 +1215,7 @@ void UnityEngine::ReadSkeleton(uintptr_t character, GameEntity& entity) const {
     static int archLogCount = 0;
     if (archLogCount < 3) {
         ++archLogCount;
-        std::ofstream arch(R"(C:\Users\baile\OneDrive\Desktop\Development\.cursor\skeleton-reference.log)",
+        std::ofstream arch(R"(C:\Development\.cursor\skeleton-reference.log)",
                           archLogCount == 1 ? std::ios::trunc : std::ios::app);
         if (arch) {
             arch << "=== skeleton snapshot #" << archLogCount
@@ -1964,7 +1272,7 @@ void UnityEngine::ReadSkeleton(uintptr_t character, GameEntity& entity) const {
     }
 }
 
-bool UnityEngine::ResolveCharacter(uintptr_t character, GameEntity& entity) const {
+bool RobRunSession::ResolveCharacter(uintptr_t character, GameEntity& entity) const {
     auto& mem = Memory::Get();
     entity.address = character;
     entity.creationIndex = mem.Read<int>(character + offsets::character::Id);
@@ -2016,6 +1324,14 @@ bool UnityEngine::ResolveCharacter(uintptr_t character, GameEntity& entity) cons
         }
         uintptr_t sprint = mem.Read<uintptr_t>(priv + offsets::private_model::CheatSprint);
         entity.speedAddr = ModelValueAddress(sprint);
+        uintptr_t armor = mem.Read<uintptr_t>(priv + offsets::private_model::Armor);
+        if (IsPtr(armor)) {
+            uintptr_t ammo = mem.Read<uintptr_t>(armor + offsets::armor::Amount);
+            if (IsPtr(ammo)) {
+                uintptr_t data = mem.Read<uintptr_t>(ammo + offsets::ammo_model::Data);
+                entity.armorAmountAddr = PrimitiveValueAddress(data);
+            }
+        }
     }
 
     uintptr_t crouch = mem.Read<uintptr_t>(character + offsets::character::Crouch);
@@ -2025,6 +1341,38 @@ bool UnityEngine::ResolveCharacter(uintptr_t character, GameEntity& entity) cons
     }
     entity.sprintAddr = ModelValueAddress(mem.Read<uintptr_t>(character + offsets::character::IsSprinting));
     entity.armorAddr = ModelValueAddress(mem.Read<uintptr_t>(character + offsets::character::HasArmor));
+    {
+        uintptr_t custom = mem.Read<uintptr_t>(character + offsets::character::Customization);
+        uintptr_t cdata = IsPtr(custom) ? mem.Read<uintptr_t>(custom + offsets::customization::Data) : 0;
+        if (IsPtr(cdata)) {
+            entity.gender = ReadDataEnumId(mem.Read<uintptr_t>(cdata + offsets::customization_data::Sex));
+            const bool female = Names::Lower(entity.gender).find("female") != std::string::npos;
+            entity.outfit = ReadDataEnumId(mem.Read<uintptr_t>(
+                cdata + (female ? offsets::customization_data::FBody : offsets::customization_data::Body)));
+            if (entity.outfit.empty())
+                entity.outfit = ReadDataEnumId(mem.Read<uintptr_t>(
+                    cdata + (female ? offsets::customization_data::FBag : offsets::customization_data::Bag)));
+            entity.hair = ReadDataEnumId(mem.Read<uintptr_t>(
+                cdata + (female ? offsets::customization_data::FHair : offsets::customization_data::Hair)));
+            if (!female)
+                entity.beard = ReadDataEnumId(mem.Read<uintptr_t>(cdata + offsets::customization_data::Beard));
+            entity.gender = Names::Pretty(entity.gender);
+            entity.outfit = Names::Pretty(entity.outfit);
+            entity.hair = Names::Pretty(entity.hair);
+            entity.beard = Names::Pretty(entity.beard);
+        }
+        uintptr_t cop = mem.Read<uintptr_t>(character + offsets::character::CopCustomize);
+        if (IsPtr(cop)) {
+            std::string copOutfit = ReadDataEnumId(mem.Read<uintptr_t>(cop + offsets::cop_customize::Data));
+            if (!copOutfit.empty()) {
+                entity.outfit = Names::Pretty(copOutfit);
+                entity.policeUniform = true;
+            }
+        }
+        const std::string roleLower = Names::Lower(entity.role);
+        if (roleLower.find("cop") != std::string::npos && roleLower.find("hub") == std::string::npos)
+            entity.policeUniform = true;
+    }
     {
         uintptr_t leave = mem.Read<uintptr_t>(character + offsets::character::KnockdownLeave);
         if (IsPtr(leave))
@@ -2047,214 +1395,8 @@ bool UnityEngine::ResolveCharacter(uintptr_t character, GameEntity& entity) cons
     return entity.posVec || entity.posX || entity.repPosAddr;
 }
 
-void UnityEngine::FindCameraBrain() {
-    if (m_brainCount.load() > 0 && m_brainReject.load() == 0) return;
-    auto now = std::chrono::steady_clock::now();
-    if (m_brainSearched && now - m_brainRetry < std::chrono::seconds(5))
-        return;
-    m_brainSearched = true;
-    m_brainRetry = now;
-    m_brainReject.store(0);
-    for (auto& brain : m_brains)
-        brain.store(0);
-    m_brainCount.store(0);
 
-    auto& mem = Memory::Get();
-    if (!m_brainKlass) {
-        uintptr_t klass = mem.Read<uintptr_t>(m_gameAssembly + offsets::typeinfo::CinemachineBrain);
-        if (IsNamedKlass(klass, "CinemachineBrain", "Cinemachine"))
-            m_brainKlass = klass;
-    }
-    if (!m_brainKlass) {
-        static bool logged = false;
-        if (!logged) {
-            logged = true;
-            uintptr_t klass = mem.Read<uintptr_t>(m_gameAssembly + offsets::typeinfo::CinemachineBrain);
-            std::cout << "[-] CinemachineBrain slot 0x" << std::hex << klass << std::dec
-                      << " name=" << ReadKlassName(klass) << "\n" << std::flush;
-        }
-        return;
-    }
-    if (!m_updaterKlass) {
-        uintptr_t klass = mem.Read<uintptr_t>(m_gameAssembly + offsets::typeinfo::CameraBrainUpdater);
-        if (IsNamedKlass(klass, "CameraBrainUpdater", "Game.Battle.UiUpdater"))
-            m_updaterKlass = klass;
-        else {
-            static bool logged = false;
-            if (!logged) {
-                logged = true;
-                std::cout << "[-] CameraBrainUpdater slot 0x" << std::hex << klass << std::dec
-                          << " name=" << ReadKlassName(klass) << "\n" << std::flush;
-            }
-        }
-    }
-
-    auto inModule = [&](uintptr_t hit) {
-        return m_gameAssemblySize && hit >= m_gameAssembly &&
-               hit < m_gameAssembly + m_gameAssemblySize;
-    };
-    int found = 0;
-    auto consider = [&](uintptr_t brain) {
-        if (found >= 8 || !IsPtr(brain) || inModule(brain)) return;
-        if (mem.Read<uintptr_t>(brain) != m_brainKlass) return;
-        const int updateMethod = mem.Read<int>(brain + offsets::cinemachine_brain::UpdateMethod);
-        if (updateMethod < 0 || updateMethod > 8) return;
-        if (!IsPtr(mem.Read<uintptr_t>(brain + offsets::cinemachine_brain::CachedPtr))) return;
-        float fov = mem.Read<float>(brain + offsets::cinemachine_brain::FieldOfView);
-        int frame = mem.Read<int>(brain + offsets::cinemachine_brain::LastFrame);
-        bool fovOk = fov >= 20.f && fov <= 150.f;
-        if (!fovOk && frame <= 0) return;
-        for (int i = 0; i < found; ++i) {
-            if (m_brains[i].load() == brain) return;
-        }
-        m_brains[found].store(brain);
-        ++found;
-    };
-
-    const char* how = "none";
-    if (m_updaterKlass) {
-        auto hits = mem.SearchHeap(&m_updaterKlass, sizeof(m_updaterKlass), 8, 32);
-        for (uintptr_t hit : hits) {
-            if (inModule(hit)) continue;
-            if (mem.Read<uintptr_t>(hit) != m_updaterKlass) continue;
-            consider(mem.Read<uintptr_t>(hit + offsets::camera_brain_updater::CameraBrain));
-        }
-        how = "updater";
-    }
-    if (found == 0 && !m_brainFallbackDone) {
-        m_brainFallbackDone = true;
-        auto hits = mem.SearchHeap(&m_brainKlass, sizeof(m_brainKlass), 8, 64);
-        int checked = 0;
-        for (uintptr_t hit : hits) {
-            if (inModule(hit)) continue;
-            if (mem.Read<uintptr_t>(hit) != m_brainKlass) continue;
-            ++checked;
-            consider(hit);
-            if (found >= 4) break;
-        }
-        how = "class";
-        if (found == 0) {
-            std::cout << "[-] No live CinemachineBrain in " << checked
-                      << " class hits\n" << std::flush;
-        }
-    }
-
-    m_brainCount.store(found);
-    if (found > 0) {
-        std::cout << "[+] Cinemachine brains " << found << " via " << how
-                  << "\n" << std::flush;
-    }
-}
-
-void UnityEngine::FindCameraRig() {
-    if (m_rig.load()) return;
-    auto now = std::chrono::steady_clock::now();
-    if (m_rigSearched && now - m_rigRetry < std::chrono::seconds(5))
-        return;
-    m_rigSearched = true;
-    m_rigRetry = now;
-
-    auto& mem = Memory::Get();
-    if (!m_rigKlass) {
-        uintptr_t klass = mem.Read<uintptr_t>(
-            m_gameAssembly + offsets::typeinfo::Cinemachine3rdPersonFollow);
-        if (IsNamedKlass(klass, "Cinemachine3rdPersonFollow", "Cinemachine")) {
-            m_rigKlass = klass;
-            m_rigKind.store(1);
-        } else {
-            static bool logged = false;
-            if (!logged) {
-                logged = true;
-                std::cout << "[-] Cinemachine3rdPersonFollow slot 0x" << std::hex << klass
-                          << std::dec << " name=" << ReadKlassName(klass) << "\n" << std::flush;
-            }
-            return;
-        }
-    }
-
-    bool aiming = m_rigKind.load() == 2;
-    auto hits = mem.SearchHeap(&m_rigKlass, sizeof(m_rigKlass), 8, 64);
-    uintptr_t fallback = 0;
-    uintptr_t live = 0;
-    for (uintptr_t hit : hits) {
-        if (m_gameAssemblySize && hit >= m_gameAssembly &&
-            hit < m_gameAssembly + m_gameAssemblySize)
-            continue;
-        if (mem.Read<uintptr_t>(hit) != m_rigKlass) continue;
-        if (!IsPtr(mem.Read<uintptr_t>(hit + offsets::cinemachine_brain::CachedPtr))) continue;
-        float ox = mem.Read<float>(hit + offsets::third_person::ShoulderOffset);
-        float dist = mem.Read<float>(hit + offsets::third_person::CameraDistance);
-        float side = mem.Read<float>(hit + offsets::third_person::CameraSide);
-        if (!SaneRigOffset(ox) || !SaneRigDistance(dist)) continue;
-        if (!(side >= -0.05f && side <= 1.05f)) continue;
-        if (!fallback) fallback = hit;
-        if (!aiming) {
-            live = hit;
-            break;
-        }
-        float used = mem.Read<float>(hit + offsets::third_person::CameraDistanceLive);
-        if (SaneRigDistance(used)) {
-            live = hit;
-            break;
-        }
-    }
-    uintptr_t chosen = live ? live : fallback;
-    if (!chosen) return;
-    if (live)
-        m_rigKind.store(aiming ? 2 : 1);
-    m_rig.store(chosen);
-    float dist = mem.Read<float>(chosen + (aiming && live
-        ? offsets::third_person::CameraDistanceLive
-        : offsets::third_person::CameraDistance));
-    float side = mem.Read<float>(chosen + offsets::third_person::CameraSide);
-    float ox = mem.Read<float>(chosen + offsets::third_person::ShoulderOffset);
-    std::cout << "[+] Camera rig 0x" << std::hex << chosen << std::dec
-              << (aiming ? " aiming" : " third")
-              << " dist=" << dist << " side=" << side
-              << " shoulder=" << ox << "\n" << std::flush;
-}
-
-void UnityEngine::FindViewUpdater() {
-    if (m_viewUpdater.load())
-        return;
-    auto& mem = Memory::Get();
-    if (!m_viewUpdaterKlass) {
-        const uintptr_t slots[] = {
-            offsets::typeinfo::BattleEntitiesUpdater,
-            offsets::typeinfo::BattleEntitiesUpdaterDump,
-        };
-        m_viewUpdaterKlass = ResolveNamedKlass(
-            "BattleEntitiesUpdater", "Game.Battle", slots, std::size(slots));
-    }
-    if (!m_viewUpdaterKlass)
-        return;
-    auto hits = mem.SearchHeap(&m_viewUpdaterKlass, sizeof(m_viewUpdaterKlass), 8, 32);
-    for (uintptr_t hit : hits) {
-        if (m_gameAssemblySize && hit >= m_gameAssembly &&
-            hit < m_gameAssembly + m_gameAssemblySize)
-            continue;
-        uintptr_t header = 0;
-        if (!mem.ReadOk(hit, header) || header != m_viewUpdaterKlass)
-            continue;
-        uintptr_t battle = m_battleEntities.load();
-        if (IsPtr(battle)) {
-            uintptr_t model = 0;
-            if (!mem.ReadOk(hit + offsets::battle_entities_view_updater::BattleEntities, model) ||
-                model != battle)
-                continue;
-        }
-        uintptr_t views = 0;
-        if (!mem.ReadOk(hit + offsets::battle_entities_view_updater::CharacterViews, views) ||
-            !IsPtr(views))
-            continue;
-        m_viewUpdater.store(hit);
-        std::cout << "[+] BattleEntitiesUpdater @ 0x" << std::hex << hit << std::dec << "\n"
-                  << std::flush;
-        return;
-    }
-}
-
-void UnityEngine::CacheGlobals() {
+void RobRunSession::CacheGlobals() {
     if (!Memory::Get().IsConnected()) return;
     auto& mem = Memory::Get();
     mem.BeginDiscoveryBurst();
@@ -2306,7 +1448,7 @@ void UnityEngine::CacheGlobals() {
     mem.EndDiscoveryBurst();
 }
 
-void UnityEngine::CacheActors() {
+void RobRunSession::CacheActors() {
     uintptr_t battle = m_battleEntities.load();
     if (!m_inGame || !battle) return;
     auto& mem = Memory::Get();
@@ -2392,12 +1534,28 @@ void UnityEngine::CacheActors() {
         m_spreadArgsObject.store(spreadArgsObject);
         m_spreadArgsKlass.store(spreadArgsKlass);
         m_weaponSpreadModel.store(weaponSpreadModel);
+        uintptr_t battleModel = m_battleModel.load();
+        uintptr_t shot = 0;
+        if (IsPtr(battleModel))
+            shot = mem.Read<uintptr_t>(battleModel + offsets::battle_model::ShotInput);
+        m_shotInput.store(IsPtr(shot) ? shot : 0);
+        uintptr_t fireFlag = 0;
+        if (IsPtr(localCharacter)) {
+            uintptr_t fire = mem.Read<uintptr_t>(localCharacter + offsets::character::Fire);
+            if (IsPtr(fire))
+                fireFlag = PrimitiveValueAddress(mem.Read<uintptr_t>(fire + offsets::fire::IsFiring));
+        }
+        m_fireFlag.store(fireFlag);
+        CacheSilentAim(localCharacter);
     } else {
         m_clientPos.store(0);
         m_clientLookQuat.store(0);
         m_clientYaw.store(0);
         m_clientPitch.store(0);
         m_followPos.store(0);
+        m_shotInput.store(0);
+        m_fireFlag.store(0);
+        m_followCamNative.store(0);
         m_recoilObject.store(0);
         m_recoilKlass.store(0);
         m_fakeSpread.store(0);
@@ -2405,10 +1563,13 @@ void UnityEngine::CacheActors() {
         m_spreadArgsObject.store(0);
         m_spreadArgsKlass.store(0);
         m_weaponSpreadModel.store(0);
+        ClearSilentAim();
     }
 
     std::unordered_map<int, std::string> names;
     std::unordered_map<int, std::string> clans;
+    std::unordered_map<int, int64_t> publicIds;
+    std::unordered_map<int64_t, std::string> clanByPublic;
     if (IsPtr(slotsModel)) {
         uintptr_t slotDict = mem.Read<uintptr_t>(slotsModel + offsets::slots::ByEntityId);
         std::vector<DictItem> slots;
@@ -2418,6 +1579,7 @@ void UnityEngine::CacheActors() {
                 if (!IsPtr(data)) continue;
                 uintptr_t nickPrim = mem.Read<uintptr_t>(data + offsets::slot_data::Nickname);
                 uintptr_t clanPrim = mem.Read<uintptr_t>(data + offsets::slot_data::ClanTag);
+                uintptr_t pubPrim = mem.Read<uintptr_t>(data + offsets::slot_data::PublicId);
                 uintptr_t str = 0;
                 uintptr_t clanStr = 0;
                 if (IsPtr(nickPrim))
@@ -2430,6 +1592,13 @@ void UnityEngine::CacheActors() {
                     names[slot.key] = name;
                 if (!clan.empty())
                     clans[slot.key] = clan;
+                uintptr_t pubAddr = PrimitiveValueAddress(pubPrim);
+                int64_t pub = 0;
+                if (pubAddr && mem.ReadOk(pubAddr, pub) && pub != 0) {
+                    publicIds[slot.key] = pub;
+                    if (!clan.empty())
+                        clanByPublic[pub] = clan;
+                }
             }
         }
     }
@@ -2491,6 +1660,9 @@ void UnityEngine::CacheActors() {
             auto clanIt = clans.find(entity.creationIndex);
             if (clanIt != clans.end())
                 entity.clan = clanIt->second;
+            auto pubIt = publicIds.find(entity.creationIndex);
+            if (pubIt != publicIds.end())
+                entity.ownerPublicId = pubIt->second;
             entity.role = ReadModelEnumId(mem.Read<uintptr_t>(character + offsets::character::Role));
             uintptr_t knockout = mem.Read<uintptr_t>(character + offsets::character::Knockout);
             if (IsPtr(knockout)) {
@@ -2527,6 +1699,9 @@ void UnityEngine::CacheActors() {
         auto clanIt = clans.find(entity.creationIndex);
         if (clanIt != clans.end())
             entity.clan = clanIt->second;
+        auto pubIt = publicIds.find(entity.creationIndex);
+        if (pubIt != publicIds.end())
+            entity.ownerPublicId = pubIt->second;
         remember(std::move(entity));
     };
 
@@ -2562,6 +1737,23 @@ void UnityEngine::CacheActors() {
         }
         if (!haveLocal)
             addCharacter(localId, localCharacter, false);
+
+        std::string localClan;
+        int64_t localPublicId = 0;
+        for (auto& e : actors) {
+            if (e.type != EntityType::Player) continue;
+            if (e.isLocalPlayer) {
+                localClan = e.clan;
+                localPublicId = e.ownerPublicId;
+            }
+        }
+        if (localPublicId == 0 && IsPtr(playerEnt))
+            mem.ReadOk(playerEnt + offsets::player_entity::PublicId, localPublicId);
+        for (auto& e : actors) {
+            if (e.type != EntityType::Player || e.isLocalPlayer) continue;
+            if (!localClan.empty() && !e.clan.empty() && Names::Lower(e.clan) == Names::Lower(localClan))
+                e.isTeammate = true;
+        }
 
         uintptr_t vehicleDict = mem.Read<uintptr_t>(world + offsets::world::Vehicles);
         std::vector<DictItem> vehicles;
@@ -2678,7 +1870,7 @@ void UnityEngine::CacheActors() {
         std::vector<DictItem> loots;
         if (ReadIntDictionary(lootDict, loots, 2000)) {
             for (const auto& item : loots) {
-                if (reuse(item.value, EntityType::Item, item.key))
+                if (reuse(item.value, EntityType::DeathBag, item.key))
                     continue;
                 uintptr_t klass = mem.Read<uintptr_t>(item.value);
                 if (!IsPtr(klass)) continue;
@@ -2691,7 +1883,7 @@ void UnityEngine::CacheActors() {
                 GameEntity entity;
                 entity.address = item.value;
                 entity.creationIndex = item.key;
-                entity.type = EntityType::Item;
+                entity.type = EntityType::DeathBag;
                 entity.isEnabled = true;
                 int lootId = mem.Read<int>(item.value + offsets::loot::Id);
                 entity.displayName = bagTitle(item.value, lootId > 0 ? lootId : item.key);
@@ -2703,23 +1895,7 @@ void UnityEngine::CacheActors() {
         }
 
         auto prettyItemName = [](std::string id) {
-            const auto slash = id.find_last_of("/.");
-            if (slash != std::string::npos)
-                id.erase(0, slash + 1);
-            std::string out;
-            out.reserve(id.size() + 8);
-            for (size_t i = 0; i < id.size(); ++i) {
-                const unsigned char c = static_cast<unsigned char>(id[i]);
-                if (c == '_' || c == '-') {
-                    if (!out.empty() && out.back() != ' ')
-                        out.push_back(' ');
-                    continue;
-                }
-                if (i > 0 && std::isupper(c) && std::islower(static_cast<unsigned char>(id[i - 1])))
-                    out.push_back(' ');
-                out.push_back(static_cast<char>(c));
-            }
-            return out;
+            return Names::Pretty(std::move(id));
         };
         auto delegateTarget = [&](uintptr_t func) -> uintptr_t {
             if (!IsPtr(func))
@@ -2743,38 +1919,55 @@ void UnityEngine::CacheActors() {
             }
             return -1;
         };
+        auto applyInventory = [&](uintptr_t inv, GameEntity& entity) {
+            if (!IsPtr(inv))
+                return;
+            int rarity = -1;
+            if (mem.ReadOk(inv + offsets::inventory_item::Rarity, rarity) &&
+                rarity >= 0 && rarity <= 6)
+                entity.lootTier = rarity;
+            uint8_t type = 0xFF;
+            if (mem.ReadOk(inv + offsets::inventory_item::Type, type) && type <= 40)
+                entity.itemType = type;
+            entity.isWeapon = Names::IsGunType(entity.itemType);
+            if (IsPtr(mem.Read<uintptr_t>(inv + offsets::inventory_item::DecoderFunc)))
+                entity.decoderCount = 1;
+            const int price = closurePrice(delegateTarget(
+                mem.Read<uintptr_t>(inv + offsets::inventory_item::BasePriceFunc)));
+            if (price > 0)
+                entity.cash = price;
+            std::string invId = prettyItemName(ReadEnumId(inv));
+            if (invId.empty() && entity.itemType >= 0) {
+                if (const char* label = Names::ItemTypeLabel(entity.itemType))
+                    invId = label;
+            }
+            if (!invId.empty())
+                entity.displayName = invId;
+        };
         auto applyLootItem = [&](uintptr_t lootItem, GameEntity& entity) {
             if (!IsPtr(lootItem))
                 return;
-            std::string id = ReadEnumId(lootItem);
+            std::string id = prettyItemName(ReadEnumId(lootItem));
             uintptr_t inv = delegateTarget(mem.Read<uintptr_t>(lootItem + offsets::loot_item::ItemDescriptionFunc));
-            if (IsPtr(inv)) {
-                int rarity = -1;
-                if (mem.ReadOk(inv + offsets::inventory_item::Rarity, rarity) &&
-                    rarity >= 0 && rarity <= 6)
-                    entity.lootTier = rarity;
-                const int price = closurePrice(delegateTarget(
-                    mem.Read<uintptr_t>(inv + offsets::inventory_item::BasePriceFunc)));
-                if (price > 0)
-                    entity.cash = price;
-                std::string invId = ReadEnumId(inv);
-                if (!invId.empty())
-                    id = invId;
+            applyInventory(inv, entity);
+            if (entity.displayName.empty() && !id.empty())
+                entity.displayName = id;
+            if (entity.displayName.empty() && entity.itemType >= 0) {
+                if (const char* label = Names::ItemTypeLabel(entity.itemType))
+                    entity.displayName = label;
             }
-            if (!id.empty())
-                entity.displayName = prettyItemName(id);
-            if (entity.cash > 0)
-                entity.displayName += " $" + std::to_string(entity.cash);
         };
 
         auto addPlacedLoot = [&](uintptr_t dict, uintptr_t descOff, uintptr_t posOff, bool randomItem) {
             std::vector<DictItem> nodes;
             if (!ReadIntDictionary(dict, nodes, 400)) return;
             for (const auto& item : nodes) {
-                if (reuse(item.value, EntityType::Item, item.key))
-                    continue;
                 uintptr_t taken = mem.Read<uintptr_t>(item.value + offsets::random_loot::IsTaken);
-                if (IsPtr(taken) && mem.Read<uint8_t>(taken + offsets::il2cpp::Primitive_Value) != 0)
+                if (IsPtr(taken) && mem.Read<uint8_t>(taken + offsets::il2cpp::Primitive_Value) != 0) {
+                    m_known.erase(item.value);
+                    continue;
+                }
+                if (reuse(item.value, EntityType::Item, item.key))
                     continue;
                 uintptr_t desc = mem.Read<uintptr_t>(item.value + descOff);
                 if (!IsPtr(desc)) continue;
@@ -2800,11 +1993,11 @@ void UnityEngine::CacheActors() {
                 }
                 if (entity.displayName.empty())
                     entity.displayName = prettyItemName(ReadEnumId(desc));
-                bool numeric = !entity.displayName.empty();
-                for (unsigned char c : entity.displayName) {
-                    if (!std::isdigit(c)) { numeric = false; break; }
+                if (entity.displayName.empty() && entity.itemType >= 0) {
+                    if (const char* label = Names::ItemTypeLabel(entity.itemType))
+                        entity.displayName = label;
                 }
-                if (entity.displayName.empty() || numeric)
+                if (entity.displayName.empty() || Names::IsNumericId(entity.displayName))
                     entity.displayName = "Loot";
                 remember(std::move(entity));
             }
@@ -2828,9 +2021,24 @@ void UnityEngine::CacheActors() {
                 entity.type = EntityType::Grenade;
                 entity.isEnabled = true;
                 entity.isAlive = true;
-                entity.displayName = ReadEnumId(mem.Read<uintptr_t>(item.value + offsets::grenade::Description));
+                uintptr_t gdesc = mem.Read<uintptr_t>(item.value + offsets::grenade::Description);
+                entity.displayName = prettyItemName(ReadEnumId(gdesc));
                 if (entity.displayName.empty())
                     entity.displayName = "Grenade";
+                if (IsPtr(gdesc)) {
+                    uintptr_t dmg = mem.Read<uintptr_t>(gdesc + offsets::grenade_desc::InstantDamage);
+                    uint8_t blind = 0, smoke = 0;
+                    mem.ReadOk(gdesc + offsets::grenade_desc::InstantBlind, blind);
+                    mem.ReadOk(gdesc + offsets::grenade_desc::Smoke, smoke);
+                    float radius = 0.f;
+                    mem.ReadOk(gdesc + offsets::grenade_desc::Radius, radius);
+                    entity.blastRadius = radius > 0.5f && radius < 40.f ? radius : 0.f;
+                    entity.grenadeKind = (IsPtr(dmg) || radius >= 3.f) && !smoke ? 1 : 2;
+                    if (blind || smoke)
+                        entity.grenadeKind = 2;
+                    if (entity.grenadeKind == 1 && entity.blastRadius < 1.f)
+                        entity.blastRadius = 8.f;
+                }
                 entity.posVec = transform + offsets::grenade_transform::Position;
                 remember(std::move(entity));
             }
@@ -2850,7 +2058,10 @@ void UnityEngine::CacheActors() {
                 uintptr_t emptyModel = mem.Read<uintptr_t>(item.value + offsets::container::IsEmpty);
                 uintptr_t emptyAddr = ModelValueAddress(emptyModel);
                 bool empty = emptyAddr && mem.Read<uint8_t>(emptyAddr) != 0;
-                if (empty && !Config::Get().esp.showEmptyContainers) continue;
+                if (empty && !Config::Get().esp.showEmptyContainers) {
+                    m_known.erase(item.value);
+                    continue;
+                }
 
                 GameEntity entity;
                 entity.address = item.value;
@@ -2858,11 +2069,78 @@ void UnityEngine::CacheActors() {
                 entity.type = EntityType::Container;
                 entity.isEnabled = true;
                 entity.isAlive = true;
-                entity.displayName = ReadEnumId(mem.Read<uintptr_t>(item.value + offsets::container::Description));
-                if (entity.displayName.empty())
-                    entity.displayName = "Container";
+                uintptr_t locDesc = mem.Read<uintptr_t>(item.value + offsets::container::Description);
+                std::string locName = prettyItemName(ReadEnumId(locDesc));
+                uintptr_t typeNamePtr = 0;
+                uint8_t isAtm = 0;
+                if (IsPtr(locDesc)) {
+                    uintptr_t contFn = mem.Read<uintptr_t>(locDesc + offsets::location_container::ContainerDescriptionFunc);
+                    uintptr_t contDesc = delegateTarget(contFn);
+                    if (IsPtr(contDesc)) {
+                        uintptr_t typeFn = mem.Read<uintptr_t>(contDesc + offsets::container_desc::TypeFunc);
+                        locName = prettyItemName(ReadEnumId(delegateTarget(typeFn)));
+                        if (locName.empty())
+                            locName = prettyItemName(ReadEnumId(contDesc));
+                    }
+                    mem.ReadOk(locDesc + offsets::location_container::IsCashWithdrawal, isAtm);
+                }
+                const std::string lower = Names::Lower(locName);
+                if (isAtm || lower.find("atm") != std::string::npos || lower.find("cash") != std::string::npos)
+                    entity.type = EntityType::Atm;
+                else if (lower.find("vault") != std::string::npos)
+                    entity.type = EntityType::Vault;
+                else if (lower.find("safe") != std::string::npos)
+                    entity.type = EntityType::Safe;
+                entity.displayName = locName.empty() ? "Container" : locName;
+                entity.hasLoot = !empty;
                 if (empty)
                     entity.extra = "empty";
+                uintptr_t drill = mem.Read<uintptr_t>(item.value + offsets::container::DrillEndTs);
+                uintptr_t drillAddr = ModelValueAddress(drill);
+                if (drillAddr) {
+                    int64_t endTs = 0;
+                    if (mem.ReadOk(drillAddr, endTs) && endTs > 0)
+                        entity.drillEndTs = endTs;
+                }
+                if (Config::Get().esp.showContainerContents) {
+                    int invId = 0;
+                    if (IsPtr(locDesc))
+                        mem.ReadOk(locDesc + offsets::location_container::InventoryEntityId, invId);
+                    if (invId > 0) {
+                        std::vector<DictItem> invs;
+                        if (ReadIntDictionary(mem.Read<uintptr_t>(world + offsets::world::ContainerInventories), invs, 400)) {
+                            for (const auto& inv : invs) {
+                                int id = mem.Read<int>(inv.value + offsets::container_inventory::Id);
+                                if (id != invId && inv.key != invId) continue;
+                                uintptr_t inventory = mem.Read<uintptr_t>(inv.value + offsets::container_inventory::Inventory);
+                                uintptr_t slots = IsPtr(inventory)
+                                    ? mem.Read<uintptr_t>(inventory + offsets::inventory_model::Slots) : 0;
+                                uintptr_t dict = IsPtr(slots)
+                                    ? mem.Read<uintptr_t>(slots + offsets::inventory_slots::Models) : 0;
+                                std::vector<DictItem> slotItems;
+                                if (!ReadIntDictionary(dict, slotItems, 48))
+                                    break;
+                                std::string preview;
+                                int n = 0;
+                                for (const auto& slot : slotItems) {
+                                    uintptr_t itemModel = mem.Read<uintptr_t>(slot.value + offsets::inventory_slot::ItemModel);
+                                    uintptr_t data = IsPtr(itemModel)
+                                        ? mem.Read<uintptr_t>(itemModel + offsets::inventory_slot_item::Data) : 0;
+                                    uintptr_t desc = IsPtr(data)
+                                        ? mem.Read<uintptr_t>(data + offsets::il2cpp::Primitive_Value) : 0;
+                                    std::string nm = prettyItemName(ReadEnumId(desc));
+                                    if (nm.empty()) continue;
+                                    if (!preview.empty()) preview += ", ";
+                                    preview += nm;
+                                    if (++n >= 4) break;
+                                }
+                                entity.contents = preview;
+                                entity.hasLoot = entity.hasLoot || !preview.empty();
+                                break;
+                            }
+                        }
+                    }
+                }
                 entity.posVec = position + 0x10;
                 remember(std::move(entity));
             }
@@ -2881,6 +2159,11 @@ void UnityEngine::CacheActors() {
                 uintptr_t amount = mem.Read<uintptr_t>(item.value + offsets::cash::Amount);
                 uintptr_t amountAddr = PrimitiveValueAddress(amount);
                 if (!amountAddr) continue;
+                int cashAmt = mem.Read<int>(amountAddr);
+                if (cashAmt <= 0) {
+                    m_known.erase(item.value);
+                    continue;
+                }
 
                 GameEntity entity;
                 entity.address = item.value;
@@ -2889,11 +2172,428 @@ void UnityEngine::CacheActors() {
                 entity.isEnabled = true;
                 entity.isAlive = true;
                 entity.displayName = "Cash";
-                entity.cash = mem.Read<int>(amountAddr);
+                entity.cash = cashAmt;
                 entity.cashAddr = amountAddr;
                 entity.position = pos;
                 entity.posVec = desc + offsets::cash_desc::Position;
                 remember(std::move(entity));
+            }
+        }
+
+        auto readList = [&](uintptr_t list, int maxN) {
+            std::vector<uintptr_t> out;
+            if (!IsPtr(list)) return out;
+            uintptr_t items = mem.Read<uintptr_t>(list + offsets::list::Items);
+            int size = mem.Read<int>(list + offsets::list::Size);
+            if (!IsPtr(items) || size < 1 || size > maxN) return out;
+            out.resize(static_cast<size_t>(size), 0);
+            mem.ReadRaw(items + offsets::il2cpp::Array_First, out.data(),
+                        static_cast<size_t>(size) * sizeof(uintptr_t));
+            return out;
+        };
+
+        int64_t localPublic = localPublicId;
+        if (localPublic == 0 && IsPtr(playerEnt))
+            mem.ReadOk(playerEnt + offsets::player_entity::PublicId, localPublic);
+
+        std::unordered_map<int, std::pair<int, int>> defenseByPrivate;
+        {
+            std::vector<DictItem> privates;
+            if (ReadIntDictionary(mem.Read<uintptr_t>(world + offsets::world::DefenseBlockPrivate), privates, 64)) {
+                for (const auto& item : privates) {
+                    int id = mem.Read<int>(item.value + offsets::defense_private::Id);
+                    if (id <= 0) id = item.key;
+                    int maxPts = mem.Read<int>(item.value + offsets::defense_private::BaseDefensePoints);
+                    int pts = maxPts;
+                    uintptr_t ptsAddr = ModelValueAddress(
+                        mem.Read<uintptr_t>(item.value + offsets::defense_private::DefensePoints));
+                    if (ptsAddr)
+                        mem.ReadOk(ptsAddr, pts);
+                    defenseByPrivate[id] = { pts, maxPts };
+                }
+            }
+        }
+
+        uintptr_t hideDict = mem.Read<uintptr_t>(world + offsets::world::HideObjects);
+        std::vector<DictItem> hides;
+        if (ReadIntDictionary(hideDict, hides, 256)) {
+            for (const auto& item : hides) {
+                uintptr_t desc = mem.Read<uintptr_t>(item.value + offsets::hide_object::Description);
+                if (!IsPtr(desc)) continue;
+                Vector3 pos = mem.Read<Vector3>(desc + offsets::hide_desc::Position);
+                if (!FinitePosition(pos)) continue;
+                int occupant = mem.Read<int>(item.value + offsets::hide_object::OccupantId);
+                for (auto& e : actors) {
+                    if (e.type == EntityType::Player && occupant > 0 &&
+                        (e.creationIndex == occupant || mem.Read<int>(e.address + offsets::character::Id) == occupant)) {
+                        e.hidingInProp = true;
+                        e.isHidden = true;
+                        if (!FinitePosition(e.position)) {
+                            e.position = pos;
+                            e.posVec = desc + offsets::hide_desc::Position;
+                        }
+                        e.extra = e.extra.empty() ? "Hiding" : e.extra;
+                    }
+                }
+                GameEntity entity;
+                entity.address = item.value;
+                entity.creationIndex = item.key;
+                entity.type = EntityType::HideSpot;
+                entity.isEnabled = true;
+                entity.isAlive = true;
+                entity.displayName = prettyItemName(ReadEnumId(desc));
+                if (entity.displayName.empty())
+                    entity.displayName = occupant > 0 ? "Occupied hide" : "Hide";
+                entity.extra = occupant > 0 ? "occupied" : "";
+                entity.hasLoot = occupant > 0;
+                entity.position = pos;
+                entity.posVec = desc + offsets::hide_desc::Position;
+                remember(std::move(entity));
+            }
+        }
+
+        auto addCargoDict = [&](uintptr_t dict) {
+            std::vector<DictItem> nodes;
+            if (!ReadIntDictionary(dict, nodes, 256)) return;
+            for (const auto& item : nodes) {
+                if (reuse(item.value, EntityType::Cargo, item.key))
+                    continue;
+                uintptr_t desc = mem.Read<uintptr_t>(item.value + offsets::cargo::Description);
+                uintptr_t transform = mem.Read<uintptr_t>(item.value + offsets::cargo::Transform);
+                GameEntity entity;
+                entity.address = item.value;
+                entity.creationIndex = item.key;
+                entity.type = EntityType::Cargo;
+                entity.isEnabled = true;
+                entity.isAlive = true;
+                entity.displayName = prettyItemName(ReadEnumId(desc));
+                if (entity.displayName.empty())
+                    entity.displayName = "Cargo";
+                if (IsPtr(transform) && ResolveTransform(transform, entity))
+                    remember(std::move(entity));
+            }
+        };
+        addCargoDict(mem.Read<uintptr_t>(world + offsets::world::Cargos));
+        addCargoDict(mem.Read<uintptr_t>(world + offsets::world::CollectionCargos));
+        addCargoDict(mem.Read<uintptr_t>(world + offsets::world::BuildingCargos));
+
+        uintptr_t furnitureDict = mem.Read<uintptr_t>(world + offsets::world::FurnitureLoots);
+        std::vector<DictItem> furniture;
+        if (ReadIntDictionary(furnitureDict, furniture, 256)) {
+            for (const auto& item : furniture) {
+                uintptr_t cargo = mem.Read<uintptr_t>(item.value + offsets::furniture_loot::HasCargo);
+                uintptr_t cargoAddr = ModelValueAddress(cargo);
+                if (!cargoAddr)
+                    cargoAddr = PrimitiveValueAddress(cargo);
+                uint8_t hasCargo = 1;
+                if (cargoAddr)
+                    mem.ReadOk(cargoAddr, hasCargo);
+                if (hasCargo == 0) {
+                    m_known.erase(item.value);
+                    continue;
+                }
+                if (reuse(item.value, EntityType::Item, item.key))
+                    continue;
+                uintptr_t posModel = mem.Read<uintptr_t>(item.value + offsets::furniture_loot::Position);
+                GameEntity entity;
+                entity.address = item.value;
+                entity.creationIndex = item.key;
+                entity.type = EntityType::Item;
+                entity.isEnabled = true;
+                entity.isAlive = true;
+                entity.itemType = 22;
+                uintptr_t typeModel = mem.Read<uintptr_t>(item.value + offsets::furniture_loot::FurnitureType);
+                entity.displayName = prettyItemName(ReadModelEnumId(typeModel));
+                if (entity.displayName.empty())
+                    entity.displayName = prettyItemName(ReadModelEnumId(
+                        mem.Read<uintptr_t>(item.value + offsets::furniture_loot::FurnitureId)));
+                if (entity.displayName.empty())
+                    entity.displayName = "Furniture";
+                if (IsPtr(posModel) && ResolveVectorPosition(posModel, entity))
+                    remember(std::move(entity));
+            }
+        }
+
+        uintptr_t nodeDict = mem.Read<uintptr_t>(world + offsets::world::LootNodes);
+        std::vector<DictItem> nodes;
+        if (ReadIntDictionary(nodeDict, nodes, 400)) {
+            for (const auto& item : nodes) {
+                if (reuse(item.value, EntityType::Item, item.key))
+                    continue;
+                uintptr_t emptyModel = mem.Read<uintptr_t>(item.value + offsets::loot_node::IsEmpty);
+                uintptr_t emptyAddr = ModelValueAddress(emptyModel);
+                if (emptyAddr && mem.Read<uint8_t>(emptyAddr) != 0) {
+                    m_known.erase(item.value);
+                    continue;
+                }
+                uintptr_t desc = mem.Read<uintptr_t>(item.value + offsets::loot_node::Description);
+                if (!IsPtr(desc)) continue;
+                Vector3 pos = mem.Read<Vector3>(desc + offsets::loot_node_desc::Position);
+                if (!FinitePosition(pos)) continue;
+                GameEntity entity;
+                entity.address = item.value;
+                entity.creationIndex = item.key;
+                entity.type = EntityType::Item;
+                entity.isEnabled = true;
+                entity.isAlive = true;
+                entity.displayName = prettyItemName(ReadEnumId(desc));
+                uintptr_t lootFn = mem.Read<uintptr_t>(desc + offsets::loot_node_desc::LootFunc);
+                applyLootItem(delegateTarget(lootFn), entity);
+                if (entity.displayName.empty() || Names::IsNumericId(entity.displayName))
+                    entity.displayName = "Loot node";
+                entity.position = pos;
+                entity.posVec = desc + offsets::loot_node_desc::Position;
+                remember(std::move(entity));
+            }
+        }
+
+        uintptr_t atmDict = mem.Read<uintptr_t>(world + offsets::world::CashWithdrawal);
+        std::vector<DictItem> atms;
+        if (ReadIntDictionary(atmDict, atms, 64)) {
+            for (const auto& item : atms) {
+                Vector3 pos = mem.Read<Vector3>(item.value + offsets::cash_withdrawal::InteractPoint);
+                if (!FinitePosition(pos)) continue;
+                GameEntity entity;
+                entity.address = item.value;
+                entity.creationIndex = item.key;
+                entity.type = EntityType::Atm;
+                entity.isEnabled = true;
+                entity.isAlive = true;
+                entity.displayName = "ATM";
+                entity.position = pos;
+                entity.posVec = item.value + offsets::cash_withdrawal::InteractPoint;
+                remember(std::move(entity));
+            }
+        }
+
+        uintptr_t plotDict = mem.Read<uintptr_t>(world + offsets::world::Plots);
+        std::vector<DictItem> plots;
+        if (ReadIntDictionary(plotDict, plots, 64)) {
+            for (const auto& item : plots) {
+                uintptr_t desc = mem.Read<uintptr_t>(item.value + offsets::plot::Description);
+                Vector3 pos{};
+                if (IsPtr(desc))
+                    pos = mem.Read<Vector3>(desc + offsets::plot_desc::Position);
+                if (!FinitePosition(pos)) continue;
+                GameEntity entity;
+                entity.address = item.value;
+                entity.creationIndex = item.key;
+                entity.type = EntityType::Base;
+                entity.isEnabled = true;
+                entity.isAlive = true;
+                entity.displayName = prettyItemName(ReadEnumId(
+                    mem.Read<uintptr_t>(item.value + offsets::plot::Slot)));
+                if (entity.displayName.empty())
+                    entity.displayName = "Base";
+                uintptr_t data = mem.Read<uintptr_t>(item.value + offsets::plot::Data);
+                uintptr_t ownerPrim = IsPtr(data)
+                    ? mem.Read<uintptr_t>(data + offsets::plot_data::OwnerPublicId) : 0;
+                uintptr_t ownerAddr = PrimitiveValueAddress(ownerPrim);
+                if (ownerAddr)
+                    mem.ReadOk(ownerAddr, entity.ownerPublicId);
+                if (entity.ownerPublicId != 0 && localPublic != 0 &&
+                    entity.ownerPublicId == localPublic)
+                    entity.isTeammate = true;
+                uintptr_t vip = mem.Read<uintptr_t>(item.value + offsets::plot::Vip);
+                uintptr_t vipAddr = ModelValueAddress(vip);
+                int64_t vipEnd = 0;
+                if (vipAddr && mem.ReadOk(vipAddr, vipEnd))
+                    entity.vip = vipEnd != 0;
+                auto clanHit = clanByPublic.find(entity.ownerPublicId);
+                if (clanHit != clanByPublic.end())
+                    entity.clan = clanHit->second;
+                if (entity.ownerPublicId != 0 && localPublic != 0 &&
+                    entity.ownerPublicId == localPublic)
+                    entity.isTeammate = true;
+                if (!entity.isTeammate && !localClan.empty() && !entity.clan.empty() &&
+                    Names::Lower(entity.clan) == Names::Lower(localClan))
+                    entity.isClanBase = true;
+                entity.hasLoot = IsPtr(mem.Read<uintptr_t>(item.value + offsets::plot::MainBuildingLoot));
+                uintptr_t mainB = mem.Read<uintptr_t>(item.value + offsets::plot::MainBuilding);
+                if (IsPtr(mainB)) {
+                    uintptr_t def = mem.Read<uintptr_t>(mainB + offsets::main_building::DefenseBlock);
+                    if (IsPtr(def)) {
+                        uintptr_t raidAddr = ModelValueAddress(
+                            mem.Read<uintptr_t>(def + offsets::defense_public::RaidLockTs));
+                        if (raidAddr)
+                            mem.ReadOk(raidAddr, entity.raidLockEndTs);
+                        uintptr_t raidedAddr = ModelValueAddress(
+                            mem.Read<uintptr_t>(def + offsets::defense_public::IsRaided));
+                        uint8_t raided = 0;
+                        if (raidedAddr)
+                            mem.ReadOk(raidedAddr, raided);
+                        entity.beingRaided = raided != 0;
+                        const int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch()).count();
+                        entity.raidLocked = entity.raidLockEndTs > nowMs;
+                        if (entity.beingRaided || entity.raidLocked)
+                            entity.decoderCount = 1;
+                        uintptr_t descModel = mem.Read<uintptr_t>(def + offsets::defense_public::Description);
+                        uintptr_t locDesc = IsPtr(descModel)
+                            ? mem.Read<uintptr_t>(descModel + offsets::description_model::Value) : 0;
+                        uintptr_t ids = IsPtr(locDesc)
+                            ? mem.Read<uintptr_t>(locDesc + offsets::location_defense::EntityIds) : 0;
+                        int privateId = 0;
+                        if (IsPtr(ids))
+                            mem.ReadOk(ids + offsets::defense_ids::PrivateId, privateId);
+                        auto fuse = defenseByPrivate.find(privateId);
+                        if (fuse != defenseByPrivate.end()) {
+                            entity.defensePoints = fuse->second.first;
+                            entity.maxDefensePoints = fuse->second.second;
+                        }
+                    }
+                    std::vector<DictItem> doors;
+                    if (ReadIntDictionary(mem.Read<uintptr_t>(mainB + offsets::main_building::Doors), doors, 16)) {
+                        for (const auto& door : doors) {
+                            uintptr_t doorModel = mem.Read<uintptr_t>(door.value + offsets::builder_door::DoorModel);
+                            uintptr_t state = IsPtr(doorModel)
+                                ? mem.Read<uintptr_t>(doorModel + offsets::door_model::State) : 0;
+                            uintptr_t prim = IsPtr(state)
+                                ? mem.Read<uintptr_t>(state + offsets::door_state::Value) : 0;
+                            std::string st = ReadDataEnumId(prim);
+                            if (Names::Lower(st).find("opened") != std::string::npos)
+                                entity.openDoors = true;
+                        }
+                    }
+                    if (!entity.hasLoot) {
+                        std::vector<DictItem> stores;
+                        if (ReadIntDictionary(mem.Read<uintptr_t>(mainB + offsets::main_building::Storages), stores, 16))
+                            entity.hasLoot = !stores.empty();
+                    }
+                }
+                if (entity.maxDefensePoints > 0) {
+                    entity.health = static_cast<float>(entity.defensePoints);
+                    entity.maxHealth = static_cast<float>(entity.maxDefensePoints);
+                }
+                entity.position = pos;
+                entity.posVec = IsPtr(desc) ? desc + offsets::plot_desc::Position : 0;
+                remember(std::move(entity));
+            }
+        }
+
+        uintptr_t buildingDict = mem.Read<uintptr_t>(world + offsets::world::Buildings);
+        std::vector<DictItem> buildings;
+        if (ReadIntDictionary(buildingDict, buildings, 128)) {
+            for (const auto& item : buildings) {
+                uintptr_t cams = mem.Read<uintptr_t>(item.value + offsets::building::Cameras);
+                uintptr_t list = IsPtr(cams) ? mem.Read<uintptr_t>(cams + offsets::cameras_model::Models) : 0;
+                for (uintptr_t cam : readList(list, 32)) {
+                    if (!IsPtr(cam)) continue;
+                    uintptr_t desc = mem.Read<uintptr_t>(cam + offsets::camera_model::Description);
+                    if (!IsPtr(desc)) continue;
+                    Vector3 pos = mem.Read<Vector3>(desc + offsets::location_camera::Position);
+                    if (!FinitePosition(pos)) continue;
+                    GameEntity entity;
+                    entity.address = cam;
+                    entity.creationIndex = item.key;
+                    entity.type = EntityType::Camera;
+                    entity.isEnabled = true;
+                    entity.isAlive = true;
+                    entity.displayName = prettyItemName(ReadEnumId(desc));
+                    if (entity.displayName.empty())
+                        entity.displayName = "Camera";
+                    uintptr_t broken = mem.Read<uintptr_t>(cam + offsets::camera_model::IsBroken);
+                    uintptr_t brokenAddr = PrimitiveValueAddress(broken);
+                    uint8_t brokenByte = 0;
+                    if (brokenAddr)
+                        mem.ReadOk(brokenAddr, brokenByte);
+                    entity.cameraBroken = brokenByte != 0;
+                    entity.extra = entity.cameraBroken ? "shot out" : "";
+                    float qx = 0, qy = 0, qz = 0, qw = 1.f;
+                    mem.ReadOk(desc + offsets::location_camera::Orientation, qx);
+                    mem.ReadOk(desc + offsets::location_camera::Orientation + 4, qy);
+                    mem.ReadOk(desc + offsets::location_camera::Orientation + 8, qz);
+                    mem.ReadOk(desc + offsets::location_camera::Orientation + 12, qw);
+                    entity.aimForward = QuatForward(qx, qy, qz, qw);
+                    entity.position = pos;
+                    entity.posVec = desc + offsets::location_camera::Position;
+                    remember(std::move(entity));
+                }
+                uintptr_t safe = mem.Read<uintptr_t>(item.value + offsets::building::SafeDoor);
+                if (IsPtr(safe) && !reuse(safe, EntityType::Safe, item.key)) {
+                    uintptr_t sdesc = mem.Read<uintptr_t>(safe + offsets::safe_door::Description);
+                    GameEntity entity;
+                    entity.address = safe;
+                    entity.type = EntityType::Safe;
+                    entity.isEnabled = true;
+                    entity.isAlive = true;
+                    entity.displayName = prettyItemName(ReadEnumId(sdesc));
+                    if (entity.displayName.empty())
+                        entity.displayName = "Safe";
+                    uintptr_t endPrim = mem.Read<uintptr_t>(safe + offsets::safe_door::UnlockEndTs);
+                    uintptr_t endAddr = PrimitiveValueAddress(endPrim);
+                    if (endAddr)
+                        mem.ReadOk(endAddr, entity.drillEndTs);
+                    uintptr_t bdesc = mem.Read<uintptr_t>(item.value + offsets::building::Description);
+                    if (IsPtr(bdesc)) {
+                        entity.position = mem.Read<Vector3>(bdesc + offsets::building_desc::Position);
+                        entity.posVec = bdesc + offsets::building_desc::Position;
+                    }
+                    if (FinitePosition(entity.position))
+                        remember(std::move(entity));
+                }
+            }
+        }
+
+        uintptr_t rackDict = mem.Read<uintptr_t>(world + offsets::world::Shelvings);
+        std::vector<DictItem> racks;
+        if (ReadIntDictionary(rackDict, racks, 128)) {
+            for (const auto& item : racks) {
+                if (reuse(item.value, EntityType::Rack, item.key))
+                    continue;
+                GameEntity entity;
+                entity.address = item.value;
+                entity.creationIndex = item.key;
+                entity.type = EntityType::Rack;
+                entity.isEnabled = true;
+                entity.isAlive = true;
+                entity.displayName = "Rack";
+                uintptr_t descModel = mem.Read<uintptr_t>(item.value + offsets::shelving::Description);
+                uintptr_t desc = IsPtr(descModel) ? mem.Read<uintptr_t>(descModel + 0x10) : 0;
+                std::string nm = prettyItemName(ReadEnumId(desc));
+                if (!nm.empty())
+                    entity.displayName = nm;
+                if (IsPtr(desc)) {
+                    Vector3 pos = mem.Read<Vector3>(desc + 0x30);
+                    if (FinitePosition(pos)) {
+                        entity.position = pos;
+                        entity.posVec = desc + 0x30;
+                    }
+                }
+                if (FinitePosition(entity.position) || entity.posVec)
+                    remember(std::move(entity));
+            }
+        }
+
+        uintptr_t pcDict = mem.Read<uintptr_t>(world + offsets::world::PlotContainers);
+        std::vector<DictItem> pcs;
+        if (ReadIntDictionary(pcDict, pcs, 128)) {
+            for (const auto& item : pcs) {
+                uintptr_t emptyModel = mem.Read<uintptr_t>(item.value + offsets::plot_container::IsEmpty);
+                uintptr_t emptyAddr = ModelValueAddress(emptyModel);
+                bool empty = emptyAddr && mem.Read<uint8_t>(emptyAddr) != 0;
+                if (empty && !Config::Get().esp.showEmptyContainers) {
+                    m_known.erase(item.value);
+                    continue;
+                }
+                if (reuse(item.value, EntityType::Container, item.key))
+                    continue;
+                uintptr_t posModel = mem.Read<uintptr_t>(item.value + offsets::plot_container::Position);
+                GameEntity entity;
+                entity.address = item.value;
+                entity.creationIndex = item.key;
+                entity.type = EntityType::Container;
+                entity.isEnabled = true;
+                entity.isAlive = true;
+                entity.displayName = prettyItemName(ReadEnumId(
+                    mem.Read<uintptr_t>(item.value + offsets::plot_container::Description)));
+                if (entity.displayName.empty())
+                    entity.displayName = "Plot container";
+                entity.hasLoot = !empty;
+                if (empty)
+                    entity.extra = "empty";
+                if (IsPtr(posModel) && ResolveVectorPosition(posModel, entity))
+                    remember(std::move(entity));
             }
         }
     }
@@ -2964,7 +2664,7 @@ void UnityEngine::CacheActors() {
     }
 }
 
-void UnityEngine::AttachRenderedViews(std::vector<GameEntity>& actors) {
+void RobRunSession::AttachRenderedViews(std::vector<GameEntity>& actors) {
     for (auto& e : actors)
         e.renderedPos = e.renderedHeadPos = 0;
 
@@ -3009,6 +2709,8 @@ void UnityEngine::AttachRenderedViews(std::vector<GameEntity>& actors) {
 
     std::unordered_map<int, uintptr_t> characters;
     std::unordered_map<int, uintptr_t> characterHeads;
+    std::unordered_map<int, uintptr_t> colorModels;
+    std::unordered_map<int, uintptr_t> followNatives;
     std::unordered_map<int, uintptr_t> cars;
     std::vector<DictItem> items;
     uintptr_t charDict = mem.Read<uintptr_t>(
@@ -3026,6 +2728,19 @@ void UnityEngine::AttachRenderedViews(std::vector<GameEntity>& actors) {
                 item.value + offsets::character_entity_view::HeadPosition);
             uintptr_t headPos = nativePosition(headManaged);
             if (headPos) characterHeads[item.key] = headPos;
+            uintptr_t customView = mem.Read<uintptr_t>(
+                item.value + offsets::character_entity_view::CustomizationView);
+            if (IsPtr(customView)) {
+                uintptr_t color = mem.Read<uintptr_t>(
+                    customView + offsets::customization_view::ColorModel);
+                if (IsPtr(color))
+                    colorModels[item.key] = color;
+            }
+            uintptr_t followManaged = mem.Read<uintptr_t>(
+                item.value + offsets::character_entity_view::FollowCamera);
+            uintptr_t followNative = nativePosition(followManaged);
+            if (followNative)
+                followNatives[item.key] = followNative;
         }
     }
     items.clear();
@@ -3058,6 +2773,12 @@ void UnityEngine::AttachRenderedViews(std::vector<GameEntity>& actors) {
             auto hit = characterHeads.find(e.creationIndex);
             if (hit != characterHeads.end())
                 e.renderedHeadPos = hit->second;
+            auto color = colorModels.find(e.creationIndex);
+            if (color != colorModels.end())
+                e.colorModel = color->second;
+            auto follow = followNatives.find(e.creationIndex);
+            if (follow != followNatives.end())
+                e.followCamNative = follow->second;
         }
         ++linked;
     }
@@ -3071,9 +2792,14 @@ void UnityEngine::AttachRenderedViews(std::vector<GameEntity>& actors) {
                   << " updater=0x" << std::hex << updater << std::dec
                   << "\n" << std::flush;
     }
+
+    int localViewId = mem.Read<int>(updater + offsets::battle_entities_view_updater::PlayerEntityId);
+    auto followLocal = followNatives.find(localViewId);
+    if (followLocal != followNatives.end())
+        m_followCamNative.store(followLocal->second);
 }
 
-void UnityEngine::CachePositions() {
+void RobRunSession::CachePositions() {
     if (!m_inGame) return;
 
     std::vector<GameEntity> actors;
@@ -3104,6 +2830,7 @@ void UnityEngine::CachePositions() {
         uint8_t crouch = 0;
         uint8_t sprinting = 0;
         uint8_t armor = 0;
+        int armorAmount = 0;
         int vehicleId = -1;
         int cash = 0;
         float px = 0, py = 0, pz = 0;
@@ -3118,16 +2845,6 @@ void UnityEngine::CachePositions() {
         float quaternion[4] = { 0.f, 0.f, 0.f, 1.f };
         float yaw = 0, pitch = 0;
     };
-    struct FollowSample {
-        float position[3] = {};
-    };
-    struct BrainSample {
-        int frame = 0;
-        float fov = 0.f;
-        float pose[7] = {};
-        float correction[3] = {};
-        float orient[4] = { 0.f, 0.f, 0.f, 1.f };
-    };
     struct BattleCamSample {
         Vector3 position{};
         float orient[4] = { 0.f, 0.f, 0.f, 1.f };
@@ -3138,23 +2855,11 @@ void UnityEngine::CachePositions() {
     };
     std::vector<Sample> samples(actors.size());
     ClientSample clientSample;
-    FollowSample followSample;
     BattleCamSample battleCamSample;
-    BrainSample brainSample[8];
     uintptr_t clientPos = m_clientPos.load();
     uintptr_t clientLookQuat = m_clientLookQuat.load();
     uintptr_t clientYawAddr = m_clientYaw.load();
     uintptr_t clientPitchAddr = m_clientPitch.load();
-    uintptr_t followAddr = m_followPos.load();
-    int brainCount = m_brainCount.load();
-    if (brainCount < 0) brainCount = 0;
-    if (brainCount > 8) brainCount = 8;
-    uintptr_t brainAddr[8] = {};
-    for (int i = 0; i < brainCount; ++i)
-        brainAddr[i] = m_brains[i].load();
-    int rigKind = m_rigKind.load();
-    uintptr_t rigAddr = m_rig.load();
-    float rigRaw[40] = {};
     uintptr_t battleCam = m_battleCamera.load();
     if (!IsPtr(battleCam) && IsPtr(m_battleModel.load())) {
         uintptr_t fromModel = 0;
@@ -3188,6 +2893,7 @@ void UnityEngine::CachePositions() {
             if (e.crouchAddr) scatter.Prepare(e.crouchAddr, &s.crouch);
             if (e.sprintAddr) scatter.Prepare(e.sprintAddr, &s.sprinting);
             if (e.armorAddr) scatter.Prepare(e.armorAddr, &s.armor);
+            if (e.armorAmountAddr) scatter.Prepare(e.armorAmountAddr, &s.armorAmount);
             if (e.vehicleIdAddr) scatter.Prepare(e.vehicleIdAddr, &s.vehicleId);
             if (e.cashAddr) scatter.Prepare(e.cashAddr, &s.cash);
             if (e.lookAddr) scatter.Prepare(e.lookAddr, &s.lx, sizeof(float) * 5);
@@ -3202,8 +2908,6 @@ void UnityEngine::CachePositions() {
             scatter.Prepare(clientLookQuat, clientSample.quaternion, sizeof(clientSample.quaternion));
         if (clientYawAddr) scatter.Prepare(clientYawAddr, &clientSample.yaw);
         if (clientPitchAddr) scatter.Prepare(clientPitchAddr, &clientSample.pitch);
-        if (followAddr)
-            scatter.Prepare(followAddr, followSample.position, sizeof(followSample.position));
         if (IsPtr(battleCam)) {
             scatter.Prepare(battleCam + offsets::battle_camera::Position,
                             &battleCamSample.position, sizeof(Vector3));
@@ -3217,21 +2921,6 @@ void UnityEngine::CachePositions() {
                             &battleCamSample.up, sizeof(Vector3));
             scatter.Prepare(battleCam + offsets::battle_camera::DistanceToFollowTarget,
                             &battleCamSample.distance);
-        }
-        if (rigAddr) {
-            size_t rigBytes = rigKind == 2 ? sizeof(rigRaw) : sizeof(float) * 6;
-            scatter.Prepare(rigAddr + offsets::third_person::ShoulderOffset, rigRaw, rigBytes);
-        }
-        for (int i = 0; i < brainCount; ++i) {
-            if (!brainAddr[i]) continue;
-            scatter.Prepare(brainAddr[i] + offsets::cinemachine_brain::LastFrame, &brainSample[i].frame);
-            scatter.Prepare(brainAddr[i] + offsets::cinemachine_brain::FieldOfView, &brainSample[i].fov);
-            scatter.Prepare(brainAddr[i] + offsets::cinemachine_brain::RawPose,
-                            brainSample[i].pose, sizeof(brainSample[i].pose));
-            scatter.Prepare(brainAddr[i] + offsets::cinemachine_brain::PositionCorrection,
-                            brainSample[i].correction, sizeof(brainSample[i].correction));
-            scatter.Prepare(brainAddr[i] + offsets::cinemachine_brain::OrientationCorrection,
-                            brainSample[i].orient, sizeof(brainSample[i].orient));
         }
         scatter.Execute();
     }
@@ -3272,6 +2961,7 @@ void UnityEngine::CachePositions() {
             auto& step = gait[e.address];
             if (step.has && FinitePosition(e.position)) {
                 Vector3 delta = e.position - step.pos;
+                e.velocity = delta;
                 float moved = std::sqrt(delta.x * delta.x + delta.z * delta.z);
                 if (moved < 3.f)
                     step.phase += moved * 5.5f;
@@ -3297,12 +2987,22 @@ void UnityEngine::CachePositions() {
             else
                 e.isAlive = e.health > 0.f;
             // Only drop actors that are actually leaving the match — not hide-state.
-            if (!hub && s.leave != 0)
+            if (!hub && s.leave != 0 && !e.hidingInProp && !e.isHidden)
                 e.isEnabled = false;
             e.isCrouching = s.crouch != 0;
             e.isSprinting = s.sprinting != 0;
-            e.hasArmor = s.armor != 0;
+            e.hasArmor = s.armor != 0 || s.armorAmount > 0;
+            e.armorAmount = static_cast<float>(s.armorAmount);
+            if (e.armorAmount > e.maxArmor)
+                e.maxArmor = e.armorAmount;
             e.inVehicle = s.vehicleId >= 0;
+            e.isHidden = e.isHidden || s.isHidden != 0;
+            if (e.hidingInProp || e.isHidden) {
+                if (FinitePosition(e.position))
+                    e.isEnabled = true;
+                if (e.extra.empty())
+                    e.extra = "Hiding";
+            }
         }
     }
 
@@ -3410,32 +3110,21 @@ void UnityEngine::CachePositions() {
 
     CameraData camera;
     camera.status = status;
-    const char* camSource = "none";
     camera.viewInfo.fov = 60.f;
 
     Vector3 viewPos{
         clientSample.position[0], clientSample.position[1], clientSample.position[2]
     };
-    if (FinitePosition(viewPos)) {
-        if (!haveLocal) {
-            local.position = viewPos;
-            local.isLocalPlayer = true;
-            local.isEnabled = true;
-            haveLocal = true;
-        }
-        if (UnitQuat(clientSample.quaternion[0], clientSample.quaternion[1],
-                     clientSample.quaternion[2], clientSample.quaternion[3])) {
-            SetCameraBasis(camera.viewInfo,
-                           clientSample.quaternion[0], clientSample.quaternion[1],
-                           clientSample.quaternion[2], clientSample.quaternion[3]);
-        }
+    if (FinitePosition(viewPos) && !haveLocal) {
+        local.position = viewPos;
+        local.isLocalPlayer = true;
+        local.isEnabled = true;
+        haveLocal = true;
     }
 
-    // Lens is over the shoulder, not on the character. BattleCameraModel
-    // stores that world pose (Position + axes + distance-to-follow).
-    Vector3 followPos{
-        followSample.position[0], followSample.position[1], followSample.position[2]
-    };
+    // W2S uses the local third-person lens, not the pawn look vector.
+    // Game chain: Game+0xD0 -> GameModel+0x10 -> BattleModel+0x358 BattleCameraModel.
+    // Position / Forward / Right / Up are the shoulder camera in world space.
     if (FinitePosition(battleCamSample.position)) {
         camera.viewInfo.location = battleCamSample.position;
         if (!ApplyCameraAxes(camera.viewInfo, battleCamSample.forward,
@@ -3447,112 +3136,42 @@ void UnityEngine::CachePositions() {
                            battleCamSample.orient[3]);
         }
         camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
-        if (camera.valid)
-            camSource = "shoulder";
     }
-
-    Vector3 anchor = FinitePosition(followPos) ? followPos
-        : (FinitePosition(viewPos) ? viewPos : local.position);
-    bool haveAnchor = FinitePosition(anchor);
-    int bestBrain = -1;
-    int bestFrame = -1;
-    float bestDist = 1.0e9f;
-    Vector3 bestPos;
-    float bestQuat[4] = {};
-    float bestFov = 0.f;
-    int seenFrame = -1;
-    float seenFov = 0.f;
-    Vector3 seenPos;
-    for (int i = 0; i < brainCount; ++i) {
-        const auto& brain = brainSample[i];
-        Vector3 raw{ brain.pose[0], brain.pose[1], brain.pose[2] };
-        Vector3 corr{ brain.correction[0], brain.correction[1], brain.correction[2] };
-        Vector3 pos = raw;
-        if (FinitePosition(raw) && corr.IsValid() && corr.Length() < 20.f)
-            pos = raw + corr;
-        if (brain.frame > seenFrame) {
-            seenFrame = brain.frame;
-            seenFov = brain.fov;
-            seenPos = pos;
-        }
-        if (!(brain.fov >= 20.f && brain.fov <= 150.f)) continue;
-        if (!FinitePosition(pos)) continue;
-        if (!UnitQuat(brain.pose[3], brain.pose[4], brain.pose[5], brain.pose[6])) continue;
-        float dist = haveAnchor ? pos.Distance(anchor) : 0.f;
-        if (haveAnchor && dist > 40.f) continue;
-        // The brain ManualUpdate writes Time.frameCount. The one with the
-        // newest frame is the camera that is actually rendering.
-        if (brain.frame < bestFrame) continue;
-        if (brain.frame == bestFrame && dist >= bestDist) continue;
-        float q[4] = { brain.pose[3], brain.pose[4], brain.pose[5], brain.pose[6] };
-        if (UnitQuat(brain.orient[0], brain.orient[1], brain.orient[2], brain.orient[3])) {
-            float mixed[4];
-            QuatMul(q, brain.orient, mixed);
-            if (UnitQuat(mixed[0], mixed[1], mixed[2], mixed[3])) {
-                q[0] = mixed[0]; q[1] = mixed[1]; q[2] = mixed[2]; q[3] = mixed[3];
-            }
-        }
-        bestFrame = brain.frame;
-        bestDist = dist;
-        bestBrain = i;
-        bestPos = pos;
-        bestFov = brain.fov;
-        bestQuat[0] = q[0]; bestQuat[1] = q[1]; bestQuat[2] = q[2]; bestQuat[3] = q[3];
-    }
-    float rigDist = 0.f;
-    float rigSide = 0.f;
-    Vector3 rigEye;
-    Vector3 rigRoot = FinitePosition(followPos) ? followPos : anchor;
-    Vector3 lookFwd = camera.viewInfo.hasAxes ? camera.viewInfo.axisForward : Vector3{};
-    bool rigOk = rigAddr && lookFwd.Length() > 0.5f &&
-        PlaceRigCamera(rigRaw, rigKind == 2, rigRoot, lookFwd, rigEye, rigDist, rigSide);
-    if (bestBrain >= 0 && bestFov >= 20.f && bestFov <= 150.f)
-        camera.viewInfo.fov = bestFov;
-    if (bestBrain >= 0 &&
-        (!camera.valid || bestPos.Distance(camera.viewInfo.location) < 8.f)) {
-        camera.status = status;
-        camera.viewInfo.location = bestPos;
-        SetCameraBasis(camera.viewInfo, bestQuat[0], bestQuat[1], bestQuat[2], bestQuat[3]);
-        camera.viewInfo.fov = bestFov;
-        camera.valid = true;
-        camSource = "view";
-    } else if (!camera.valid && rigOk) {
-        camera.status = status;
-        camera.viewInfo.location = rigEye;
-        camera.valid = true;
-        camSource = "rig";
-    } else if (!camera.valid && lookFwd.Length() > 0.5f && FinitePosition(rigRoot)) {
-        float defRaw[6] = { 0.45f, 0.2f, 0.f, 0.7f, 1.f, 2.2f };
-        if (PlaceRigCamera(defRaw, false, rigRoot, lookFwd, rigEye, rigDist, rigSide)) {
-            camera.status = status;
-            camera.viewInfo.location = rigEye;
-            camera.valid = true;
-            camSource = "rig-default";
-        }
-    }
-    if (bestBrain < 0 && brainCount > 0 && seenFrame <= 0)
-        m_brainReject.store(1);
+    ApplyFreecamCamera(camera);
+    WriteMaterialChams(actors);
 
     {
         Vector3 clientBody{
             clientSample.position[0], clientSample.position[1], clientSample.position[2]
         };
-        auto markLocal = [&](GameEntity& e) {
-            if (e.type != EntityType::Player || !e.isEnabled)
-                return;
-            e.isLocalPlayer = true;
-            local = e;
-            haveLocal = true;
-        };
-        if (!haveLocal && FinitePosition(clientBody)) {
+        Vector3 hint = FinitePosition(clientBody) ? clientBody : camera.viewInfo.location;
+        if (!haveLocal && FinitePosition(hint)) {
+            float best = 4.f;
+            GameEntity* pick = nullptr;
             for (auto& e : actors) {
-                if (e.type != EntityType::Player || !e.isEnabled)
+                if (e.type != EntityType::Player)
                     continue;
-                if (e.position.Distance(clientBody) < 1.7f) {
-                    markLocal(e);
-                    break;
+                if (!FinitePosition(e.position))
+                    continue;
+                const float d = e.position.Distance(hint);
+                if (d < best) {
+                    best = d;
+                    pick = &e;
                 }
             }
+            if (pick) {
+                pick->isLocalPlayer = true;
+                pick->isEnabled = true;
+                local = *pick;
+                haveLocal = true;
+            }
+        }
+        if (!haveLocal && FinitePosition(clientBody)) {
+            local.position = clientBody;
+            local.isLocalPlayer = true;
+            local.isEnabled = true;
+            local.type = EntityType::Player;
+            haveLocal = true;
         }
         if (haveLocal) {
             for (auto& e : actors) {
@@ -3560,79 +3179,19 @@ void UnityEngine::CachePositions() {
                     continue;
                 if (FinitePosition(local.position) && e.position.Distance(local.position) < 1.25f)
                     e.isLocalPlayer = true;
-                else if (camera.valid &&
-                         e.position.Distance(camera.viewInfo.location) < 0.7f)
-                    e.isLocalPlayer = true;
             }
         }
     }
 
-    static bool publishedFrameLogged = false;
-    static bool publishedViewLogged = false;
-    static bool loggedMiss = false;
-    bool viewLive = camSource[0] == 'v' || camSource[0] == 'r' || camSource[0] == 's';
-    bool miss = !viewLive && (brainCount > 0 || rigAddr != 0);
-    if (!publishedFrameLogged || (viewLive && !publishedViewLogged) || (miss && !loggedMiss)) {
-        int enabledPlayers = 0;
-        int enabledVehicles = 0;
-        const GameEntity* firstOther = nullptr;
-        for (const auto& e : actors) {
-            if (!e.isEnabled) continue;
-            if (e.type == EntityType::Player) {
-                ++enabledPlayers;
-                if (!e.isLocalPlayer && !firstOther) firstOther = &e;
-            } else if (e.type == EntityType::Vehicle) {
-                ++enabledVehicles;
-            }
-        }
-        const auto& esp = Config::Get().esp;
-        int bones = firstOther ? firstOther->boneCount : 0;
-        Vector3 forward = camera.viewInfo.hasAxes
-            ? camera.viewInfo.axisForward
-            : Vector3{};
-        if (!camera.viewInfo.hasAxes) {
-            constexpr float d2r = 3.14159265358979323846f / 180.f;
-            float yaw = camera.viewInfo.rotation.yaw * d2r;
-            float pitch = camera.viewInfo.rotation.pitch * d2r;
-            forward = {
-                std::sinf(yaw) * std::cosf(pitch),
-                std::sinf(pitch),
-                std::cosf(yaw) * std::cosf(pitch)
-            };
-        }
-        std::cout << "[+] Published frame: camera=" << (camera.valid ? "yes" : "no")
-                  << " source=" << camSource
-                  << " local=" << (haveLocal ? "yes" : "no")
-                  << " players=" << enabledPlayers
-                  << " vehicles=" << enabledVehicles
-                  << " bones=" << bones
-                  << " esp=" << (esp.enabled ? "on" : "off")
-                  << " showP=" << (esp.showPlayers ? "on" : "off")
-                  << " showV=" << (esp.showVehicles ? "on" : "off")
+    static bool loggedCam = false;
+    if (!loggedCam) {
+        loggedCam = true;
+        std::cout << "[+] Shoulder camera " << (camera.valid ? "valid" : "waiting")
                   << " fov=" << camera.viewInfo.fov
-                  << " rig=" << (rigAddr ? (rigKind == 2 ? "aim" : "third") : "no")
-                  << " rigDist=" << rigDist
-                  << " side=" << rigSide
-                  << " brains=" << brainCount
-                  << " frame=" << bestFrame
-                  << " seenFrame=" << seenFrame
-                  << " seenFov=" << seenFov
-                  << " seen=(" << seenPos.x << "," << seenPos.y << "," << seenPos.z << ")"
+                  << " dist=" << battleCamSample.distance
                   << " cam=(" << camera.viewInfo.location.x << ","
                   << camera.viewInfo.location.y << ","
-                  << camera.viewInfo.location.z << ")"
-                  << " yaw=" << camera.viewInfo.rotation.yaw
-                  << " pitch=" << camera.viewInfo.rotation.pitch;
-        if (firstOther) {
-            Vector3 delta = firstOther->position - camera.viewInfo.location;
-            std::cout << " first=(" << firstOther->position.x << ","
-                      << firstOther->position.y << "," << firstOther->position.z
-                      << ") front=" << delta.Dot(forward);
-        }
-        std::cout << "\n" << std::flush;
-        publishedFrameLogged = true;
-        if (viewLive) publishedViewLogged = true;
-        if (miss) loggedMiss = true;
+                  << camera.viewInfo.location.z << ")\n" << std::flush;
     }
 
     int enabledPlayers = 0;
@@ -3643,12 +3202,9 @@ void UnityEngine::CachePositions() {
     Config::AutoTuneWorkersForEsp(enabledPlayers, true);
 
     actors.erase(std::remove_if(actors.begin(), actors.end(), [](const GameEntity& e) {
-        if (e.isLocalPlayer) return false;
-        if (e.type != EntityType::Player || e.isAlive) return false;
-        std::string role = e.role;
-        for (char& c : role)
-            c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-        return role.find("hub") == std::string::npos;
+        if (e.isLocalPlayer || e.hidingInProp || e.isHidden)
+            return false;
+        return !e.isEnabled && e.type == EntityType::Player;
     }), actors.end());
 
     camera.generation = m_snapshotGeneration.fetch_add(1, std::memory_order_relaxed) + 1;
@@ -3665,34 +3221,22 @@ void UnityEngine::CachePositions() {
         m_espReady.store(true);
 }
 
-void UnityEngine::RefreshCamera(CameraData& camera) {
-    if (!camera.valid || !m_inGame.load()) return;
-    int brainCount = m_brainCount.load();
-    if (brainCount < 0) brainCount = 0;
-    if (brainCount > 8) brainCount = 8;
-
-    struct LookSample {
-        float quaternion[4] = { 0.f, 0.f, 0.f, 1.f };
-        float yaw = 0.f;
-        float pitch = 0.f;
-        float follow[3] = {};
-    } look;
-    struct Sample {
-        int frame = 0;
-        float fov = 0.f;
-        float pose[7] = {};
-        float correction[3] = {};
-        float orient[4] = { 0.f, 0.f, 0.f, 1.f };
-    };
-    Sample sample[8];
-    uintptr_t addr[8] = {};
-    for (int i = 0; i < brainCount; ++i)
-        addr[i] = m_brains[i].load();
-    uintptr_t lookQuat = m_clientLookQuat.load();
-    uintptr_t yawAddr = m_clientYaw.load();
-    uintptr_t pitchAddr = m_clientPitch.load();
-    uintptr_t followAddr = m_followPos.load();
+void RobRunSession::RefreshCamera(CameraData& camera) {
+    if (!m_inGame.load()) return;
     uintptr_t battleCam = m_battleCamera.load();
+    if (!IsPtr(battleCam) && IsPtr(m_battleModel.load())) {
+        uintptr_t fromModel = 0;
+        if (Memory::Get().ReadOk(m_battleModel.load() + offsets::battle_model::BattleCamera, fromModel) &&
+            IsPtr(fromModel)) {
+            m_battleCamera.store(fromModel);
+            battleCam = fromModel;
+        }
+    }
+    if (!IsPtr(battleCam)) {
+        camera.valid = false;
+        return;
+    }
+
     struct BattleCamSample {
         Vector3 position{};
         float orient[4] = { 0.f, 0.f, 0.f, 1.f };
@@ -3703,117 +3247,36 @@ void UnityEngine::RefreshCamera(CameraData& camera) {
 
     auto& scatter = Memory::Get().BorrowScatter();
     if (!scatter.IsValid()) return;
-    if (lookQuat)
-        scatter.Prepare(lookQuat, look.quaternion, sizeof(look.quaternion));
-    if (yawAddr) scatter.Prepare(yawAddr, &look.yaw);
-    if (pitchAddr) scatter.Prepare(pitchAddr, &look.pitch);
-    if (followAddr) scatter.Prepare(followAddr, look.follow, sizeof(look.follow));
-    if (IsPtr(battleCam)) {
-        scatter.Prepare(battleCam + offsets::battle_camera::Position,
-                        &battleCamSample.position, sizeof(Vector3));
-        scatter.Prepare(battleCam + offsets::battle_camera::Orientation,
-                        battleCamSample.orient, sizeof(battleCamSample.orient));
-        scatter.Prepare(battleCam + offsets::battle_camera::Forward,
-                        &battleCamSample.forward, sizeof(Vector3));
-        scatter.Prepare(battleCam + offsets::battle_camera::Right,
-                        &battleCamSample.right, sizeof(Vector3));
-        scatter.Prepare(battleCam + offsets::battle_camera::Up,
-                        &battleCamSample.up, sizeof(Vector3));
-    }
-    for (int i = 0; i < brainCount; ++i) {
-        if (!addr[i]) continue;
-        scatter.Prepare(addr[i] + offsets::cinemachine_brain::LastFrame, &sample[i].frame);
-        scatter.Prepare(addr[i] + offsets::cinemachine_brain::FieldOfView, &sample[i].fov);
-        scatter.Prepare(addr[i] + offsets::cinemachine_brain::RawPose,
-                        sample[i].pose, sizeof(sample[i].pose));
-        scatter.Prepare(addr[i] + offsets::cinemachine_brain::PositionCorrection,
-                        sample[i].correction, sizeof(sample[i].correction));
-        scatter.Prepare(addr[i] + offsets::cinemachine_brain::OrientationCorrection,
-                        sample[i].orient, sizeof(sample[i].orient));
-    }
+    scatter.Prepare(battleCam + offsets::battle_camera::Position,
+                    &battleCamSample.position, sizeof(Vector3));
+    scatter.Prepare(battleCam + offsets::battle_camera::Orientation,
+                    battleCamSample.orient, sizeof(battleCamSample.orient));
+    scatter.Prepare(battleCam + offsets::battle_camera::Forward,
+                    &battleCamSample.forward, sizeof(Vector3));
+    scatter.Prepare(battleCam + offsets::battle_camera::Right,
+                    &battleCamSample.right, sizeof(Vector3));
+    scatter.Prepare(battleCam + offsets::battle_camera::Up,
+                    &battleCamSample.up, sizeof(Vector3));
     if (!scatter.Execute()) return;
 
-    const Vector3 anchor = camera.viewInfo.location;
-    int best = -1;
-    int bestFrame = -1;
-    float bestDist = 1.0e9f;
-    Vector3 bestPos;
-    float bestQuat[4] = {};
-    float bestFov = 0.f;
-    for (int i = 0; i < brainCount; ++i) {
-        const auto& brain = sample[i];
-        Vector3 raw{ brain.pose[0], brain.pose[1], brain.pose[2] };
-        Vector3 corr{ brain.correction[0], brain.correction[1], brain.correction[2] };
-        Vector3 pos = raw;
-        if (FinitePosition(raw) && corr.IsValid() && corr.Length() < 20.f)
-            pos = raw + corr;
-        if (!(brain.fov >= 20.f && brain.fov <= 150.f)) continue;
-        if (!FinitePosition(pos)) continue;
-        if (!UnitQuat(brain.pose[3], brain.pose[4], brain.pose[5], brain.pose[6])) continue;
-        float dist = pos.Distance(anchor);
-        if (dist > 40.f) continue;
-        if (brain.frame < bestFrame) continue;
-        if (brain.frame == bestFrame && dist >= bestDist) continue;
-        float q[4] = { brain.pose[3], brain.pose[4], brain.pose[5], brain.pose[6] };
-        if (UnitQuat(brain.orient[0], brain.orient[1], brain.orient[2], brain.orient[3])) {
-            float mixed[4];
-            QuatMul(q, brain.orient, mixed);
-            if (UnitQuat(mixed[0], mixed[1], mixed[2], mixed[3])) {
-                q[0] = mixed[0]; q[1] = mixed[1]; q[2] = mixed[2]; q[3] = mixed[3];
-            }
-        }
-        bestFrame = brain.frame;
-        bestDist = dist;
-        best = i;
-        bestPos = pos;
-        bestFov = brain.fov;
-        bestQuat[0] = q[0]; bestQuat[1] = q[1]; bestQuat[2] = q[2]; bestQuat[3] = q[3];
-    }
-    if (best >= 0) {
-        camera.viewInfo.location = bestPos;
-        SetCameraBasis(camera.viewInfo, bestQuat[0], bestQuat[1], bestQuat[2], bestQuat[3]);
-        camera.viewInfo.fov = bestFov;
-        camera.valid = true;
+    if (!FinitePosition(battleCamSample.position)) {
+        camera.valid = false;
         return;
     }
-
-    if (FinitePosition(battleCamSample.position)) {
-        camera.viewInfo.location = battleCamSample.position;
-        if (!ApplyCameraAxes(camera.viewInfo, battleCamSample.forward,
-                             battleCamSample.right, battleCamSample.up) &&
-            UnitQuat(battleCamSample.orient[0], battleCamSample.orient[1],
-                     battleCamSample.orient[2], battleCamSample.orient[3])) {
-            SetCameraBasis(camera.viewInfo, battleCamSample.orient[0],
-                           battleCamSample.orient[1], battleCamSample.orient[2],
-                           battleCamSample.orient[3]);
-        }
-        camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
-        if (camera.valid)
-            return;
+    camera.viewInfo.location = battleCamSample.position;
+    camera.viewInfo.fov = 60.f;
+    if (!ApplyCameraAxes(camera.viewInfo, battleCamSample.forward,
+                         battleCamSample.right, battleCamSample.up) &&
+        UnitQuat(battleCamSample.orient[0], battleCamSample.orient[1],
+                 battleCamSample.orient[2], battleCamSample.orient[3])) {
+        SetCameraBasis(camera.viewInfo, battleCamSample.orient[0],
+                       battleCamSample.orient[1], battleCamSample.orient[2],
+                       battleCamSample.orient[3]);
     }
-
-    if (!UnitQuat(look.quaternion[0], look.quaternion[1], look.quaternion[2], look.quaternion[3]))
-        return;
-    Vector3 lookForward = QuatForward(
-        look.quaternion[0], look.quaternion[1], look.quaternion[2], look.quaternion[3]);
-    SetCameraBasis(camera.viewInfo,
-                   look.quaternion[0], look.quaternion[1], look.quaternion[2], look.quaternion[3]);
-    camera.viewInfo.rotation.yaw = LookYawDegrees(lookForward, look.yaw);
-    camera.viewInfo.rotation.pitch = LookPitchDegrees(lookForward, look.pitch);
-    camera.viewInfo.rotation.roll = 0.f;
-    Vector3 follow{ look.follow[0], look.follow[1], look.follow[2] };
-    Vector3 rigEye;
-    float rigDist = 0.f;
-    float rigSide = 0.f;
-    float defRaw[6] = { 0.45f, 0.2f, 0.f, 0.7f, 1.f, 2.2f };
-    Vector3 root = FinitePosition(follow) ? follow : camera.viewInfo.location;
-    if (FinitePosition(root) &&
-        PlaceRigCamera(defRaw, false, root, lookForward, rigEye, rigDist, rigSide))
-        camera.viewInfo.location = rigEye;
-    camera.valid = camera.viewInfo.location.IsValid();
+    camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
 }
 
-void UnityEngine::SetMemoryAimTarget(bool active, const Vector3& eye, const Vector3& targetWorld,
+void RobRunSession::SetMemoryAimTarget(bool active, const Vector3& eye, const Vector3& targetWorld,
                                      float smooth) {
     std::lock_guard<std::mutex> lock(m_aimMutex);
     m_aimActive = active;
@@ -3824,7 +3287,7 @@ void UnityEngine::SetMemoryAimTarget(bool active, const Vector3& eye, const Vect
     m_aimSmooth = smooth;
 }
 
-void UnityEngine::ServiceMemoryAim() {
+void RobRunSession::ServiceMemoryAim() {
     Vector3 eye;
     Vector3 target;
     float smooth = 1.f;
@@ -3836,10 +3299,13 @@ void UnityEngine::ServiceMemoryAim() {
         target = m_aimTarget;
         smooth = m_aimSmooth;
     }
-    WriteMemoryAim(eye, target, smooth);
+    if (Config::Get().assist.aim.silentAim)
+        WriteSilentAim(eye, target);
+    else
+        WriteMemoryAim(eye, target, smooth);
 }
 
-bool UnityEngine::WriteMemoryAim(const Vector3& eye, const Vector3& targetWorld, float smooth) {
+bool RobRunSession::WriteMemoryAim(const Vector3& eye, const Vector3& targetWorld, float smooth) {
     uintptr_t yawAddr = m_clientYaw.load();
     uintptr_t pitchAddr = m_clientPitch.load();
     uintptr_t quatAddr = m_clientLookQuat.load();
@@ -3907,7 +3373,107 @@ bool UnityEngine::WriteMemoryAim(const Vector3& eye, const Vector3& targetWorld,
     return scatter.ExecuteWrite();
 }
 
-void UnityEngine::ApplyGun() {
+void RobRunSession::ClearSilentAim() {
+    m_lookDir.store(0);
+    m_lookInput.store(0);
+    m_lastLook.store(0);
+    m_replLook.store(0);
+    m_shotInterp.store(0);
+    m_shotArgsDir.store(0);
+}
+
+void RobRunSession::CacheSilentAim(uintptr_t character) {
+    if (!IsPtr(character)) {
+        ClearSilentAim();
+        return;
+    }
+    auto& mem = Memory::Get();
+    uintptr_t look = mem.Read<uintptr_t>(character + offsets::character::LookDirection);
+    uintptr_t lookInput = mem.Read<uintptr_t>(character + offsets::character::LookInput);
+    uintptr_t lastLook = mem.Read<uintptr_t>(character + offsets::character::LastLook);
+    uintptr_t repl = mem.Read<uintptr_t>(character + offsets::character::ReplicatedLook);
+    uintptr_t interp = mem.Read<uintptr_t>(character + offsets::character::ShotInterp);
+    uintptr_t args = mem.Read<uintptr_t>(character + offsets::character::ShotArgs);
+    m_lookDir.store(IsPtr(look) ? look : 0);
+    m_lookInput.store(IsPtr(lookInput) ? lookInput : 0);
+    m_lastLook.store(IsPtr(lastLook) ? lastLook : 0);
+    uintptr_t replData = 0;
+    if (IsPtr(repl))
+        replData = mem.Read<uintptr_t>(repl + 0x10);
+    m_replLook.store(PrimitiveValueAddress(replData));
+    m_shotInterp.store(IsPtr(interp) ? interp : 0);
+    uintptr_t dirPrim = 0;
+    if (IsPtr(args))
+        dirPrim = mem.Read<uintptr_t>(args + offsets::shot_args::Direction);
+    m_shotArgsDir.store(PrimitiveValueAddress(dirPrim));
+}
+
+bool RobRunSession::WriteSilentAim(const Vector3& eye, const Vector3& targetWorld) {
+    Vector3 delta = targetWorld - eye;
+    float horiz = std::sqrtf(delta.x * delta.x + delta.z * delta.z);
+    if (!std::isfinite(horiz) || horiz < 0.05f)
+        return false;
+    const float kDeg = 180.f / 3.14159265f;
+    float yaw = std::atan2f(delta.x, delta.z) * kDeg;
+    float pitch = std::atan2f(-delta.y, horiz) * kDeg;
+    pitch = std::clamp(pitch, -89.f, 89.f);
+    Vector3 forward, right, up;
+    float quat[4]{};
+    FreecamBasis(yaw, pitch, forward, right, up, quat);
+    if (forward.Length() < 0.5f)
+        return false;
+    forward = forward.Normalized();
+
+    auto& mem = Memory::Get();
+    uintptr_t look = m_lookDir.load();
+    uintptr_t lookInput = m_lookInput.load();
+    uintptr_t lastLook = m_lastLook.load();
+    uintptr_t repl = m_replLook.load();
+    uintptr_t interp = m_shotInterp.load();
+    uintptr_t argsDir = m_shotArgsDir.load();
+    if (!IsPtr(look) && !IsPtr(interp) && !IsPtr(argsDir))
+        return false;
+
+    float writeYaw = yaw;
+    float writePitch = pitch;
+    if (IsPtr(look)) {
+        float curYaw = mem.Read<float>(look + offsets::look::Yaw);
+        if (std::fabsf(curYaw) <= 6.5f) {
+            writeYaw = yaw * (3.14159265f / 180.f);
+            writePitch = pitch * (3.14159265f / 180.f);
+        }
+    }
+
+    auto scatter = mem.CreateScatterHandle();
+    if (!scatter.IsValid())
+        return false;
+
+    uint8_t contains = 1;
+    if (IsPtr(look)) {
+        scatter.PrepareWrite(look + offsets::look::Forward, &forward, sizeof(forward));
+        scatter.PrepareWrite(look + offsets::look::Yaw, &writeYaw);
+        scatter.PrepareWrite(look + offsets::look::Pitch, &writePitch);
+    }
+    if (IsPtr(lookInput)) {
+        scatter.PrepareWrite(lookInput + offsets::look_input::X, &writeYaw);
+        scatter.PrepareWrite(lookInput + offsets::look_input::Y, &writePitch);
+        scatter.PrepareWrite(lookInput + offsets::look_input::Contains, &contains, sizeof(contains));
+    }
+    if (IsPtr(lastLook)) {
+        scatter.PrepareWrite(lastLook + offsets::last_look::Yaw, &writeYaw);
+        scatter.PrepareWrite(lastLook + offsets::last_look::Pitch, &writePitch);
+        scatter.PrepareWrite(lastLook + offsets::last_look::Direction, &forward, sizeof(forward));
+    }
+    if (IsPtr(repl))
+        scatter.PrepareWrite(repl, &forward, sizeof(forward));
+    if (IsPtr(interp))
+        scatter.PrepareWrite(interp + offsets::shot_interp::LookDirection, &forward, sizeof(forward));
+    if (IsPtr(argsDir))
+        scatter.PrepareWrite(argsDir, &forward, sizeof(forward));
+    return scatter.ExecuteWrite();
+}
+
+void RobRunSession::ApplyGun() {
     const auto& aim = Config::Get().assist.aim;
     if (!aim.noRecoil && !aim.noSway && !aim.noSpread)
         return;
@@ -3943,24 +3509,226 @@ void UnityEngine::ApplyGun() {
     }
 }
 
-std::vector<GameEntity> UnityEngine::GetEntities() {
+std::vector<GameEntity> RobRunSession::GetEntities() {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_entities;
 }
 
-GameEntity UnityEngine::GetLocalPlayer() {
+GameEntity RobRunSession::GetLocalPlayer() {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_localPlayer;
 }
 
-CameraData UnityEngine::GetCamera() {
+CameraData RobRunSession::GetCamera() {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_camera;
 }
 
-void UnityEngine::CopyRenderState(std::vector<GameEntity>& entities, GameEntity& local, CameraData& camera) {
+void RobRunSession::CopyRenderState(std::vector<GameEntity>& entities, GameEntity& local, CameraData& camera) {
     std::lock_guard<std::mutex> lock(m_mutex);
     entities = m_entities;
     local = m_localPlayer;
     camera = m_camera;
+}
+
+void RobRunSession::FreecamBasis(float yawDeg, float pitchDeg,
+                                 Vector3& forward, Vector3& right, Vector3& up, float quat[4]) const {
+    const float kDeg = 3.14159265f / 180.f;
+    const float y = yawDeg * kDeg;
+    const float p = pitchDeg * kDeg;
+    const float cy = std::cosf(y);
+    const float sy = std::sinf(y);
+    const float cp = std::cosf(p);
+    const float sp = std::sinf(p);
+    forward = { sy * cp, -sp, cy * cp };
+    right = { cy, 0.f, -sy };
+    up = { sy * sp, cp, cy * sp };
+    const float hy = y * 0.5f;
+    const float hp = p * 0.5f;
+    const float chy = std::cosf(hy);
+    const float shy = std::sinf(hy);
+    const float chp = std::cosf(hp);
+    const float shp = std::sinf(hp);
+    quat[0] = shp * chy;
+    quat[1] = -shy * chp;
+    quat[2] = shp * shy;
+    quat[3] = chp * chy;
+}
+
+void RobRunSession::ApplyFreecamCamera(CameraData& camera) {
+    if (!Config::Get().general.freeCam || !m_freecamOn.load())
+        return;
+    std::lock_guard<std::mutex> lock(m_freecamMutex);
+    Vector3 forward, right, up;
+    float quat[4] = { 0.f, 0.f, 0.f, 1.f };
+    FreecamBasis(m_freecamYaw, m_freecamPitch, forward, right, up, quat);
+    camera.viewInfo.location = m_freecamPos;
+    ApplyCameraAxes(camera.viewInfo, forward, right, up);
+    camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
+}
+
+void RobRunSession::UpdateFreecam(float dt, bool menuOpen) {
+    auto& cfg = Config::Get().general;
+    if (!cfg.freeCam) {
+        m_freecamOn.store(false);
+        m_freecamCursorInit = false;
+        return;
+    }
+
+    CameraData cam;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        cam = m_camera;
+    }
+
+    std::lock_guard<std::mutex> lock(m_freecamMutex);
+    if (!m_freecamOn.load()) {
+        if (cam.valid && FinitePosition(cam.viewInfo.location)) {
+            m_freecamPos = cam.viewInfo.location;
+            m_freecamYaw = cam.viewInfo.rotation.yaw;
+            m_freecamPitch = cam.viewInfo.rotation.pitch;
+        }
+        m_freecamOn.store(true);
+        m_freecamCursorInit = false;
+    }
+
+    if (menuOpen) {
+        m_freecamCursorInit = false;
+        return;
+    }
+
+    POINT cur{};
+    GetCursorPos(&cur);
+    if (!m_freecamCursorInit) {
+        m_freecamCursorX = cur.x;
+        m_freecamCursorY = cur.y;
+        m_freecamCursorInit = true;
+    } else {
+        m_freecamYaw += static_cast<float>(cur.x - m_freecamCursorX) * 0.12f;
+        m_freecamPitch -= static_cast<float>(cur.y - m_freecamCursorY) * 0.12f;
+        m_freecamPitch = std::clamp(m_freecamPitch, -89.f, 89.f);
+        while (m_freecamYaw > 180.f) m_freecamYaw -= 360.f;
+        while (m_freecamYaw < -180.f) m_freecamYaw += 360.f;
+        m_freecamCursorX = cur.x;
+        m_freecamCursorY = cur.y;
+    }
+
+    Vector3 forward, right, up;
+    float quat[4]{};
+    FreecamBasis(m_freecamYaw, m_freecamPitch, forward, right, up, quat);
+    float speed = cfg.freeCamSpeed;
+    if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0)
+        speed *= 2.6f;
+    if ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0)
+        speed *= 0.35f;
+    const float step = speed * (std::max)(dt, 0.001f);
+    Vector3 flatFwd{ forward.x, 0.f, forward.z };
+    if (flatFwd.Length() > 0.01f)
+        flatFwd = flatFwd.Normalized();
+    Vector3 flatRight{ right.x, 0.f, right.z };
+    if (flatRight.Length() > 0.01f)
+        flatRight = flatRight.Normalized();
+    if ((GetAsyncKeyState('W') & 0x8000) != 0) m_freecamPos = m_freecamPos + flatFwd * step;
+    if ((GetAsyncKeyState('S') & 0x8000) != 0) m_freecamPos = m_freecamPos - flatFwd * step;
+    if ((GetAsyncKeyState('A') & 0x8000) != 0) m_freecamPos = m_freecamPos - flatRight * step;
+    if ((GetAsyncKeyState('D') & 0x8000) != 0) m_freecamPos = m_freecamPos + flatRight * step;
+    if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) m_freecamPos.y += step;
+    if ((GetAsyncKeyState(VK_LCONTROL) & 0x8000) != 0) m_freecamPos.y -= step;
+}
+
+void RobRunSession::WriteFreecam() {
+    if (!Config::Get().general.freeCam || !m_freecamOn.load())
+        return;
+    Vector3 pos;
+    float yaw = 0.f;
+    float pitch = 0.f;
+    {
+        std::lock_guard<std::mutex> lock(m_freecamMutex);
+        pos = m_freecamPos;
+        yaw = m_freecamYaw;
+        pitch = m_freecamPitch;
+    }
+    if (!FinitePosition(pos))
+        return;
+
+    Vector3 forward, right, up;
+    float quat[4] = { 0.f, 0.f, 0.f, 1.f };
+    FreecamBasis(yaw, pitch, forward, right, up, quat);
+
+    auto& mem = Memory::Get();
+    uintptr_t follow = m_followPos.load();
+    if (IsPtr(follow))
+        mem.WriteRaw(follow, &pos, sizeof(pos));
+    uintptr_t followNative = m_followCamNative.load();
+    if (IsPtr(followNative))
+        mem.WriteRaw(followNative, &pos, sizeof(pos));
+
+    uintptr_t battleCam = m_battleCamera.load();
+    if (IsPtr(battleCam)) {
+        float dist = 0.05f;
+        mem.WriteRaw(battleCam + offsets::battle_camera::Position, &pos, sizeof(pos));
+        mem.WriteRaw(battleCam + offsets::battle_camera::Orientation, quat, sizeof(quat));
+        mem.WriteRaw(battleCam + offsets::battle_camera::Forward, &forward, sizeof(forward));
+        mem.WriteRaw(battleCam + offsets::battle_camera::Right, &right, sizeof(right));
+        mem.WriteRaw(battleCam + offsets::battle_camera::Up, &up, sizeof(up));
+        mem.WriteRaw(battleCam + offsets::battle_camera::DistanceToFollowTarget, &dist, sizeof(dist));
+    }
+
+    uintptr_t yawAddr = m_clientYaw.load();
+    uintptr_t pitchAddr = m_clientPitch.load();
+    if (IsPtr(yawAddr))
+        mem.Write<float>(yawAddr, yaw);
+    if (IsPtr(pitchAddr))
+        mem.Write<float>(pitchAddr, pitch);
+    uintptr_t quatAddr = m_clientLookQuat.load();
+    if (IsPtr(quatAddr))
+        mem.WriteRaw(quatAddr, quat, sizeof(quat));
+
+    uintptr_t camFollow = m_cameraFollow.load();
+    if (IsPtr(camFollow)) {
+        float nearDist = 0.05f;
+        Vector3 zero{};
+        mem.WriteRaw(camFollow + offsets::third_person::CameraDistance, &nearDist, sizeof(nearDist));
+        mem.WriteRaw(camFollow + offsets::third_person::ShoulderOffset, &zero, sizeof(zero));
+    }
+}
+
+void RobRunSession::SetShotInput(bool down) {
+    auto& mem = Memory::Get();
+    uintptr_t shot = m_shotInput.load();
+    if (IsPtr(shot)) {
+        uint8_t triggered = down ? 1 : 0;
+        int mode = 2; // PressAndHolding
+        mem.WriteRaw(shot + offsets::shot_input::Triggered, &triggered, sizeof(triggered));
+        if (down)
+            mem.WriteRaw(shot + offsets::shot_input::Mode, &mode, sizeof(mode));
+    }
+    uintptr_t fire = m_fireFlag.load();
+    if (IsPtr(fire)) {
+        uint8_t firing = down ? 1 : 0;
+        mem.WriteRaw(fire, &firing, sizeof(firing));
+    }
+}
+
+void RobRunSession::WriteMaterialChams(std::vector<GameEntity>& actors) {
+    const auto& esp = Config::Get().esp;
+    if (!esp.materialChams)
+        return;
+    static uint32_t lastMs = 0;
+    const uint32_t now = GetTickCount();
+    if (now - lastMs < 80)
+        return;
+    lastMs = now;
+    auto& mem = Memory::Get();
+    for (const auto& e : actors) {
+        if (e.type != EntityType::Player || !IsPtr(e.colorModel) || e.isLocalPlayer)
+            continue;
+        Colour c = Names::RoleColour(e.role, esp);
+        if (e.isTeammate && esp.teamEsp)
+            c = esp.teamColour;
+        float color[4] = { c.r, c.g, c.b, 1.f };
+        mem.WriteRaw(e.colorModel + offsets::customization_color::Skin, color, sizeof(color));
+        mem.WriteRaw(e.colorModel + offsets::customization_color::Hair, color, sizeof(color));
+        mem.WriteRaw(e.colorModel + offsets::customization_color::Beard, color, sizeof(color));
+    }
 }

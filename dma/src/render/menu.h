@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/engine.h"
+#include "game/types.hpp"
 
 namespace Menu {
     bool IsOpen();

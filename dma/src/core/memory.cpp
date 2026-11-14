@@ -4,7 +4,7 @@
 
 #include "memory.h"
 #include "config/config.h"
-#include "engine/offsets.h"
+#include "game/offsets.h"
 #include "render/splash.h"
 #include <iostream>
 #include <fstream>
@@ -1221,7 +1221,13 @@ ScatterHandle& Memory::BorrowScatter() {
     } else {
         handle.Clear();
     }
-    const int chunk = std::clamp(Config::Get().general.scatterMaxPrepares, 64, 4096);
+    // Motion tick stays small and exclusive. Discovery/GOM must flush in
+    // 64-read slices or SNAP jumps from 1ms to ~1000ms while the FPGA is busy.
+    int chunk = std::clamp(Config::Get().general.scatterMaxPrepares, 32, 512);
+    if (!t_dmaMotion)
+        chunk = (std::min)(chunk, 64);
+    else
+        chunk = (std::min)(chunk, 256);
     handle.SetMaxQueued(chunk);
     return handle;
 }

@@ -8,7 +8,7 @@
 |---|---|---|
 | Vehicle load | Signed-but-vulnerable `.sys` in PiDDB / CI / WdFilter | **Not scrubbed** |
 | Vehicle stays loaded | We **must not STOP** Nal after map | Service + image remain |
-| Pool executable Betest | RIP / scan outside module images | **No stomp** |
+| Pool executable Betest | RIP / scan outside module images | Default path; **opt-in stomp** (`STOMP_BYPASS.md`) |
 | New device + IOCTL table | Easy to walk `DRIVER_OBJECT` | Dynamic names only (weak) |
 | `PsSetLoadImageNotifyRoutine(OnImageLoad)` | Extra notify slot | Always registered today |
 | Large `.text` of Betest | Unique byte patterns if pool is scanned | Mutation IOCTL exists but **not** on RW-only path |
@@ -38,7 +38,7 @@ kdmapper implements several of the first rows. **Copying them does not imply EAC
 ## What we will not add here
 
 - New AC callback patches, hook kits, or “stronger” neutralize IOCTLs on the default path.
-- Operational PiDDB / hash-bucket / stomp implementations for live games.
+- Operational PiDDB / hash-bucket for live games; stomp remains **lab-gated** (see `STOMP_BYPASS.md`).
 - Claims that any combination is undetectable.
 
 If Lab I shows one **dominant** artifact (e.g. only PiDDB, not pool), document it in `docs/lab_i_notes.md` (create when you have a dump). Then decide whether that artifact is worth a **lab-flagged** experiment — separate from RW-only.

@@ -72,7 +72,7 @@ IDA + static probes: `driver-lab/reverse/SystemInformer/notes/PASS2_gate_fingerp
 | PiDDBCacheTable scrub | Not in mapper — see `reference/kdmapper` |
 | CI hash bucket | Not implemented |
 | WdFilter runtime lists | Not implemented |
-| Module stomp + pool wipe | Not implemented |
+| Module stomp + pool wipe | **Lab** — `STOMP_BYPASS.md`, `--stomp` on `mapper_nal` |
 | IOCTL hijack on signed driver only (no new device) | Not implemented |
 | Vehicle `BaseDllName.Length = 0` | Not implemented (and vehicle stays loaded after map anyway) |
 

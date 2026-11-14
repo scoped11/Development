@@ -3,7 +3,7 @@
 ## I run everything from the host (you)
 
 ```powershell
-cd C:\Users\baile\OneDrive\Desktop\Development\byovd
+cd C:\Development\byovd
 .\driver2\vm-lab.ps1 -Profile rust
 ```
 
@@ -45,7 +45,7 @@ After the worker is registered:
 
 ```powershell
 # Host
-cd C:\Users\baile\OneDrive\Desktop\Development\driver-lab\vm
+cd C:\Development\driver-lab\vm
 .\run-vm-vehicle-probe-from-host.ps1
 ```
 
@@ -56,3 +56,21 @@ Extract fresh ThrottleStop.sys in the guest:
 ```powershell
 Z:\byovd\vehicles\extract-throttlestop-from-exe.ps1
 ```
+
+### Stomp dry-run (image-backed payload, DriverLab-E)
+
+Docs: **`byovd/docs/STOMP_BYPASS.md`**. Worker helpers: **`driver-lab/vm/bg/README.md`**.
+
+```powershell
+# Host — timed dry-run on guest (kills stuck mapper first)
+cd C:\Development\driver-lab\vm\bg
+.\host-bg-admin.ps1 -Action exec -PowerShell "& 'Z:\driver-lab\vm\bg\guest-stomp-dryrun-watchdog.ps1'; exit `$LASTEXITCODE" -TimeoutSec 140
+```
+
+Guest (admin) direct:
+
+```powershell
+& 'Z:\byovd\driver2\bin\mapper_nal.exe' 'Z:\byovd\driver2\bin\Driver2Stomp.sys' --stomp --stomp-dry-run --victim luafv --driver myport --no-auth --quiet --force-map --no-fallback
+```
+
+After host rebuild, sync `mapper_nal.exe` to the guest share before trusting dry-run speed (early stomp skips cave/NX scan).

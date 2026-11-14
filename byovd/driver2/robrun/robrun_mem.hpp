@@ -2,6 +2,8 @@
 #include "../sdk/Driver2Session.hpp"
 #include <cstdint>
 #include <cstring>
+#include <string>
+#include <vector>
 
 inline bool IsPtr(uintptr_t p)
 {
@@ -34,6 +36,15 @@ public:
     bool ReadRaw(uintptr_t va, void* out, size_t size)
     {
         return drv_.ReadProcess(pid_, va, out, static_cast<uint32_t>(size));
+    }
+
+    std::string ReadString(uintptr_t va, size_t maxLen = 80)
+    {
+        std::vector<char> buf(maxLen + 1, 0);
+        if (!ReadRaw(va, buf.data(), maxLen))
+            return {};
+        buf[maxLen] = '\0';
+        return std::string(buf.data());
     }
 
     uint64_t pid() const { return pid_; }

@@ -397,7 +397,7 @@ void Tick() {
     if (g_ready.load()) {
         const auto now = std::chrono::steady_clock::now();
         const float elapsed = std::chrono::duration<float>(now - g_readyAt).count();
-        g_fade = std::clamp(1.f - elapsed / 0.55f, 0.f, 1.f);
+        g_fade = std::clamp(1.f - elapsed / 0.12f, 0.f, 1.f);
     } else {
         g_fade = 1.f;
     }

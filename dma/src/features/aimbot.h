@@ -1,6 +1,6 @@
 #pragma once
 #include "config/config.h"
-#include "engine/engine.h"
+#include "game/session.hpp"
 
 namespace Aimbot {
     void RenderFov(const AimConfig& config, int screenWidth, int screenHeight);
@@ -12,7 +12,7 @@ namespace Aimbot {
               int screenHeight,
               float scaleX,
               float scaleY,
-              UnityEngine& engine);
+              RobRunSession& session);
     void Reset();
     const char* LastStatus();
 }

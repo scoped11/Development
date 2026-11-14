@@ -13,7 +13,7 @@ REPO = Path(__file__).resolve().parents[1]
 DUMP_DIR = REPO.parent / "dumps" / "2026-11-12"
 from validate_offsets_against_dump import normalize_field_name, parse_dump_cs
 OFFSETS_H = REPO / "src" / "engine" / "offsets.h"
-ENGINE_CPP = REPO / "src" / "engine" / "engine.cpp"
+ENGINE_CPP = REPO / "src" / "game" / "runtime.cpp"
 
 # (offsets.h namespace path, fq type, field name in dump.cs backing field or property)
 DUMP_CHECKS: dict[str, tuple[str, str]] = {
@@ -165,7 +165,7 @@ def main() -> int:
     out_lines = [
         "# RobRun offset inventory (2026-11-10)",
         "",
-        "Source: `src/engine/offsets.h` | Consumers: `src/engine/engine.cpp` (only file using `offsets::`)",
+        "Source: `src/game/offsets.h` | Consumers: `src/game/runtime.cpp` (only file using `offsets::`)",
         "",
         "| Offset | Old (header) | Dump | Status | Used in engine |",
         "|--------|--------------|------|--------|----------------|",
@@ -208,7 +208,7 @@ def main() -> int:
         )
 
     used_names = sum(1 for row in rows if usage_in_engine(row["path"]) > 0)
-    out_lines.insert(4, f"- **200** constants in `offsets.h`; **{used_names}** referenced from `engine.cpp` (grep `offsets::`).")
+    out_lines.insert(4, f"- **200** constants in `offsets.h`; **{used_names}** referenced from `runtime.cpp` (grep `offsets::`).")
 
     report = DUMP_DIR / "OFFSET_INVENTORY.md"
     report.write_text("\n".join(out_lines), encoding="utf-8")

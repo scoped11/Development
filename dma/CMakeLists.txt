@@ -36,7 +36,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
 set(SOURCES
     src/main.cpp
     src/core/memory.cpp
-    src/engine/engine.cpp
+    src/game/runtime.cpp
     src/config/config.cpp
     src/config/kmbox_identity.cpp
     src/render/renderer.cpp
@@ -46,6 +46,7 @@ set(SOURCES
     src/features/skeleton_pose.cpp
     src/features/radar.cpp
     src/features/aimbot.cpp
+    src/features/hud.cpp
     src/core/kmbox_usb.cpp
     src/core/kmbox_ac.cpp
 )
@@ -55,8 +56,9 @@ set(HEADERS
     src/math/vector.h
     src/core/memory.h
     src/core/scatter.h
-    src/engine/offsets.h
-    src/engine/engine.h
+    src/game/offsets.h
+    src/game/session.hpp
+    src/game/types.hpp
     src/config/config.h
     src/render/renderer.h
     src/render/splash.h
@@ -64,6 +66,8 @@ set(HEADERS
     src/features/esp.h
     src/features/radar.h
     src/features/aimbot.h
+    src/features/hud.h
+    src/game/names.hpp
     src/core/kmbox_usb.h
 )
 

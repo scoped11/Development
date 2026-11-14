@@ -22,7 +22,7 @@ This folder is the **usermode lab client**. Kernel payloads and IOCTL implementa
 **Host**
 
 ```powershell
-cd C:\Users\baile\OneDrive\Desktop\Development\byovd
+cd C:\Development\byovd
 .\build.ps1
 ```
 
@@ -225,7 +225,7 @@ mapper_nal.exe bin\RwTest.sys --driver <vehicle> --no-auth --ac-safe --ac-replic
 | **`--no-auth`** | **Yes** | Skips mapper usermode auth gate for lab |
 | PiDDB / CI / WdFilter hygiene | **Yes** (if hygiene not disabled) | Before hijacking vehicle `MajorFunction` for map |
 | PsLoadedModuleList **unlink** for vehicle | **No** (default) | PG `0x109` risk — left off unless explicit DKOM flags |
-| Pool **module stomp** | **No** | Not implemented |
+| Pool **module stomp** | **Lab** | `byovd/docs/STOMP_BYPASS.md` (separate from HijackDriver pool map) |
 | New `\Device\Cheat` for R/W | **No** on RwTest path | RwTest uses **vehicle dispatch wrap** + dynamic `\\.\MsFlt*` for payload IOCTLs |
 | Betest callback strip / NMI / `0x869` | **No** in HijackDriver | Use `setup-vm-lab-betest.ps1 -Mode bypass` instead |
 | Session PID bind (`0x870`) | **Yes** | Client must auth before `0x805`/`0x806` |
@@ -313,7 +313,7 @@ Title-shaped masks: `ac-captures-host\config\ac_replica_profiles.json` ↔ host 
 | Pick **resident non-AC** driver (GPU/storage/filter) | Research + VM CSV probes | `25_hijack_host_vm.md`, `probe-hijack-candidates.ps1` |
 | `MajorFunction[IRP_MJ_DEVICE_CONTROL]` → in-image XFG stub | **Not automated** | `22_live_hijack_method.md` |
 | Patch `__guard_dispatch_icall_fptr` → handler | **Not automated** | same |
-| Module stomp (handler in signed `.text`) | **Not in tree** | optional layer in method doc |
+| Module stomp (handler in signed `.text`) | **In tree** | `byovd/docs/STOMP_BYPASS.md` |
 | Private kR/kW primitive (no `CreateService` vehicle on live) | **You supply** | `lab_manifest.json` `lane_e` |
 | CLFS / win32k / pool UAF chains | **Hypothetical note only** | `exploit/notes/HYPOTHETICAL_clfs-*` |
 | DMA | **Out of scope** for this runner | user’s separate live read path |

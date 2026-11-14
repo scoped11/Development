@@ -42,7 +42,7 @@ So: **R/W works without fighting AC.** Fighting AC is opt-in and is the main rem
 
 ## Payload residence
 
-Betest executes from **non-image-backed pool**, not from a `PsLoadedModuleList` PE. That is the “suspicious RWX region” in kdmapper/stomp writeups. This kit does **not** module-stomp.
+Betest executes from **non-image-backed pool**, not from a `PsLoadedModuleList` PE. That is the “suspicious RWX region” in kdmapper/stomp writeups. **Default map is still pool.** Optional **image-backed stomp** (`Driver2Stomp.sys`, `mapper_nal --stomp`) is documented in `docs/STOMP_BYPASS.md` — lab only until victim gates pass.
 
 ## Communication fingerprint
 

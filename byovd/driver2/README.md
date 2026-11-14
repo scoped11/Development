@@ -10,6 +10,8 @@
 
 **Direct driver access (after map):** `Driver2Client.exe` + `sdk/driver2_api.h` — process R/W, kernel `kread`, full payload IOCTL table. See **`CAPABILITIES.md`**.
 
+**Image-backed stomp (lab):** `../docs/STOMP_BYPASS.md` · `Driver2Stomp.sys` · `Driver2Runner.exe --mode stomp`.
+
 | Piece | Role |
 |-------|------|
 | `Driver2.sys` | Pool payload (`driver2\src\Driver2Build.c` → shared Betest body, **driver2** DriverEntry policy) |

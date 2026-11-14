@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/engine.h"
+#include "game/types.hpp"
 #include "math/vector.h"
 
 #include <utility>

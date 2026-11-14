@@ -61,7 +61,7 @@ Does **not** replace Betest for parity testing.
 | kdmapper hygiene | mapper + `vehicle_hygiene.hpp` | VM BYOVD only |
 | Dispatch / XFG hijack | `22_live_hijack_method.md` | **H2** on resident driver — not DriverEntry of Betest |
 | .data / win32k hook | Research only | Not automated |
-| Module stomp | Private VM notes | Not in git |
+| Module stomp | `byovd/docs/STOMP_BYPASS.md` + `vm/bg/guest-stomp-dryrun-watchdog.ps1` | In-tree; guest dry-run |
 
 **Lane E acceptance:** treat **VM bypass map + process_rw under replica** as the BYOVD-lab cousin of **H3** for ioctl path; **hijack H2** remains a separate experiment on a non-AC host driver.
 

@@ -18,10 +18,10 @@ namespace {
     constexpr ImVec4 kAccent(0.42f, 0.82f, 0.74f, 1.f);
     constexpr ImVec4 kMuted(0.62f, 0.68f, 0.72f, 1.f);
     constexpr ImVec4 kDim(0.42f, 0.46f, 0.50f, 1.f);
-    enum Page { Overlay, Visuals, World, RadarPage, Roster, AimPage, System, PageCount };
+    enum Page { Overlay, Visuals, World, RadarPage, TeamPage, BasesPage, Roster, AimPage, System, PageCount };
 
     const char* kPages[] = {
-        "Overlay", "Visuals", "World", "Radar", "Roster", "Aim", "System"
+        "Overlay", "Visuals", "World", "Radar", "Team", "Bases", "Roster", "Aim", "System"
     };
 
     static const char* kKeyNames =
@@ -116,9 +116,17 @@ namespace {
         FuserModePicker(g);
         ImGui::Spacing();
         ImGui::Checkbox("Fullscreen overlay", &g.fullscreenOverlay);
-        HelpMarker("Borderless over the primary monitor. Uses override width/height when set.");
+        HelpMarker("Borderless over the selected monitor. Uses override width/height when set.");
+        ImGui::SliderInt("Monitor", &g.overlayMonitor, 0, 7);
+        HelpMarker("0 is the primary display. Raise this to put the overlay on another screen.");
         ImGui::Checkbox("Stream proof", &g.streamProof);
         ImGui::Checkbox("Overlay VSync", &g.overlayVsync);
+        Section("Debug camera");
+        ImGui::Checkbox("Freecam / debug camera", &g.freeCam);
+        ImGui::SameLine();
+        ImGui::TextDisabled("F6");
+        HelpMarker("WASD + mouse look on this PC. Writes FollowPosition, BattleCameraModel, and the follow Transform. ESP W2S follows the debug camera.");
+        ImGui::SliderFloat("Freecam speed", &g.freeCamSpeed, 2.f, 40.f, "%.0f");
 
         Section("Draw");
         ImGui::Checkbox("Boxes", &e.drawBoxes);
@@ -133,6 +141,24 @@ namespace {
         ImGui::SameLine();
         ImGui::Checkbox("Edge arrows", &e.drawOffscreen);
         ImGui::Checkbox("Skeleton", &e.drawSkeleton);
+        ImGui::SameLine();
+        ImGui::Checkbox("3D chams", &e.drawChams);
+        ImGui::SameLine();
+        ImGui::Checkbox("Armor bar", &e.drawArmor);
+        const char* chamStyles[] = { "Flat", "Shaded", "Wireframe", "Outline" };
+        ImGui::Combo("Cham style", &e.chamStyle, chamStyles, IM_ARRAYSIZE(chamStyles));
+        ImGui::Checkbox("Material chams (DMA)", &e.materialChams);
+        HelpMarker("Writes CustomizationColorModel skin/hair/beard colors on the player mesh.");
+        ImGui::Checkbox("Frag radius", &e.drawFragRadius);
+        ImGui::Checkbox("Visible only", &e.visibleOnly);
+        HelpMarker("Hides players inside cupboards/bins. Full physics raycast is not in the dump as a readable flag.");
+        ImGui::Checkbox("OOF teammates", &e.offscreenTeammates);
+        ImGui::SameLine();
+        ImGui::Checkbox("OOF dead", &e.offscreenDead);
+        ImGui::Checkbox("OOF cops", &e.offscreenCops);
+        ImGui::SameLine();
+        ImGui::Checkbox("OOF robbers", &e.offscreenRobbers);
+        ImGui::Checkbox("OOF scale by distance", &e.offscreenScaleDistance);
         Section("Box");
         const char* styles[] = { "Corners", "Full" };
         ImGui::Combo("Style", &e.boxStyle, styles, IM_ARRAYSIZE(styles));
@@ -145,7 +171,15 @@ namespace {
         ImGui::Checkbox("Robbers", &e.showRobbers);
         ImGui::SameLine();
         ImGui::Checkbox("Civilians", &e.showCivilians);
-        ImGui::Checkbox("Hide same role", &e.hideTeam);
+        ImGui::Checkbox("Hide teammates", &e.hideTeam);
+        HelpMarker("Teammates share your clan tag, not your role. Cops are not teammates of other cops.");
+        ImGui::Checkbox("Gender", &e.showGender);
+        ImGui::SameLine();
+        ImGui::Checkbox("Outfit", &e.showOutfit);
+        ImGui::Checkbox("Hair", &e.showHair);
+        ImGui::SameLine();
+        ImGui::Checkbox("Beard", &e.showBeard);
+        ImGui::Checkbox("Police uniform", &e.showPoliceUniform);
         ImGui::Checkbox("Hide dead", &e.hideDead);
         ImGui::SameLine();
         ImGui::Checkbox("Hide downed", &e.hideKnocked);
@@ -155,7 +189,13 @@ namespace {
         ColourEdit("Other", e.playerColour);
         ColourEdit("Robber", e.robberColour);
         ColourEdit("Cop", e.copColour);
+        ColourEdit("Settler", e.settlerColour);
+        ColourEdit("Prisoner", e.prisonerColour);
+        ColourEdit("Civilian", e.civilianColour);
+        ColourEdit("Team", e.teamColour);
         ColourEdit("Dead", e.deadColour);
+        ImGui::Checkbox("Team ESP", &e.teamEsp);
+        ImGui::SliderFloat("Team distance", &e.maxDistanceTeam, 50.f, 2000.f, "%.0f m");
         ImGui::TextDisabled("Downed players draw orange.");
     }
 
@@ -168,6 +208,34 @@ namespace {
         ImGui::SameLine();
         ImGui::Checkbox("Containers", &e.showContainers);
         ImGui::Checkbox("Empty containers", &e.showEmptyContainers);
+        ImGui::Checkbox("Container contents", &e.showContainerContents);
+        ImGui::Checkbox("Cameras", &e.showCameras);
+        ImGui::SameLine();
+        ImGui::Checkbox("Death bags", &e.showDeathBags);
+        ImGui::Checkbox("Cargo", &e.showCargo);
+        ImGui::SameLine();
+        ImGui::Checkbox("ATM", &e.showAtm);
+        ImGui::Checkbox("Safes", &e.showSafes);
+        ImGui::SameLine();
+        ImGui::Checkbox("Vaults", &e.showVaults);
+        ImGui::Checkbox("Hide spots", &e.showHideSpots);
+        ImGui::SameLine();
+        ImGui::Checkbox("Hidden players", &e.showHiddenPlayers);
+        ImGui::Checkbox("Lethal grenades", &e.showLethalGrenades);
+        ImGui::SameLine();
+        ImGui::Checkbox("Tactical grenades", &e.showTacticalGrenades);
+        ImGui::Checkbox("Gun icons", &e.showGunIcons);
+        ImGui::SameLine();
+        ImGui::Checkbox("Item values", &e.showItemValues);
+        Section("Loot filters");
+        ImGui::Checkbox("Weapons##loot", &e.lootWeapons);
+        ImGui::SameLine();
+        ImGui::Checkbox("Meds##loot", &e.lootMeds);
+        ImGui::Checkbox("Ammo##loot", &e.lootAmmo);
+        ImGui::SameLine();
+        ImGui::Checkbox("Valuables##loot", &e.lootValuables);
+        ImGui::Checkbox("Other loot", &e.lootOther);
+        ImGui::SliderFloat("Min item value", &e.minItemValue, 0.f, 50000.f, "%.0f");
         ImGui::Checkbox("Mobs", &e.showMobs);
         HelpMarker("Vigilant NPCs in this build have no world position, so this list stays empty.");
         Section("Distance");
@@ -178,8 +246,15 @@ namespace {
         Section("Colours");
         ColourEdit("Loot", e.itemColour);
         ColourEdit("Vehicle", e.vehicleColour);
-        ColourEdit("Grenade", e.grenadeColour);
+        ColourEdit("Lethal nade", e.lethalGrenadeColour);
+        ColourEdit("Tactical nade", e.tacticalGrenadeColour);
         ColourEdit("Container", e.containerColour);
+        ColourEdit("Camera", e.cameraColour);
+        ColourEdit("Death bag", e.deathBagColour);
+        ColourEdit("Cargo", e.cargoColour);
+        ColourEdit("ATM", e.atmColour);
+        ColourEdit("Safe", e.safeColour);
+        ColourEdit("Vault", e.vaultColour);
     }
 
     void PageRadar(RadarConfig& r) {
@@ -188,7 +263,16 @@ namespace {
         Section("View");
         ImGui::SliderFloat("Zoom", &r.zoom, 0.1f, 5.f, "%.1f");
         ImGui::SliderFloat("Size", &r.size, 200.f, 640.f, "%.0f");
+        ImGui::SliderFloat("Position X", &r.posX, -1.f, 1800.f, "%.0f");
+        ImGui::SliderFloat("Position Y", &r.posY, -1.f, 1000.f, "%.0f");
+        HelpMarker("-1 keeps the default top-right corner. Raise X/Y to pin the minimap.");
         ImGui::Checkbox("Rotate with camera", &r.rotateWithCamera);
+        ImGui::Checkbox("Arrow blips", &r.arrowBlips);
+        ImGui::SameLine();
+        ImGui::Checkbox("Role colours", &r.roleColours);
+        ImGui::Checkbox("Big radar", &r.bigRadar);
+        ImGui::SameLine();
+        ImGui::Checkbox("Follow", &r.follow);
         Section("Show");
         ImGui::Checkbox("Players##radar", &r.showPlayers);
         ImGui::SameLine();
@@ -205,6 +289,70 @@ namespace {
         ColourEdit("Grenade", r.grenadeColour);
         ColourEdit("Container", r.containerColour);
         ColourEdit("You", r.localColour);
+    }
+
+    void PageTeam(ESPConfig& e) {
+        ImGui::Checkbox("Team ESP", &e.teamEsp);
+        ImGui::SliderFloat("Team max distance", &e.maxDistanceTeam, 50.f, 2000.f, "%.0f m");
+        ColourEdit("Teammate", e.teamColour);
+        ImGui::TextDisabled("Teammates share your clan tag. Cops and robbers are factions, not teams.");
+        ImGui::Checkbox("OOF arrows for teammates", &e.offscreenTeammates);
+    }
+
+    void PageBases(ESPConfig& e, const std::vector<GameEntity>& entities, const GameEntity& local) {
+        ImGui::Checkbox("Bases ESP", &e.showBases);
+        ImGui::Checkbox("Bases panel", &e.basePanel);
+        ImGui::Checkbox("Raid alerts", &e.raidAlerts);
+        ImGui::SameLine();
+        ImGui::Checkbox("Open-door warning", &e.openDoorWarning);
+        Section("Filters");
+        ImGui::Checkbox("Your base", &e.baseMine);
+        ImGui::SameLine();
+        ImGui::Checkbox("Your clan", &e.baseClan);
+        ImGui::Checkbox("Everyone else", &e.baseOthers);
+        ImGui::Checkbox("Raidable only", &e.baseRaidableOnly);
+        ImGui::Checkbox("Has loot", &e.baseHasLootOnly);
+        ImGui::Checkbox("Hide raid-locked", &e.baseHideRaidLocked);
+        ImGui::Checkbox("Hide unsettled", &e.baseHideUnsettled);
+        ImGui::SliderFloat("Base distance", &e.maxDistanceBases, 50.f, 2000.f, "%.0f m");
+        Section("Colours");
+        ColourEdit("Other bases", e.baseColour);
+        ColourEdit("Your base", e.myBaseColour);
+        ColourEdit("Clan base", e.clanBaseColour);
+        Section("Settlement");
+        int n = 0, loot = 0, vip = 0;
+        for (const auto& ent : entities) {
+            if (ent.type != EntityType::Base) continue;
+            ++n;
+            if (ent.hasLoot) ++loot;
+            if (ent.vip) ++vip;
+        }
+        ImGui::Text("%d bases   loot %d   VIP %d", n, loot, vip);
+        ImGui::TextDisabled("You: %s", local.displayName.empty() ? "-" : local.displayName.c_str());
+        Section("Inspector");
+        const GameEntity* pick = nullptr;
+        float best = 1.e9f;
+        for (const auto& ent : entities) {
+            if (ent.type != EntityType::Base) continue;
+            float d = ent.DistanceTo(local.position);
+            if (d < best) { best = d; pick = &ent; }
+        }
+        if (pick) {
+            ImGui::Text("%s  %.0fm", pick->displayName.c_str(), best);
+            if (!pick->clan.empty()) ImGui::Text("Clan [%s]", pick->clan.c_str());
+            ImGui::Text("Owner %lld", static_cast<long long>(pick->ownerPublicId));
+            if (pick->maxDefensePoints > 0)
+                ImGui::Text("Fuse %d / %d", pick->defensePoints, pick->maxDefensePoints);
+            ImGui::TextDisabled("%s%s%s%s",
+                pick->vip ? "VIP  " : "",
+                pick->hasLoot ? "loot  " : "",
+                pick->openDoors ? "doors  " : "",
+                pick->beingRaided ? "RAID" : "");
+        }
+        Section("Maps");
+        ImGui::TextWrapped("Gameplay maps and visibility worlds load from the live settlement. Drop PNG files in assets/maps next to the overlay to use them on Big Radar.");
+        if (ImGui::Button("Refresh maps from settlement", ImVec2(260, 28)))
+            ImGui::TextDisabled("Settlement markers are live on the radar.");
     }
 
     void PageRoster(const std::vector<GameEntity>& entities, const GameEntity& localPlayer) {
@@ -259,6 +407,11 @@ namespace {
             "Memory aim writes client yaw/pitch on the position thread. "
             "With memory aim off, deltas go out KMBox serial to the game PC mouse. "
             "Hold the aim key on this overlay PC. Smoothing 1 snaps; higher values ease in.");
+        ImGui::Checkbox("Silent aim", &aim.silentAim);
+        HelpMarker(
+            "Does not move the camera or mouse. Rewrites LookDirectionModel, "
+            "LookDirectionInput, ShotInterpolation, and ShotArgs.Direction so the "
+            "shot ray aims at the target while the crosshair stays put. Uses the same FOV and prediction.");
         ImGui::Combo("Aim key", &aim.aimKey, kKeyNames);
         ImGui::Combo("Second aim key", &aim.aimKey2, kSecondKeyNames);
         if (!aim.enabled)
@@ -270,9 +423,21 @@ namespace {
         ImGui::Checkbox("Dynamic FOV", &aim.dynamicFov);
         if (aim.dynamicFov)
             ImGui::SliderFloat("FOV far (px)", &aim.fovMin, 10.f, 200.f, "%.0f");
+        const char* smoothModes[] = { "Linear", "EMA", "Bezier" };
+        ImGui::Combo("Smoothing mode", &aim.smoothMode, smoothModes, IM_ARRAYSIZE(smoothModes));
         ImGui::SliderFloat("Smoothing", &aim.smooth, 1.f, 30.f, "%.1f");
-        HelpMarker("1 snaps onto the dot. Higher values ease onto it more slowly.");
+        HelpMarker("1 snaps onto the dot. Higher values ease onto it more slowly. EMA holds a running average; Bezier eases in and out.");
+        const char* priorityModes[] = { "Closest to FOV", "Closest distance", "Lowest health" };
+        ImGui::Combo("Target priority", &aim.priorityMode, priorityModes, IM_ARRAYSIZE(priorityModes));
+        ImGui::Checkbox("Target lock", &aim.targetLock);
+        HelpMarker("Keeps the same player while the aim key is held.");
+        ImGui::Checkbox("Visible only", &aim.visibleOnly);
+        HelpMarker("Skips players inside hide objects. No cheap physics raycast exists on the DMA path.");
+        ImGui::Checkbox("Prediction", &aim.prediction);
         ImGui::SliderFloat("Deadzone (px)", &aim.deadzone, 0.f, 20.f, "%.1f");
+        ImGui::SliderFloat("Lead (ms)", &aim.leadMs, 0.f, 120.f, "%.0f");
+        HelpMarker("Memory aim predicts the target this far ahead. Default 45 ms.");
+        ImGui::SliderFloat("Lead (px)", &aim.leadPx, 0.f, 20.f, "%.0f");
         ImGui::SliderFloat("Max distance (m)", &aim.maxDistance, 25.f, 600.f, "%.0f");
 
         Section("Gun");
@@ -288,10 +453,21 @@ namespace {
         ImGui::Checkbox("Neck", &aim.targetNeck);
         ImGui::Checkbox("Chest", &aim.targetChest);
         ImGui::SameLine();
+        ImGui::Checkbox("Stomach", &aim.targetStomach);
         ImGui::Checkbox("Pelvis", &aim.targetPelvis);
         ImGui::Checkbox("Team check", &aim.teamCheck);
-        HelpMarker("Skips players with the same role string as you (cop vs robber).");
+        HelpMarker("Skips clanmates. Cops are not teammates of other cops.");
         ImGui::Checkbox("Target knocked", &aim.targetKnocked);
+
+        Section("Triggerbot");
+        ImGui::Checkbox("Triggerbot", &aim.triggerbot);
+        HelpMarker("Writes BattleModel.ShotInputModel._isTriggered and FireModel._isFiring over DMA.");
+        ImGui::Combo("Trigger key", &aim.triggerKey, kSecondKeyNames);
+        ImGui::SliderFloat("Delay min (ms)", &aim.triggerDelayMin, 0.f, 200.f, "%.0f");
+        ImGui::SliderFloat("Delay max (ms)", &aim.triggerDelayMax, 0.f, 250.f, "%.0f");
+        ImGui::Checkbox("Trigger visible only", &aim.triggerVisibleOnly);
+        ImGui::SameLine();
+        ImGui::Checkbox("Trigger team check", &aim.triggerTeamCheck);
 
         Section("Aim resolution");
         if (general.gameScreenWidth > 0 && general.gameScreenHeight > 0) {
@@ -426,12 +602,24 @@ namespace {
         ImGui::SliderInt("Scatter chunk", &g.scatterMaxPrepares, 128, 2048);
         ImGui::SliderInt("Max bone players", &g.maxBonePlayers, 4, 300);
 
+        Section("Widgets");
+        ImGui::Checkbox("On-screen widgets", &g.widgets);
+        ImGui::SameLine();
+        ImGui::Checkbox("Server dashboard", &g.serverDashboard);
+
         Section("Config");
         if (ImGui::Button("Save", ImVec2(90, 28))) Config::Save();
         ImGui::SameLine();
         if (ImGui::Button("Load", ImVec2(90, 28))) Config::Load();
         ImGui::SameLine();
         if (ImGui::Button("Reset", ImVec2(90, 28))) cfg = AppConfig{};
+
+        Section("Changelog");
+        ImGui::TextWrapped("Added silent aim: shot look writes LookDirection/ShotArgs without moving the camera.");
+        ImGui::TextWrapped("Added triggerbot, EMA/Bezier smoothing, stomach bone, cham styles, material color writes, armor bars, loot filters, Segoe UI ESP font, and DMA freecam (F6).");
+        ImGui::TextWrapped("Added base ESP, hidden-in-prop ESP, 3D chams, camera/death-bag/ATM ESP, team ESP, OOF arrows, big radar, item values.");
+        ImGui::TextWrapped("Fixed player dropping from ESP thanks for feedback testers <3");
+        ImGui::TextDisabled("Writes stay memory/DMA based.");
 
         Section("Link");
         auto& mem = Memory::Get();
@@ -609,7 +797,7 @@ void Menu::Render(const std::vector<GameEntity>& entities,
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.12f, 0.26f, 0.24f, 1.f));
             ImGui::PushStyleColor(ImGuiCol_Text, kAccent);
         }
-        if (ImGui::Button(kPages[i], ImVec2(-1, 36)))
+        if (ImGui::Button(kPages[i], ImVec2(-1, 28)))
             g_page = i;
         if (active)
             ImGui::PopStyleColor(2);
@@ -624,6 +812,8 @@ void Menu::Render(const std::vector<GameEntity>& entities,
         case Visuals:   PageVisuals(cfg.esp); break;
         case World:     PageWorld(cfg.esp); break;
         case RadarPage: PageRadar(cfg.radar); break;
+        case TeamPage:  PageTeam(cfg.esp); break;
+        case BasesPage: PageBases(cfg.esp, entities, localPlayer); break;
         case Roster:    PageRoster(entities, localPlayer); break;
         case AimPage:   PageAim(cfg.assist, cfg.general, camera); break;
         case System:    PageSystem(cfg, camera); break;

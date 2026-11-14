@@ -8,7 +8,8 @@ $Vehicles = Join-Path $Byovd 'vehicles'
 New-Item -ItemType Directory -Force -Path $D2Bin, (Join-Path $D2Bin 'games'), (Join-Path $D2Bin 'brand') | Out-Null
 
 $fromByovd = @(
-    'mapper_nal.exe', 'RwTest.sys', 'Betest.sys', 'process_rw.exe'
+    'mapper_nal.exe', 'RwTest.sys', 'Betest.sys', 'process_rw.exe',
+    'BUILD.txt', 'BUILT.json', 'stomp_plan.exe'
 )
 foreach ($f in $fromByovd) {
     $src = Join-Path $ByovdBin $f

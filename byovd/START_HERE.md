@@ -11,6 +11,7 @@ Read in this order. This kit is for **isolated lab** kernel mapping and process/
 3. **[docs/03_research.md](docs/03_research.md)** — EAC/BE threat model, Lab I, bible chapters.
 4. **[docs/04_detection_surfaces.md](docs/04_detection_surfaces.md)** — what still looks anomalous vs kdmapper-class literature, residual checks, what *not* to stack on the default path.
 5. **[docs/05_existing_bypass_catalog.md](docs/05_existing_bypass_catalog.md)** — full inventory of bypass IOCTLs + mapper flags **you already have** (no new code required to “enable more”).
+5b. **[docs/STOMP_BYPASS.md](docs/STOMP_BYPASS.md)** — optional **image-backed** `Driver2Stomp` path (lab; DriverLab-E dry-run).
 6. **[docs/06_better_research_method.md](docs/06_better_research_method.md)** — recommended phased method (stability → Lab I → one boundary → optional IOCTL experiments).
 7. **[docs/11_ac_block_vs_hide_plan.md](docs/11_ac_block_vs_hide_plan.md)** — Tier 0/1 when AC blocks the vehicle (`--ac-safe`, preflight).
 8. **[docs/12_lane_d_split_trust.md](docs/12_lane_d_split_trust.md)** — **Lane D** (DMA + BYOVD split, build_id sync).

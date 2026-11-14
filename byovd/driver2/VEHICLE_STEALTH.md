@@ -57,7 +57,7 @@ Cheat buyers often demand: *“Hide RTCore, encrypt it, spoof it as another driv
 | Rename `RTCore64.sys` on disk | Fails hash/block rules |
 | Patch PE / re-sign without valid chain | **Out of scope** — breaks load or trust |
 | Fake `BaseDllName` in module list | DKOM only; code still RTCore |
-| “Present as WdFilter” | **Module stomp** — not in driver2 BYOVD path |
+| “Present as WdFilter” | **Module stomp** — opt-in `Driver2Stomp` path (`STOMP_BYPASS.md`), not default pool map |
 
 We **do not** ship or document RTCore re-signing or byte-patch to evade deny lists.
 

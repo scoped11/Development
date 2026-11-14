@@ -79,6 +79,8 @@ See `docs/26_vm_kernel_driver_lab.md`.
 
 Optional MCP: `mcp/README.md` + `lab.credentials.json` (gitignored).
 
+**Elevated job queue (stomp / mapper):** `bg/README.md` + `host-bg-admin.ps1` on host — guest share `Z:\driver-lab\vm\bg`.
+
 ## Daily hunt (host)
 
 ```powershell

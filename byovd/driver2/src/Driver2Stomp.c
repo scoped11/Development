@@ -7,7 +7,11 @@
 #define IOCTL_READ_PROCESS_MEM  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x805, METHOD_BUFFERED, FILE_READ_DATA)
 #define IOCTL_WRITE_PROCESS_MEM CTL_CODE(FILE_DEVICE_UNKNOWN, 0x806, METHOD_BUFFERED, FILE_WRITE_DATA)
 #define STM2_MAGIC              0x324D5453u
+#ifdef DRIVER2_STOMP_LAB_MIN
+#define MAX_RW_BYTES            (16 * 1024)
+#else
 #define MAX_RW_BYTES            (64 * 1024)
+#endif
 
 #pragma pack(push, 1)
 typedef struct _PROC_READ_REQ {
@@ -149,22 +153,8 @@ static NTSTATUS CopyMem(HANDLE pid, PVOID targetVa, PVOID buffer, SIZE_T size, B
         return st;
     }
 
-    if (g_sd.fnStackAttach && g_sd.fnUnstackDetach) {
-        KAPC_STATE apc;
-        ((PFN_ATTACH)g_sd.fnStackAttach)(target, &apc);
-        __try {
-            if (write) RtlCopyMemory(targetVa, buffer, size);
-            else RtlCopyMemory(buffer, targetVa, size);
-            st = STATUS_SUCCESS;
-        } __except (EXCEPTION_EXECUTE_HANDLER) {
-            st = GetExceptionCode();
-        }
-        ((PFN_DETACH)g_sd.fnUnstackDetach)(&apc);
-    } else {
-        st = STATUS_NOT_SUPPORTED;
-    }
     deref(target);
-    return st;
+    return STATUS_NOT_SUPPORTED;
 }
 
 static NTSTATUS StompDispatch(PDEVICE_OBJECT dev, PIRP irp)
@@ -202,6 +192,7 @@ static NTSTATUS StompDispatch(PDEVICE_OBJECT dev, PIRP irp)
         return CompleteIrp(irp, st, NT_SUCCESS(st) ? req->Size : 0);
     }
 
+#ifndef DRIVER2_STOMP_LAB_MIN
     if (code == IOCTL_WRITE_PROCESS_MEM) {
         ULONG hdr = (ULONG)FIELD_OFFSET(PROC_WRITE_REQ, Data);
         if (sp->Parameters.DeviceIoControl.InputBufferLength < hdr)
@@ -214,6 +205,7 @@ static NTSTATUS StompDispatch(PDEVICE_OBJECT dev, PIRP irp)
             (PVOID)(ULONG_PTR)req->Address, req->Data, req->Size, TRUE);
         return CompleteIrp(irp, st, 0);
     }
+#endif
 
     if (g_sd.origDispatch && (PFN_DISPATCH)g_sd.origDispatch != StompDispatch)
         return ((PFN_DISPATCH)g_sd.origDispatch)(dev, irp);

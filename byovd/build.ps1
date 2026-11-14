@@ -30,6 +30,8 @@ $RwTestSys = Join-Path $Bin "RwTest.sys"
 $MapperExe = Join-Path $Bin "mapper_nal.exe"
 $ProcessRwExe = Join-Path $Bin "process_rw.exe"
 $MapperDir = Join-Path $Root "src\mapper"
+$StompPlanExe = Join-Path $Bin "stomp_plan.exe"
+$StompPlanMain = Join-Path $Root "tools\stomp_plan_main.cpp"
 
 $cmd = @"
 @echo on
@@ -60,6 +62,11 @@ cl /nologo /EHsc /std:c++17 /O2 /MT /W3 /D_WIN32_WINNT=0x0A00 ^
   "$MapperDir\main_nal.cpp" "$MapperDir\mapper.cpp" "$MapperDir\stomp.cpp" /Fe"$MapperExe" /link ^
   /LIBPATH:"$KitLib\um\x64" /LIBPATH:"$KitLib\ucrt\x64" kernel32.lib user32.lib advapi32.lib ntdll.lib
 if errorlevel 1 exit /b 1
+cl /nologo /EHsc /std:c++17 /O2 /MT /W3 /D_WIN32_WINNT=0x0A00 ^
+  /I"$MapperDir" /I"$KitInclude\um" /I"$KitInclude\shared" /I"$KitInclude\ucrt" ^
+  "$StompPlanMain" "$MapperDir\stomp.cpp" /Fe"$StompPlanExe" /link ^
+  /LIBPATH:"$KitLib\um\x64" /LIBPATH:"$KitLib\ucrt\x64" kernel32.lib ntdll.lib
+if errorlevel 1 exit /b 1
 "@
 
 $cmdPath = Join-Path $Obj "build.cmd"
@@ -68,10 +75,23 @@ cmd.exe /d /c "`"$cmdPath`""
 if ($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }
 
 Copy-Item $DriverSys (Join-Path $Bin "BetestDriver.sys") -Force
+$MapperHash = (Get-FileHash -LiteralPath $MapperExe -Algorithm SHA256).Hash.ToLower()
+$BuildStamp = $MapperHash.Substring(0, 32)
+Set-Content -LiteralPath (Join-Path $Bin "BUILD.txt") -Value $BuildStamp -Encoding ascii -NoNewline
+$BuiltMeta = [ordered]@{
+    utc              = (Get-Date).ToUniversalTime().ToString('o')
+    mapper_sha256    = $MapperHash
+    mapper_build     = $BuildStamp
+    stomp_plan       = (Test-Path (Join-Path $Bin "stomp_plan.exe"))
+    wdk              = $KitVersion
+}
+$BuiltMeta | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Bin "BUILT.json") -Encoding utf8
 Write-Host "OK: $DriverSys"
 Write-Host "OK: $RwTestSys"
 Write-Host "OK: $MapperExe"
 Write-Host "OK: $ProcessRwExe"
+Write-Host "OK: BUILD.txt $BuildStamp"
+if (Test-Path (Join-Path $Bin "stomp_plan.exe")) { Write-Host "OK: stomp_plan.exe" }
 Write-Host "WDK kit: $KitVersion"
 $Driver2Build = Join-Path $Root "driver2\build.ps1"
 if (Test-Path $Driver2Build) {

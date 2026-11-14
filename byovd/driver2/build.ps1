@@ -48,11 +48,12 @@ link /nologo /DRIVER /SUBSYSTEM:NATIVE /MACHINE:X64 /ENTRY:DriverEntry /OUT:"$Dr
   "$PayloadObj" /LIBPATH:"$KitLib\km\x64" /LIBPATH:"$KitLib\ucrt\x64" ^
   ntoskrnl.lib hal.lib BufferOverflowFastFailK.lib
 if errorlevel 1 exit /b 1
-cl /nologo /c /kernel /GS- /W3 /D_AMD64_ /DAMD64 /DWIN64 /D_WIN64 /D_WIN32_WINNT=0x0A00 /DDRIVER2_STOMP=1 ^
+cl /nologo /c /kernel /GS- /Os /W3 /D_AMD64_ /DAMD64 /DWIN64 /D_WIN64 /D_WIN32_WINNT=0x0A00 /DDRIVER2_STOMP=1 /DDRIVER2_STOMP_LAB_MIN=1 ^
   /I"$KitInclude\km" /I"$KitInclude\shared" /I"$KitInclude\ucrt" ^
   /Fo"$StompObj" "$StompSrc"
 if errorlevel 1 exit /b 1
-link /nologo /DRIVER /SUBSYSTEM:NATIVE /MACHINE:X64 /ENTRY:StompThunkEntry /OUT:"$Driver2StompSys" ^
+link /nologo /DRIVER /SUBSYSTEM:NATIVE /MACHINE:X64 /OPT:REF /OPT:ICF /ALIGN:64 /FILEALIGN:64 ^
+  /MERGE:.rdata=.text /MERGE:.pdata=.text /MERGE:.data=.text /ENTRY:StompThunkEntry /OUT:"$Driver2StompSys" ^
   "$StompObj" /LIBPATH:"$KitLib\km\x64" /LIBPATH:"$KitLib\ucrt\x64" ^
   ntoskrnl.lib hal.lib BufferOverflowFastFailK.lib
 if errorlevel 1 exit /b 1

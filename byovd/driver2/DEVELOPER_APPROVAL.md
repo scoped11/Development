@@ -27,7 +27,8 @@ What **“passes developer approval”** means in this repo: the stack is **ship
 
 ## What is still on the developer (honest)
 
-- **Module stomp / hijack-only** — not in driver2; ranked path is separate.
+- **Module stomp** — `Driver2Stomp.sys` + mapper `--stomp` (lab, `docs/STOMP_BYPASS.md`); ranked path unchanged until gated.
+- **Hijack-only comm** — separate from stomp; not driver2 default.
 - **Live AC while mapping** — Tier 0; devs still map on **VM** or accept risk.
 - **Overlay integration** — you ship `driver2_api.h` in your cheat; we don’t ship ESP.
 

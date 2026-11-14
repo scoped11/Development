@@ -23,7 +23,7 @@ Open path: dynamic `\\.\MsFltN` / filter-style names (`BetestOpenDevice`). Sessi
 | Hygiene (PiDDB / CI / WdFilter) | Mapper pre-`DriverEntry` | **Yes** — `--driver2` |
 | Works with **any title** | `--ac-replica universal` | **Yes** — EAC+BE+ACE masks together |
 | Service `sc start` load | — | **No** — BYOVD map only (ranked live path = hijack + DMA per Lane D) |
-| Module stomp (image-backed RIP) | — | **Not yet** |
+| Module stomp (image-backed RIP) | `--stomp` / `Driver2Stomp.sys` | **Lab** — see `docs/STOMP_BYPASS.md` |
 
 ## Works with anything
 

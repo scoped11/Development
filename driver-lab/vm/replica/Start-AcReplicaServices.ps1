@@ -2,6 +2,10 @@
 #Requires -RunAsAdministrator
 param(
     [ValidateSet('rust', 'r6', 'deltaforce', 'arenabreakout')]
-    [string]$Profile
+    [string]$Profile,
+    [switch]$StrictKernel
 )
-& (Join-Path $PSScriptRoot 'Install-AcReplicaL2.ps1') -Profile $Profile -LoadKernel -StartUsermode
+$strict = @{}
+if ($StrictKernel) { $strict.StrictKernel = $true }
+& (Join-Path $PSScriptRoot 'Install-AcReplicaL2.ps1') -Profile $Profile -LoadKernel -StartUsermode @strict
+exit $LASTEXITCODE

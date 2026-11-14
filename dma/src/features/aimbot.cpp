@@ -10,6 +10,7 @@
 #include <cctype>
 #include <cstdio>
 #include <string>
+#include <random>
 
 namespace {
 
@@ -30,8 +31,10 @@ std::string Lower(std::string s) {
 }
 
 bool SameTeam(const GameEntity& local, const GameEntity& ent) {
-    if (local.role.empty() || ent.role.empty()) return false;
-    return Lower(local.role) == Lower(ent.role);
+    if (ent.isTeammate) return true;
+    if (!local.clan.empty() && !ent.clan.empty())
+        return Lower(local.clan) == Lower(ent.clan);
+    return false;
 }
 
 bool LocalAimActive(const AimConfig& config) {
@@ -91,6 +94,13 @@ Vector3 AimWorldPoint(const GameEntity& ent, int bone) {
             along = 0.64f;
             index = ent.boneIdxSpine3 >= 0 ? ent.boneIdxSpine3 : ent.boneIdxSpine2;
             break;
+        case 3:
+            named = BoneAt(ent, ent.boneIdxSpine2, ent.skeletonChest);
+            if (named.IsValid() && ent.skeletonPelvis.IsValid())
+                named = (named + ent.skeletonPelvis) * 0.5f;
+            along = 0.54f;
+            index = ent.boneIdxSpine2;
+            break;
         default:
             named = BoneAt(ent, ent.boneIdxRoot, ent.skeletonPelvis);
             along = 0.42f;
@@ -135,6 +145,8 @@ bool KeepTarget(const GameEntity& ent, const GameEntity& local, const Vector3& o
         return false;
     if (config.teamCheck && SameTeam(local, ent))
         return false;
+    if (config.visibleOnly && (ent.hidingInProp || ent.isHidden))
+        return false;
     return ent.DistanceTo(origin) <= config.maxDistance;
 }
 
@@ -167,10 +179,11 @@ bool ProjectBestBone(const GameEntity& ent,
                      Vector2& outScreen,
                      Vector3& outWorld,
                      int& outBone) {
-    bool enabled[4] = {
-        config.targetHead, config.targetNeck, config.targetChest, config.targetPelvis
+    bool enabled[5] = {
+        config.targetHead, config.targetNeck, config.targetChest,
+        config.targetStomach, config.targetPelvis
     };
-    if (!enabled[0] && !enabled[1] && !enabled[2] && !enabled[3])
+    if (!enabled[0] && !enabled[1] && !enabled[2] && !enabled[3] && !enabled[4])
         enabled[0] = true;
 
     auto project = [&](int bone, Vector2& screen, Vector3& world) {
@@ -178,7 +191,7 @@ bool ProjectBestBone(const GameEntity& ent,
         return WorldToScreenUnity(world, camera.viewInfo, screenWidth, screenHeight, screen);
     };
 
-    if (holdBone && g_trackBone >= 0 && g_trackBone <= 3 && enabled[g_trackBone]) {
+    if (holdBone && g_trackBone >= 0 && g_trackBone <= 4 && enabled[g_trackBone]) {
         if (project(g_trackBone, outScreen, outWorld)) {
             outBone = g_trackBone;
             return true;
@@ -187,7 +200,7 @@ bool ProjectBestBone(const GameEntity& ent,
 
     float bestDist = 1.e9f;
     bool found = false;
-    for (int bone = 0; bone < 4; ++bone) {
+    for (int bone = 0; bone < 5; ++bone) {
         if (!enabled[bone])
             continue;
         Vector2 projected;
@@ -219,7 +232,7 @@ TargetPick SelectTarget(const std::vector<GameEntity>& entities,
     const float centerY = screenHeight * 0.5f;
 
     TargetPick pick;
-    if (g_trackAddress != 0) {
+    if (config.targetLock && g_trackAddress != 0) {
         for (const auto& ent : entities) {
             if (ent.address != g_trackAddress) continue;
             if (!KeepTarget(ent, localPlayer, origin, config)) break;
@@ -236,7 +249,8 @@ TargetPick SelectTarget(const std::vector<GameEntity>& entities,
     int players = 0;
     int ranged = 0;
     if (!pick.found) {
-        g_trackAddress = 0;
+        if (config.targetLock)
+            g_trackAddress = 0;
         float closest = 1.e9f;
         for (const auto& ent : entities) {
             if (ent.IsValid() && !ent.isLocalPlayer && ent.type == EntityType::Player)
@@ -253,10 +267,18 @@ TargetPick SelectTarget(const std::vector<GameEntity>& entities,
             const float dx = projected.x - centerX;
             const float dy = projected.y - centerY;
             const float dist = std::sqrtf(dx * dx + dy * dy);
-            const float fovLimit = EffectiveFov(config, ent.DistanceTo(origin));
-            if (dist > fovLimit || dist >= closest)
+            const float worldDist = ent.DistanceTo(origin);
+            const float fovLimit = EffectiveFov(config, worldDist);
+            if (dist > fovLimit)
                 continue;
-            closest = dist;
+            float score = dist;
+            if (config.priorityMode == 1)
+                score = worldDist;
+            else if (config.priorityMode == 2)
+                score = ent.healthNormalized;
+            if (score >= closest)
+                continue;
+            closest = score;
             pick.screen = projected;
             pick.world = world;
             pick.address = ent.address;
@@ -279,6 +301,73 @@ float AimSmoothValue(const AimConfig& config) {
     return std::max(1.f, config.smooth);
 }
 
+float SmoothGain(const AimConfig& config) {
+    const float smooth = AimSmoothValue(config);
+    float t = 1.f / smooth;
+    if (config.smoothMode == 2)
+        t = t * t * (3.f - 2.f * t);
+    return std::clamp(t, 0.02f, 1.f);
+}
+
+bool KeyHeld(int key) {
+    if (key <= 0)
+        return true;
+    static const int kVk[] = { 0, VK_LBUTTON, VK_RBUTTON, VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2 };
+    if (key >= 1 && key <= 5)
+        return (GetAsyncKeyState(kVk[key]) & 0x8000) != 0;
+    return false;
+}
+
+void TickTrigger(const std::vector<GameEntity>& entities,
+                 const GameEntity& localPlayer,
+                 const CameraData& camera,
+                 const AimConfig& config,
+                 int screenWidth,
+                 int screenHeight,
+                 RobRunSession& session) {
+    if (!config.triggerbot) {
+        session.SetShotInput(false);
+        return;
+    }
+    if (!KeyHeld(config.triggerKey)) {
+        session.SetShotInput(false);
+        return;
+    }
+
+    AimConfig visCfg = config;
+    visCfg.teamCheck = config.triggerTeamCheck;
+    visCfg.visibleOnly = config.triggerVisibleOnly;
+    visCfg.targetLock = false;
+    TargetPick pick = SelectTarget(entities, localPlayer, camera, visCfg, screenWidth, screenHeight);
+    const float cx = screenWidth * 0.5f;
+    const float cy = screenHeight * 0.5f;
+    const bool onTarget = pick.found &&
+        std::fabsf(pick.screen.x - cx) < 8.f &&
+        std::fabsf(pick.screen.y - cy) < 8.f;
+
+    static uint32_t fireAt = 0;
+    static bool firing = false;
+    const uint32_t now = GetTickCount();
+    if (!onTarget) {
+        fireAt = 0;
+        firing = false;
+        session.SetShotInput(false);
+        return;
+    }
+    if (fireAt == 0) {
+        float lo = std::min(config.triggerDelayMin, config.triggerDelayMax);
+        float hi = std::max(config.triggerDelayMin, config.triggerDelayMax);
+        static std::mt19937 rng{ std::random_device{}() };
+        std::uniform_real_distribution<float> dist(lo, std::max(lo + 1.f, hi));
+        fireAt = now + static_cast<uint32_t>(dist(rng));
+        firing = false;
+    }
+    if (now >= fireAt) {
+        firing = true;
+        session.SetShotInput(true);
+    }
+}
+
 } // namespace
 
 void Aimbot::RenderFov(const AimConfig& config, int screenWidth, int screenHeight) {
@@ -288,7 +377,8 @@ void Aimbot::RenderFov(const AimConfig& config, int screenWidth, int screenHeigh
     const float cy = screenHeight * 0.5f;
     const float radius = std::max(8.f, config.fov);
     ImDrawList* dl = ImGui::GetBackgroundDrawList();
-    dl->AddCircle(ImVec2(cx, cy), radius, IM_COL32(255, 90, 90, 70), 72, 2.f);
+    const ImU32 ring = config.silentAim ? IM_COL32(80, 200, 255, 80) : IM_COL32(255, 90, 90, 70);
+    dl->AddCircle(ImVec2(cx, cy), radius, ring, 72, 2.f);
     dl->AddCircle(ImVec2(cx, cy), radius, IM_COL32(255, 255, 255, 45), 72, 1.f);
     if (config.dynamicFov) {
         const float inner = std::min(config.fov, config.fovMin);
@@ -304,17 +394,19 @@ void Aimbot::Tick(const std::vector<GameEntity>& entities,
                   int screenHeight,
                   float /*scaleX*/,
                   float /*scaleY*/,
-                  UnityEngine& engine) {
+                  RobRunSession& session) {
+    TickTrigger(entities, localPlayer, camera, config, screenWidth, screenHeight, session);
+
     if (!config.enabled) {
         SetStatus("Aim is off");
-        engine.SetMemoryAimTarget(false, {}, {}, 0.f);
+        session.SetMemoryAimTarget(false, {}, {}, 0.f);
         KmboxUsb::Get().ClearAimMove();
         ClearTrack();
         return;
     }
     if (!camera.valid) {
         SetStatus("Camera is not ready");
-        engine.SetMemoryAimTarget(false, {}, {}, 0.f);
+        session.SetMemoryAimTarget(false, {}, {}, 0.f);
         KmboxUsb::Get().ClearAimMove();
         ClearTrack();
         return;
@@ -322,7 +414,7 @@ void Aimbot::Tick(const std::vector<GameEntity>& entities,
 
     if (!LocalAimActive(config)) {
         SetStatus("Hold the aim key on this PC");
-        engine.SetMemoryAimTarget(false, {}, {}, 0.f);
+        session.SetMemoryAimTarget(false, {}, {}, 0.f);
         KmboxUsb::Get().ClearAimMove();
         ClearTrack();
         return;
@@ -330,7 +422,7 @@ void Aimbot::Tick(const std::vector<GameEntity>& entities,
 
     TargetPick pick = SelectTarget(entities, localPlayer, camera, config, screenWidth, screenHeight);
     if (!pick.found) {
-        engine.SetMemoryAimTarget(false, {}, {}, 0.f);
+        session.SetMemoryAimTarget(false, {}, {}, 0.f);
         KmboxUsb::Get().ClearAimMove();
         ClearTrack();
         return;
@@ -344,12 +436,44 @@ void Aimbot::Tick(const std::vector<GameEntity>& entities,
 
     ImDrawList* dl = ImGui::GetBackgroundDrawList();
     dl->AddCircleFilled(ImVec2(pick.screen.x, pick.screen.y), 3.f,
-                        IM_COL32(255, 70, 70, 230));
+                        config.silentAim ? IM_COL32(80, 200, 255, 230) : IM_COL32(255, 70, 70, 230));
+
+    Vector3 eye = camera.viewInfo.location;
+    if (!eye.IsValid() && localPlayer.isEnabled)
+        eye = localPlayer.position;
+    Vector3 aimed = pick.world;
+    for (const auto& ent : entities) {
+        if (ent.address != pick.address) continue;
+        const float leadMs = config.prediction ? config.leadMs : 0.f;
+        const float leadPx = config.prediction ? config.leadPx : 0.f;
+        aimed = pick.world + ent.velocity * leadMs;
+        Vector2 leadScreen;
+        if (WorldToScreenUnity(aimed, camera.viewInfo, screenWidth, screenHeight, leadScreen)) {
+            const float cx = screenWidth * 0.5f;
+            const float cy = screenHeight * 0.5f;
+            float dx = leadScreen.x - cx;
+            float dy = leadScreen.y - cy;
+            float len = std::sqrtf(dx * dx + dy * dy);
+            if (len > 0.5f && leadPx > 0.f) {
+                aimed = pick.world + ent.velocity * leadMs;
+                pick.screen.x += (dx / len) * leadPx;
+                pick.screen.y += (dy / len) * leadPx;
+            }
+        }
+        break;
+    }
+
+    if (config.silentAim) {
+        KmboxUsb::Get().ClearAimMove();
+        session.SetMemoryAimTarget(true, eye, aimed, 1.f);
+        SetStatus(pick.holding ? "Silent aim (holding)" : "Silent aim");
+        return;
+    }
 
     if (!config.memoryAim) {
         auto& km = KmboxUsb::Get();
         if (!km.IsConnected()) {
-            engine.SetMemoryAimTarget(false, {}, {}, 0.f);
+            session.SetMemoryAimTarget(false, {}, {}, 0.f);
             SetStatus("KMBox serial not connected");
             return;
         }
@@ -358,23 +482,34 @@ void Aimbot::Tick(const std::vector<GameEntity>& entities,
         const float dx = pick.screen.x - centerX;
         const float dy = pick.screen.y - centerY;
         const float dist = std::sqrtf(dx * dx + dy * dy);
-        engine.SetMemoryAimTarget(false, {}, {}, 0.f);
+        session.SetMemoryAimTarget(false, {}, {}, 0.f);
         if (dist < config.deadzone) {
             km.ClearAimMove();
             SetStatus(pick.holding ? "KMBox (deadzone)" : "KMBox locked");
             return;
         }
-        const float smooth = AimSmoothValue(config);
-        km.QueueAimMove(static_cast<int>(std::lround(dx / smooth)),
-                        static_cast<int>(std::lround(dy / smooth)));
+        const float gain = SmoothGain(config);
+        static float emaDx = 0.f;
+        static float emaDy = 0.f;
+        float mx = dx * gain;
+        float my = dy * gain;
+        if (config.smoothMode == 1) {
+            emaDx += gain * (dx - emaDx);
+            emaDy += gain * (dy - emaDy);
+            mx = emaDx;
+            my = emaDy;
+        } else {
+            emaDx = mx;
+            emaDy = my;
+        }
+        km.QueueAimMove(static_cast<int>(std::lround(mx)),
+                        static_cast<int>(std::lround(my)));
         SetStatus(pick.holding ? "KMBox aim (holding)" : "KMBox aim");
         return;
     }
 
-    Vector3 eye = camera.viewInfo.location;
-    if (!eye.IsValid() && localPlayer.isEnabled)
-        eye = localPlayer.position;
-    engine.SetMemoryAimTarget(true, eye, pick.world, AimSmoothValue(config));
+    const float gain = SmoothGain(config);
+    session.SetMemoryAimTarget(true, eye, aimed, 1.f / std::max(0.04f, gain));
     SetStatus(pick.holding ? "Memory aim (holding)" : "Memory aim");
 }
 

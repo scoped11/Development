@@ -1,11 +1,12 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # Deploy captured paid-AC dump to guest 1:1 paths (L2 lab replica). VM only.
 param(
     [ValidateSet('rust', 'r6', 'deltaforce', 'arenabreakout', 'all')]
     [string]$Profile = 'rust',
     [switch]$LoadKernel,
     [switch]$StartUsermode,
-    [switch]$StopExisting
+    [switch]$StopExisting,
+  [switch]$StrictKernel
 )
 
 $ErrorActionPreference = 'Stop'
@@ -39,7 +40,17 @@ function Stop-LabReplica([string]$P) {
     ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
   foreach ($svc in @('EasyAntiCheat_EOS', 'ACE-GAME', 'ACE-BASE', 'BEDaisy', 'EasyAntiCheat')) {
     sc.exe stop $svc 2>$null | Out-Null
+    sc.exe delete $svc 2>$null | Out-Null
   }
+}
+
+function Remove-ServiceIfPresent([string]$Name) {
+  sc.exe query $Name 2>$null | Out-Null
+  if ($LASTEXITCODE -ne 0) { return }
+  sc.exe stop $Name 2>$null | Out-Null
+  Start-Sleep -Milliseconds 500
+  sc.exe delete $Name 2>$null | Out-Null
+  Start-Sleep -Milliseconds 500
 }
 
 function Install-Target($dumpRoot, $t) {
@@ -74,38 +85,76 @@ function Install-Target($dumpRoot, $t) {
     }
   }
   $h = $null
+  $sigStatus = $null
+  $sigSubject = $null
   if (-not $t.recurse -and (Test-Path $dest -PathType Leaf)) {
     $h = Get-Sha256 $dest
     if ($t.sha256 -and $h -ne $t.sha256.ToUpper()) {
       throw "Hash mismatch $dest expected $($t.sha256) got $h"
     }
+    $sig = Get-AuthenticodeSignature -FilePath $dest
+    $sigStatus = $sig.Status.ToString()
+    if ($sig.SignerCertificate) { $sigSubject = $sig.SignerCertificate.Subject }
   }
+  $kernelDrv = $null
   if ($t.kernel_service) {
-    $drv = Join-Path $env:SystemRoot "System32\drivers\$([IO.Path]::GetFileName($dest))"
-    if ($dest -ne $drv) { Copy-Item $dest $drv -Force }
+    $kernelDrv = Join-Path $env:SystemRoot "System32\drivers\$([IO.Path]::GetFileName($dest))"
+    $srcLeaf = if (Test-Path $dest -PathType Leaf) { $dest } else { $null }
+    if (-not $srcLeaf) {
+      $srcLeaf = Join-Path $dumpRoot $t.from
+    }
+    if ((Test-Path $srcLeaf -PathType Leaf) -and $kernelDrv -ne $srcLeaf) {
+      Copy-Item $srcLeaf $kernelDrv -Force
+    } elseif ($dest -ne $kernelDrv -and (Test-Path $dest -PathType Leaf)) {
+      Copy-Item $dest $kernelDrv -Force
+    }
   }
-  @{ ok = $true; dest = $dest; sha256 = $h; kernel_service = $t.kernel_service }
+  @{
+    ok               = $true
+    dest             = $dest
+    sha256           = $h
+    authenticode     = $sigStatus
+    signer           = $sigSubject
+    kernel_service   = $t.kernel_service
+    kernel_load_path = $kernelDrv
+  }
 }
 
-function Start-KernelService([string]$Name, [string]$ImagePath) {
+function Start-KernelService([string]$Name, [string]$ImagePath, [string]$KernelLoadPath) {
   if (-not $ImagePath) { return @{ service = $Name; skipped = $true } }
-  $onDisk = $ImagePath
+  $leaf = [IO.Path]::GetFileName($ImagePath)
+  $onDisk = if ($KernelLoadPath) { $KernelLoadPath } else {
+    Join-Path $env:SystemRoot "System32\drivers\$leaf"
+  }
+  if (-not (Test-Path $onDisk) -and (Test-Path $ImagePath)) {
+    Copy-Item $ImagePath $onDisk -Force
+  }
   if (-not (Test-Path $onDisk)) {
-    $onDisk = Join-Path $env:SystemRoot ("System32\drivers\" + [IO.Path]::GetFileName($ImagePath))
+    return @{ service = $Name; missing = $onDisk; sc_start_ec = 2 }
   }
-  if (-not (Test-Path $onDisk)) { return @{ service = $Name; missing = $onDisk } }
-  $bin = '\??\' + $onDisk
-  Write-Host "[*] sc create $Name binPath=$bin"
-  sc.exe query $Name 2>$null | Out-Null
-  if ($LASTEXITCODE -eq 0) {
-    sc.exe stop $Name 2>$null | Out-Null
-    sc.exe delete $Name 2>$null | Out-Null
-    Start-Sleep -Seconds 1
+  # SCM expects SystemRoot-relative path — not Program Files or \??\ full paths.
+  $bin = "\SystemRoot\System32\drivers\$leaf"
+  Write-Host "[*] sc create $Name type=kernel binPath=$bin onDisk=$onDisk"
+  Remove-ServiceIfPresent $Name
+  Write-Host "[*] sc.exe create $Name ... binPath=$bin"
+  $null = sc.exe create $Name type= kernel start= demand "binPath=$bin" 2>&1 | ForEach-Object { Write-Host $_ }
+  if ($LASTEXITCODE -ne 0) {
+    return @{ service = $Name; sc_create_ec = $LASTEXITCODE; bin_path = $bin; on_disk = $onDisk }
   }
-  sc.exe create $Name type= kernel start= demand binPath= $bin | Out-Null
-  if ($LASTEXITCODE -ne 0) { return @{ service = $Name; sc_create_ec = $LASTEXITCODE } }
-  sc.exe start $Name 2>&1 | Out-String | Write-Host
-  @{ service = $Name; sc_start_ec = $LASTEXITCODE }
+  $startOut = sc.exe start $Name 2>&1 | Out-String
+  Write-Host $startOut
+  $startEc = $LASTEXITCODE
+  $running = $false
+  sc.exe query $Name 2>$null | Out-String | ForEach-Object {
+    if ($_ -match 'STATE\s*:\s*\d+\s+RUNNING') { $running = $true }
+  }
+  @{
+    service      = $Name
+    sc_start_ec  = $startEc
+    bin_path     = $bin
+    on_disk      = $onDisk
+    kernel_running = $running
+  }
 }
 
 $profiles = if ($Profile -eq 'all') { @('rust', 'r6', 'deltaforce', 'arenabreakout') } else { @($Profile) }
@@ -130,8 +179,8 @@ foreach ($p in $profiles) {
   }
   $kernels = @()
   if ($LoadKernel) {
-    foreach ($i in $items | Where-Object { $_.kernel_service }) {
-      $kernels += Start-KernelService $i.kernel_service $i.dest
+    foreach ($i in $items | Where-Object { $_.kernel_service -and -not $_.skipped }) {
+      $kernels += Start-KernelService $i.kernel_service $i.dest $i.kernel_load_path
     }
   }
   $um = $null
@@ -152,8 +201,21 @@ foreach ($p in $profiles) {
       try { $deploy = (Get-Content $meta -Raw | ConvertFrom-Json).settings_json.productid } catch { }
     }
     if (Test-Path $setup) {
-      Write-Host "[*] EAC EOS setup deploy=$deploy"
+      Write-Host "[*] EAC EOS setup deploy=$deploy (after kernel sc — setup must not replace kernel service)"
       Start-Process -FilePath $setup -ArgumentList 'install', $deploy -Wait -NoNewWindow -ErrorAction SilentlyContinue
+      if ($LoadKernel) {
+        foreach ($row in $kernels | Where-Object { $_.kernel_running -eq $true }) {
+          sc.exe query $row.service 2>$null | Out-String | ForEach-Object {
+            if ($_ -match 'WIN32_OWN_PROCESS') {
+              Write-Warning "$($row.service) replaced by EOS setup — re-starting kernel service"
+              Remove-ServiceIfPresent $row.service
+              $leaf = [IO.Path]::GetFileName($row.on_disk)
+              $kernels = @($kernels | Where-Object { $_.service -ne $row.service })
+              $kernels += Start-KernelService $row.service (Join-Path $env:SystemRoot "System32\drivers\$leaf") $row.on_disk
+            }
+          }
+        }
+      }
     }
   }
   if ($StartUsermode -and $p -eq 'r6') {
@@ -178,4 +240,21 @@ if (-not (Test-Path (Split-Path $outVm))) {
 }
 ($report | ConvertTo-Json -Depth 8) | Set-Content $outVm -Encoding utf8
 Write-Host "[+] Wrote $outVm"
+
+if ($LoadKernel) {
+  $bad = @()
+  foreach ($p in $profiles) {
+    $k = $report.profiles[$p].kernel
+    if (-not $k) { continue }
+    foreach ($row in $k) {
+      if ($row.sc_start_ec -and $row.sc_start_ec -ne 0) { $bad += $row }
+      elseif ($row.missing) { $bad += $row }
+      elseif ($row.kernel_running -eq $false -and $row.sc_start_ec -eq 0) { $bad += $row }
+    }
+  }
+  if ($bad.Count -gt 0) {
+    Write-Warning "Kernel replica start incomplete: $($bad.Count) service(s)"
+    if ($StrictKernel) { exit 10 }
+  }
+}
 exit 0

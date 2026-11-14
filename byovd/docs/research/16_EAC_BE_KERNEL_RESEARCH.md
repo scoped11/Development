@@ -65,7 +65,7 @@ This table is the **bridge** between Terry/kdmapper notes and your EAC/BE motiva
 
 - **Question:** For **detection literacy**, what fraction of obvious signals come from **pool execution** vs **module list presence** vs **device object**?
 - **Module stomping** (your reference material): relocations, victim `SizeOfImage`, MDL/physical write, `PostStompFinalize` pool wipe, return-address fixup—documents **counter-detection theory** and **residual risks** (disk compare, dispatch audit, `__guard_dispatch_icall_fptr` audit).
-- **Project state:** stomp path not implemented; research value is comparing **threat model** to current pool map.
+- **Project state:** stomp path **in-tree** (`STOMP_BYPASS.md`); default remains pool map until lab gates pass.
 
 ### 5.3 Callback and handle plane
 

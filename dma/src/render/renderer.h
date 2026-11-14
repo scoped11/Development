@@ -44,6 +44,7 @@ public:
     ID3D11DeviceContext* GetContext() const { return m_context; }
     int GetWidth() const { return m_width; }
     int GetHeight() const { return m_height; }
+    struct ImFont* EspFont() const;
 
     void SetStreamProof(bool enabled);
     void SetVsync(bool enabled);
@@ -98,6 +99,9 @@ private:
     bool m_wantFullscreen = false;
     int m_wantFsW = 0;
     int m_wantFsH = 0;
+    int m_wantFsX = 0;
+    int m_wantFsY = 0;
+    int m_overlayMonitor = 0;
     bool m_wantSplashChrome = true;
     bool m_wantSinglePc = false;
     bool m_wantInteract = true;
@@ -105,6 +109,7 @@ private:
     bool m_wantVsync = true;
     bool m_splashChromeApplied = false;
     int m_holdChromeFrames = 0;
+    struct ImFont* m_espFont = nullptr;
     float m_frameCap = 0.f;
     std::chrono::steady_clock::time_point m_nextFrameAt{};
 };
