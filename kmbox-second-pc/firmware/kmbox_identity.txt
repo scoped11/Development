@@ -1,6 +1,7 @@
-﻿# USB identity toward the GAME PC (HID port). Serial COM unchanged.
-# ROBRUN_IDENTITY_V3 — default: Logitech LIGHTSPEED receiver 046D:C547
-# Vendor device.* only (not full USB/HID descriptor clone).
+# USB identity toward the GAME PC (HID port). Serial COM unchanged.
+# ROBRUN_IDENTITY_V3 — vendor device.* (not full descriptor clone).
+# Empty vid/pid = stock KMBox. Re-flash + power-cycle both USBs after edits.
+#
 preset=logitech_lightspeed_c547
 vid=046d
 pid=c547

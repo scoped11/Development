@@ -21,10 +21,14 @@ $metaBytes = New-Object byte[] 8
 $fs = [System.IO.File]::OpenRead($meta)
 [void]$fs.Read($metaBytes, 0, 8)
 $fs.Close()
+$magic = [BitConverter]::ToUInt32($metaBytes, 0)
 $metaVer = [BitConverter]::ToUInt32($metaBytes, 4)
-Write-Host "[*] global-metadata.dat version $metaVer (need 24-39; Rob Run is 39)"
-if ($metaVer -lt 24 -or $metaVer -gt 39) {
-  throw "Unsupported IL2CPP metadata version $metaVer. Update tools\il2cpp-dumper (wklin 6.7.48+ for v39)."
+Write-Host ("[*] global-metadata.dat magic=0x{0:X8} version={1} (need 0xFAB11BAF / 39)" -f $magic, $metaVer)
+if ($magic -ne 0xFAB11BAF) {
+  throw "global-metadata.dat magic 0x$($magic.ToString('X8')) is not 0xFAB11BAF"
+}
+if ($metaVer -ne 39) {
+  throw "Unsupported IL2CPP metadata version $metaVer. Rob Run is Unity 6000 metadata v39. Use tools\il2cpp-dumper (c01ns v39.1)."
 }
 
 New-Item -ItemType Directory -Force -Path $out | Out-Null
@@ -65,7 +69,7 @@ if (-not (Test-Path (Join-Path $out "script.json"))) {
   throw "Dump did not produce script.json"
 }
 
-Write-Host "[*] Syncing TypeInfo RVAs into dma\src\engine\offsets.h"
+Write-Host "[*] Syncing TypeInfo RVAs into dma\src\game\offsets.h"
 python (Join-Path $PSScriptRoot "sync_typeinfo_offsets.py") --dump-dir $out
 
 if (-not $SkipBuild) {

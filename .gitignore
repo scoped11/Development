@@ -70,3 +70,7 @@ __pycache__/
 /notes/RUNPOD_CLOUD_GPU.md
 /driver-lab/audit/hijack_candidates_vm_*
 /driver-lab/vm/offline/assets/driverlab-supplemental-base.xml
+
+# Keep private enrollment and signing packages excluded
+/driver-lab/attestation/enrollment.json
+/driver-lab/attestation/submit-staging/

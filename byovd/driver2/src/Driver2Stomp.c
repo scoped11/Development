@@ -153,8 +153,22 @@ static NTSTATUS CopyMem(HANDLE pid, PVOID targetVa, PVOID buffer, SIZE_T size, B
         return st;
     }
 
+    if (g_sd.fnStackAttach && g_sd.fnUnstackDetach) {
+        KAPC_STATE apc;
+        ((PFN_ATTACH)g_sd.fnStackAttach)(target, &apc);
+        __try {
+            if (write) RtlCopyMemory(targetVa, buffer, size);
+            else RtlCopyMemory(buffer, targetVa, size);
+            st = STATUS_SUCCESS;
+        } __except (EXCEPTION_EXECUTE_HANDLER) {
+            st = GetExceptionCode();
+        }
+        ((PFN_DETACH)g_sd.fnUnstackDetach)(&apc);
+    } else {
+        st = STATUS_NOT_SUPPORTED;
+    }
     deref(target);
-    return STATUS_NOT_SUPPORTED;
+    return st;
 }
 
 static NTSTATUS StompDispatch(PDEVICE_OBJECT dev, PIRP irp)

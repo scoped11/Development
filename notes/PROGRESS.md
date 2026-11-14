@@ -1,5 +1,5 @@
 # Rob Run DMA Cheat — Progress Log (resume point)
-Last updated: 2026-11-12 — bible overlay rebuild (snapshot + scatter, fuser toggle, uninject). Old Software/robrun cheat tree wiped.
+Last updated: 2026-11-14 — silent aim (LookDirection/ShotArgs DMA, camera unmoved), triggerbot, cham styles, freecam, leftover aim/ESP list. Dump `dumps\2026-11-14\`.
 
 ## IDA usage protocol (user-specified — applies to THIS local model only: qwen3.8-27b, 32k ctx. Other/stronger AI models may parallelize.)
 1. One task at a time — no multiple background agents/subagents.
@@ -13,15 +13,15 @@ Dump Rob Run (Unity IL2CPP, metadata v39) → verify offsets via IDA MCP → bui
 
 ## Key paths
 - Game: `D:\SteamLibrary\steamapps\common\Rob Run` (GameAssembly.dll 147,842,560 B; global-metadata.dat v39; EasyAntiCheat, `start_protected_game.exe`)
-- Workspace: `C:\Users\baile\OneDrive\Desktop\Development`
-- Fresh dump: `dumps\2026-11-12\`
+- Workspace: `C:\Development`
+- Fresh dump: `dumps\2026-11-14\` (prior: `dumps\2026-11-12\`)
 - Dumper (v39): `tools\il2cpp-dumper\Il2CppDumper.exe` (wklin 6.7.48)
 - DMA source: `dma\`
 - Debug output (default): `debug\RobRunDMA.exe`
 - Approved output: `build\` — empty until `-Section Build -IApprove`
 - IDA DB: `D:\SteamLibrary\steamapps\common\Rob Run\GameAssembly.dll.i64` (was instance `7481ecd39867`, idat headless; imagebase `0x180000000`)
-- 2ND-PC reader stack: `C:\Users\baile\OneDrive\Desktop\2ND-PC\` (host_overlay.exe, leechcore*.dll, vmm.dll, offsets.json, client.dll.json)
-- Config schema: `C:\Users\baile\OneDrive\Desktop\DMA\config.json` (esp/assist/radar)
+- 2ND-PC reader stack: `C:\Users\USER\OneDrive\Desktop\2ND-PC\` (host_overlay.exe, leechcore*.dll, vmm.dll, offsets.json, client.dll.json)
+- Config schema: `C:\Users\USER\OneDrive\Desktop\DMA\config.json` (esp/assist/radar)
 - Notes: `NOTES.md`, `dma_cheats.md` (here); `DMA-LIBRARY\`, `DMADUMPPYYYYYY\` (DMA docs/templates)
 
 ## Fresh dump results (SUCCESS, exit 0)
@@ -71,10 +71,12 @@ script.json `Address` (decimal) == RVA, same convention the old offsets.h uses. 
 - [x] Debug output in `debug\`; `build\` gated on `-IApprove`.
 - [x] Deleted old overlay traces (Software/robrun src+exe, PolygonDMA class, bisect flags).
 - [x] Overlay rebuilt: scatter reuse/chunking, snapshot generation/age, transparent vs fuser, uninject.
-- [ ] Live DMA attach against current Steam build / EAC session.
+- [x] Live DMA attach against current Steam build / EAC session.
+- [x] Silent aim: write `LookDirectionModel` / `ShotInterpolation` / `ShotArgs.Direction`; leave client yaw/pitch alone.
+- [x] Triggerbot (`BattleModel.ShotInput` + `FireModel._isFiring`), stomach bone, EMA/Bezier, loot filters, material chams, F6 freecam, Segoe ESP font.
 
 ## Subagents
-- DMA research: #1 `ses_e31b2688bffebW7Dgt2czySf6f` died (output compaction); #2 `ses_e314535f0ffeaGcFcYMg2XBGG7` timed out (network). Relaunch with compact prompt (report < 60 lines).
+- DMA research: #1 `[redacted-session-id]` died (output compaction); #2 `[redacted-session-id]` timed out (network). Relaunch with compact prompt (report < 60 lines).
 
 ## Gotchas
 - IDA 9.4: no `ida_nalt.get_max_ea` → use ida-domain `db.maximum_ea`. Look up API via `tools.ida.reference(query)` before `execute_python`; definitions persist per DB lease.

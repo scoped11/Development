@@ -52,8 +52,8 @@ cl /nologo /c /kernel /GS- /Os /W3 /D_AMD64_ /DAMD64 /DWIN64 /D_WIN64 /D_WIN32_W
   /I"$KitInclude\km" /I"$KitInclude\shared" /I"$KitInclude\ucrt" ^
   /Fo"$StompObj" "$StompSrc"
 if errorlevel 1 exit /b 1
-link /nologo /DRIVER /SUBSYSTEM:NATIVE /MACHINE:X64 /OPT:REF /OPT:ICF /ALIGN:64 /FILEALIGN:64 ^
-  /MERGE:.rdata=.text /MERGE:.pdata=.text /MERGE:.data=.text /ENTRY:StompThunkEntry /OUT:"$Driver2StompSys" ^
+link /nologo /DRIVER /SUBSYSTEM:NATIVE /MACHINE:X64 /OPT:REF /OPT:ICF /ALIGN:128 /FILEALIGN:128 ^
+  /MERGE:.rdata=.text /MERGE:.pdata=.text /ENTRY:StompThunkEntry /OUT:"$Driver2StompSys" ^
   "$StompObj" /LIBPATH:"$KitLib\km\x64" /LIBPATH:"$KitLib\ucrt\x64" ^
   ntoskrnl.lib hal.lib BufferOverflowFastFailK.lib
 if errorlevel 1 exit /b 1

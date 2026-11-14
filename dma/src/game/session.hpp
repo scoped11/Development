@@ -71,6 +71,7 @@ private:
     uintptr_t BattleEntitiesFromGameModel(uintptr_t gameModel);
     uintptr_t BattleEntitiesFromGame(uintptr_t game);
     bool CommitBattleWorld(const BattleCandidate& best, const char* source);
+    void TryBindShoulderCamera();
 
     std::string ReadIl2CppString(uintptr_t address) const;
     std::string ReadKlassName(uintptr_t klass) const;
@@ -140,6 +141,7 @@ private:
     std::atomic<uintptr_t> m_shotArgsDir{ 0 };
     std::atomic<uintptr_t> m_battleCamera{ 0 };
     std::atomic<uintptr_t> m_battleModel{ 0 };
+    std::atomic<uintptr_t> m_cineBrain{ 0 };
     uintptr_t m_lootKlass = 0;
 
     std::atomic<bool> m_inGame{ false };

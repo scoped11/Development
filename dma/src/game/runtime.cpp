@@ -121,6 +121,25 @@ bool ApplyCameraAxes(FMinimalViewInfo& view, const Vector3& forward,
     return true;
 }
 
+bool ApplyOrthonormal(FMinimalViewInfo& view, Vector3 fwd) {
+    if (fwd.Length() < 0.2f)
+        fwd = { 0.f, 0.f, 1.f };
+    fwd = fwd.Normalized();
+    Vector3 up{ 0.f, 1.f, 0.f };
+    Vector3 right = up.Cross(fwd);
+    if (right.Length() < 0.2f)
+        right = Vector3{ 1.f, 0.f, 0.f }.Cross(fwd);
+    if (right.Length() < 0.2f)
+        right = { 1.f, 0.f, 0.f };
+    right = right.Normalized();
+    up = fwd.Cross(right);
+    if (up.Length() < 0.2f)
+        up = { 0.f, 1.f, 0.f };
+    else
+        up = up.Normalized();
+    return ApplyCameraAxes(view, fwd, right, up);
+}
+
 } // namespace
 
 bool RobRunSession::Initialize(const std::string&) {
@@ -135,6 +154,7 @@ bool RobRunSession::Initialize(const std::string&) {
     m_viewUpdaterKlass = 0;
     m_battleCamera.store(0);
     m_battleModel.store(0);
+    m_cineBrain.store(0);
     m_followPos.store(0);
     m_shotInput.store(0);
     m_fireFlag.store(0);
@@ -163,6 +183,7 @@ void RobRunSession::Shutdown() {
     m_battleKlass = 0;
     m_battleCamera.store(0);
     m_battleModel.store(0);
+    m_cineBrain.store(0);
     m_followPos.store(0);
     m_shotInput.store(0);
     m_fireFlag.store(0);
@@ -340,21 +361,28 @@ bool RobRunSession::ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out
     int length = mem.Read<int>(entries + offsets::il2cpp::Array_Length);
     if (length < count || length > 100000) return false;
 
-    const size_t bytes = static_cast<size_t>(length) * offsets::il2cpp::Entry_Stride;
-    std::vector<uint8_t> raw(bytes);
-    if (!mem.ReadRaw(entries + offsets::il2cpp::Array_First, raw.data(), bytes))
-        return false;
-
-    out.reserve(static_cast<size_t>(count));
-    for (int i = 0; i < length; ++i) {
-        const uint8_t* entry = raw.data() + static_cast<size_t>(i) * offsets::il2cpp::Entry_Stride;
-        int hash = *reinterpret_cast<const int*>(entry + offsets::il2cpp::Entry_Hash);
-        if (hash < 0) continue;
-        int key = *reinterpret_cast<const int*>(entry + offsets::il2cpp::Entry_Key);
-        uintptr_t value = *reinterpret_cast<const uintptr_t*>(entry + offsets::il2cpp::Entry_Value);
-        if (!IsPtr(value)) continue;
-        out.push_back({ key, value });
-    }
+    auto walk = [&](uintptr_t stride, uintptr_t keyOff, uintptr_t valOff) {
+        const size_t bytes = static_cast<size_t>(length) * stride;
+        if (bytes == 0 || bytes > 8ull * 1024ull * 1024ull)
+            return;
+        std::vector<uint8_t> raw(bytes);
+        if (!mem.ReadRaw(entries + offsets::il2cpp::Array_First, raw.data(), bytes))
+            return;
+        out.clear();
+        out.reserve(static_cast<size_t>(count));
+        for (int i = 0; i < length; ++i) {
+            const uint8_t* entry = raw.data() + static_cast<size_t>(i) * stride;
+            int hash = *reinterpret_cast<const int*>(entry + offsets::il2cpp::Entry_Hash);
+            if (hash < 0) continue;
+            int key = *reinterpret_cast<const int*>(entry + keyOff);
+            uintptr_t value = *reinterpret_cast<const uintptr_t*>(entry + valOff);
+            if (!IsPtr(value)) continue;
+            out.push_back({ key, value });
+        }
+    };
+    walk(offsets::il2cpp::Entry_Stride, offsets::il2cpp::Entry_Key, offsets::il2cpp::Entry_Value);
+    if (out.empty())
+        walk(0x20, 0x08, 0x18);
     return true;
 }
 
@@ -365,16 +393,17 @@ bool RobRunSession::EvaluateBattleEntities(uintptr_t object, BattleCandidate& re
 
     auto& mem = Memory::Get();
     const uintptr_t header = mem.Read<uintptr_t>(object);
-    if (m_battleKlass) {
-        if (header != m_battleKlass &&
-            !MatchesKlassName(header, "BattleEntitiesModel"))
-            return false;
-    } else if (!MatchesKlassName(header, "BattleEntitiesModel")) {
-        return false;
-    }
+    const bool named = (m_battleKlass && header == m_battleKlass) ||
+                       MatchesKlassName(header, "BattleEntitiesModel");
 
     uintptr_t world = mem.Read<uintptr_t>(object + offsets::battle_entities::WorldEntities);
-    if (!IsPtr(world)) return false;
+    uintptr_t playerProbe = mem.Read<uintptr_t>(object + offsets::battle_entities::Player);
+    // Game+0xD0 → BattleModel+0x90 is the instance even when TypeInfo is still
+    // uninitialized (BattleEntitiesModel klass name read fails in menu).
+    if (!named && !IsPtr(world) && !IsPtr(playerProbe))
+        return false;
+    if (!IsPtr(world))
+        return false;
 
     auto countOf = [&](uintptr_t dict, int maxCount) {
         uintptr_t live = DictionaryObject(dict, maxCount);
@@ -390,7 +419,8 @@ bool RobRunSession::EvaluateBattleEntities(uintptr_t object, BattleCandidate& re
     result.models = countOf(
         mem.Read<uintptr_t>(object + offsets::battle_entities::Models), 100000);
 
-    uintptr_t player = mem.Read<uintptr_t>(object + offsets::battle_entities::Player);
+    uintptr_t player = IsPtr(playerProbe) ? playerProbe
+        : mem.Read<uintptr_t>(object + offsets::battle_entities::Player);
     result.hasPlayer = IsPtr(player);
     if (result.hasPlayer) {
         uintptr_t client = mem.Read<uintptr_t>(player + offsets::player_entity::ClientModel);
@@ -723,7 +753,8 @@ uintptr_t RobRunSession::GameFromNativeGameObjects(const std::vector<uintptr_t>&
     auto& mem = Memory::Get();
     auto& sc = mem.BorrowScatter();
 
-    const size_t n = (std::min)(nativeGos.size(), size_t{128});
+    constexpr int kMaxComp = 16;
+    const size_t n = (std::min)(nativeGos.size(), size_t{96});
     std::vector<int> count(n, 0);
     std::vector<uintptr_t> comps(n, 0);
     for (size_t i = 0; i < n; ++i) {
@@ -734,20 +765,20 @@ uintptr_t RobRunSession::GameFromNativeGameObjects(const std::vector<uintptr_t>&
     }
     sc.Execute();
 
-    std::vector<uintptr_t> nativeComp(n * 8, 0);
+    std::vector<uintptr_t> nativeComp(n * static_cast<size_t>(kMaxComp), 0);
     for (size_t i = 0; i < n; ++i) {
         if (!IsPtr(comps[i]))
             continue;
         int c = count[i];
-        if (c < 1 || c > 8) {
-            count[i] = 0;
-            continue;
-        }
+        if (c < 1)
+            c = 4;
+        if (c > kMaxComp)
+            c = kMaxComp;
         count[i] = c;
         for (int k = 0; k < c; ++k) {
             sc.Prepare(comps[i] + static_cast<uintptr_t>(k) * offsets::game_object::ComponentStride
                            + offsets::game_object::ComponentPointer,
-                       &nativeComp[i * 8 + static_cast<size_t>(k)]);
+                       &nativeComp[i * static_cast<size_t>(kMaxComp) + static_cast<size_t>(k)]);
         }
     }
     sc.Execute();
@@ -758,15 +789,15 @@ uintptr_t RobRunSession::GameFromNativeGameObjects(const std::vector<uintptr_t>&
         0x10, 0x20, 0x30, 0x38, 0x40,
     };
     constexpr size_t kOffN = sizeof(kManagedOffs) / sizeof(kManagedOffs[0]);
-    const size_t managedN = n * 8 * kOffN;
+    const size_t managedN = n * static_cast<size_t>(kMaxComp) * kOffN;
     std::vector<uintptr_t> managed(managedN, 0);
     for (size_t i = 0; i < n; ++i) {
         const int c = count[i];
-        for (int k = 0; k < c && k < 8; ++k) {
-            const uintptr_t nc = nativeComp[i * 8 + static_cast<size_t>(k)];
+        for (int k = 0; k < c && k < kMaxComp; ++k) {
+            const uintptr_t nc = nativeComp[i * static_cast<size_t>(kMaxComp) + static_cast<size_t>(k)];
             if (!IsPtr(nc))
                 continue;
-            const size_t base = (i * 8 + static_cast<size_t>(k)) * kOffN;
+            const size_t base = (i * static_cast<size_t>(kMaxComp) + static_cast<size_t>(k)) * kOffN;
             for (size_t o = 0; o < kOffN; ++o)
                 sc.Prepare(nc + kManagedOffs[o], &managed[base + o]);
         }
@@ -808,6 +839,10 @@ uintptr_t RobRunSession::GameFromNativeGameObjects(const std::vector<uintptr_t>&
     }
     sc.Execute();
     for (size_t i = 0; i < candidates.size(); ++i) {
+        if (candHeader[i] == gameKlass && IsPtr(candModel[i]))
+            return candidates[i];
+    }
+    for (size_t i = 0; i < candidates.size(); ++i) {
         if (candHeader[i] == gameKlass)
             return candidates[i];
     }
@@ -826,35 +861,170 @@ uintptr_t RobRunSession::FindGameViaGom(uintptr_t gameKlass) {
     if (!unityPlayer)
         return 0;
 
-    uintptr_t gomPtr = 0;
-    if (!mem.ReadOk(unityPlayer + offsets::unity_player::GameObjectManager, gomPtr) || !IsPtr(gomPtr))
+    const auto now = std::chrono::steady_clock::now();
+    if (m_gameSearchRetry.time_since_epoch().count() != 0 &&
+        now - m_gameSearchRetry < std::chrono::milliseconds(180))
         return 0;
+    m_gameSearchRetry = now;
+
+    const uintptr_t gomSlot = unityPlayer + offsets::unity_player::GameObjectManager;
+    uintptr_t gomPtr = 0;
+    if (!mem.ReadOk(gomSlot, gomPtr) || !IsPtr(gomPtr))
+        gomPtr = 0;
+
+    auto walkList = [&](uintptr_t node, int cap) -> uintptr_t {
+        const uintptr_t start = node;
+        for (int i = 0; i < cap && IsPtr(node); ++i) {
+            if (mem.MotionBurstDepth() > 0)
+                return 0;
+            uintptr_t goA = 0, goB = 0, next = 0;
+            mem.ReadOk(node + 0x00, goA);
+            mem.ReadOk(node + offsets::gom::NodeObject, goB);
+            mem.ReadOk(node + offsets::gom::NodeNext, next);
+            uintptr_t go = 0;
+            if (IsPtr(goB) && goB != node)
+                go = goB;
+            else if (IsPtr(goA) && goA != node)
+                go = goA;
+            if (go) {
+                if (const uintptr_t game = GameFromNativeGameObject(go, gameKlass))
+                    return game;
+            }
+            if (!IsPtr(next))
+                mem.ReadOk(node + 0x00, next);
+            if (!IsPtr(next) || next == start || next == node)
+                break;
+            node = next;
+        }
+        return 0;
+    };
+    auto walkClassic = [&](uintptr_t base) -> uintptr_t {
+        if (!IsPtr(base) && base != gomSlot)
+            return 0;
+        for (uintptr_t off : { 0x0ull, 0x8ull, 0x10ull }) {
+            uintptr_t node = 0;
+            if (!mem.ReadOk(base + off, node) || !IsPtr(node))
+                continue;
+            if (const uintptr_t game = walkList(node, 80))
+                return game;
+        }
+        return 0;
+    };
+    static bool classicTried = false;
+    if (!classicTried) {
+        classicTried = true;
+        if (const uintptr_t game = walkClassic(gomSlot))
+            return game;
+        if (gomPtr) {
+            if (const uintptr_t game = walkClassic(gomPtr))
+                return game;
+        }
+    }
+
+    if (!gomPtr)
+        return 0;
+    static bool hashTried = false;
+    if (hashTried)
+        return 0;
+    hashTried = true;
+
+    uint8_t head[0x28]{};
+    if (!mem.ReadRaw(gomPtr, head, sizeof(head)))
+        return 0;
+    const uintptr_t buckets = *reinterpret_cast<const uintptr_t*>(head + offsets::gom::Buckets);
+    const uint64_t mask = *reinterpret_cast<const uint64_t*>(head + offsets::gom::Count);
+    const int liveCount = *reinterpret_cast<const int*>(head + offsets::gom::MaskAlt);
+
+    std::vector<uintptr_t> gos;
+    gos.reserve(256);
+    auto pushGo = [&](uintptr_t go) {
+        if (IsPtr(go))
+            gos.push_back(go);
+    };
+
+    auto tryGos = [&]() -> uintptr_t {
+        constexpr size_t kChunk = 96;
+        for (size_t i = 0; i < gos.size(); i += kChunk) {
+            if (mem.MotionBurstDepth() > 0)
+                return 0;
+            const size_t n = (std::min)(kChunk, gos.size() - i);
+            std::vector<uintptr_t> slice(gos.begin() + static_cast<std::ptrdiff_t>(i),
+                                         gos.begin() + static_cast<std::ptrdiff_t>(i + n));
+            if (const uintptr_t game = GameFromNativeGameObjects(slice, gameKlass))
+                return game;
+        }
+        return 0;
+    };
+
+    size_t entries = 0;
+    if (mask && (mask & (mask + 1ULL)) == 0ULL)
+        entries = static_cast<size_t>(mask) + 1ULL;
+    else if (liveCount > 0)
+        entries = static_cast<size_t>((std::min)(liveCount * 2, 4096));
+    if (entries > 4096)
+        entries = 4096;
+    if (IsPtr(buckets) && entries > 0) {
+        std::vector<uint8_t> raw(entries * offsets::gom::EntryStride);
+        if (mem.ReadRaw(buckets, raw.data(), raw.size())) {
+            for (size_t i = 0; i < entries; ++i) {
+                const uint8_t* e = raw.data() + i * offsets::gom::EntryStride;
+                const int hash = *reinterpret_cast<const int*>(e);
+                if (hash == offsets::gom::EmptyHash || hash == offsets::gom::DeletedHash)
+                    continue;
+                pushGo(*reinterpret_cast<const uintptr_t*>(e + offsets::gom::NodeObject));
+            }
+        }
+        if (const uintptr_t game = tryGos())
+            return game;
+        gos.clear();
+    }
 
     uintptr_t node = 0;
     if (!mem.ReadOk(gomPtr + offsets::gom::EmbeddedList + offsets::gom::ListFirst, node) || !IsPtr(node))
         return 0;
-
+    const uintptr_t sentinel = gomPtr + offsets::gom::EmbeddedList;
+    int cap = liveCount;
+    if (cap < 64) cap = 64;
+    if (cap > 2048) cap = 2048;
     auto& sc = mem.BorrowScatter();
-    std::vector<uintptr_t> gos;
-    gos.reserve(32);
     uintptr_t cur = node;
-    for (int i = 0; i < 32 && IsPtr(cur); ++i) {
+    for (int i = 0; i < cap && IsPtr(cur); ++i) {
         if (mem.MotionBurstDepth() > 0)
-            return 0;
+            break;
+        if (cur == sentinel) {
+            uintptr_t next = 0;
+            mem.ReadOk(cur + offsets::gom::NodeNext, next);
+            if (!IsPtr(next) || next == cur)
+                break;
+            cur = next;
+            continue;
+        }
         uintptr_t next = 0;
         uintptr_t go = 0;
         sc.Prepare(cur + offsets::gom::NodeNext, &next);
         sc.Prepare(cur + offsets::gom::NodeObject, &go);
         sc.Execute();
-        if (IsPtr(go))
-            gos.push_back(go);
+        pushGo(go);
         if (!IsPtr(next) || next == node || next == cur)
             break;
         cur = next;
+        if (gos.size() >= 96) {
+            if (const uintptr_t game = tryGos())
+                return game;
+            gos.clear();
+        }
     }
-    if (gos.empty())
-        return 0;
-    return GameFromNativeGameObjects(gos, gameKlass);
+    if (const uintptr_t game = tryGos())
+        return game;
+    static bool logged = false;
+    if (!logged) {
+        logged = true;
+        mem.Log("[*] GOM miss ptr=0x%llx buckets=0x%llx live=%d entries=%zu\n",
+                static_cast<unsigned long long>(gomPtr),
+                static_cast<unsigned long long>(buckets),
+                liveCount, entries);
+    }
+    return 0;
 }
 
 uintptr_t RobRunSession::FindGameObject() {
@@ -882,17 +1052,19 @@ uintptr_t RobRunSession::FindGameObject() {
         return viaStatics;
     }
     const uintptr_t viaGom = FindGameViaGom(klass);
-    if (!viaGom)
-        return 0;
-    m_gameObject.store(viaGom);
-    BattleEntitiesFromGame(viaGom);
-    std::cout << "[+] Game @ 0x" << std::hex << viaGom << std::dec
-              << " via UnityPlayer+0x" << std::hex
-              << offsets::unity_player::GameObjectManager << std::dec
-              << " UnityEntry+0x28\n" << std::flush;
-    Memory::Get().Log("[+] Game @ 0x%llx via UnityPlayer GOM\n",
-                      static_cast<unsigned long long>(viaGom));
-    return viaGom;
+    if (viaGom) {
+        m_gameObject.store(viaGom);
+        BattleEntitiesFromGame(viaGom);
+        std::cout << "[+] Game @ 0x" << std::hex << viaGom << std::dec
+                  << " via UnityPlayer+0x" << std::hex
+                  << offsets::unity_player::GameObjectManager << std::dec
+                  << " UnityEntry+0x28\n" << std::flush;
+        Memory::Get().Log("[+] Game @ 0x%llx via UnityPlayer GOM\n",
+                          static_cast<unsigned long long>(viaGom));
+        return viaGom;
+    }
+
+    return 0;
 }
 
 bool RobRunSession::CommitBattleWorld(const BattleCandidate& best, const char* source) {
@@ -919,8 +1091,9 @@ bool RobRunSession::CommitBattleWorld(const BattleCandidate& best, const char* s
                           best.characters);
     }
     m_inGame = true;
-    SetStatus("In match — waiting for shoulder camera");
-    Splash::SetDetail("BattleModel+0x358 lens (shoulder). ESP waits until that pose is valid.");
+    SetStatus("In match");
+    Splash::SetDetail("World locked. ESP draws from BattleCharacters; lens is BattleCamera or pawn.");
+    TryBindShoulderCamera();
     return true;
 }
 
@@ -936,27 +1109,69 @@ void RobRunSession::SyncLinkStatusFromModules() {
         SetStatus("Attached — check process name or launch Rob Run");
 }
 
+void RobRunSession::TryBindShoulderCamera() {
+    if (IsPtr(m_battleCamera.load()) && IsPtr(m_cineBrain.load()))
+        return;
+    auto& mem = Memory::Get();
+
+    if (!IsPtr(m_battleCamera.load()) && IsPtr(m_battleModel.load())) {
+        uintptr_t cam = 0;
+        if (mem.ReadOk(m_battleModel.load() + offsets::battle_model::BattleCamera, cam) &&
+            IsPtr(cam)) {
+            m_battleCamera.store(cam);
+            std::cout << "[+] BattleCamera @ 0x" << std::hex << cam << std::dec
+                      << " (BattleModel+0x358)\n" << std::flush;
+            mem.Log("[+] BattleCamera @ 0x%llx via BattleModel\n",
+                    static_cast<unsigned long long>(cam));
+        }
+    }
+
+    if (!IsPtr(m_battleCamera.load())) {
+        uintptr_t game = m_gameObject.load();
+        if (IsPtr(game))
+            BattleEntitiesFromGame(game);
+    }
+
+    if (IsPtr(m_cineBrain.load()))
+        return;
+
+    uintptr_t coreSlots[] = { offsets::typeinfo::CinemachineCore };
+    uintptr_t coreKlass = ResolveNamedKlass(
+        "CinemachineCore", "Cinemachine", coreSlots, std::size(coreSlots));
+    if (!coreKlass) {
+        uintptr_t word = 0;
+        mem.ReadOk(m_gameAssembly + offsets::typeinfo::CinemachineCore, word);
+        coreKlass = KlassFromTypeInfoWord(word, "CinemachineCore", "Cinemachine");
+    }
+    if (!coreKlass)
+        return;
+    uintptr_t statics = 0;
+    if (!mem.ReadOk(coreKlass + offsets::il2cpp::Class_StaticFields, statics) || !IsPtr(statics))
+        return;
+    uintptr_t instance = 0;
+    if (!mem.ReadOk(statics + offsets::cinemachine_core::Instance, instance) || !IsPtr(instance))
+        return;
+    uintptr_t list = 0;
+    if (!mem.ReadOk(instance + offsets::cinemachine_core::ActiveBrains, list) || !IsPtr(list))
+        return;
+    uintptr_t items = 0;
+    int size = 0;
+    mem.ReadOk(list + offsets::il2cpp::List_Items, items);
+    mem.ReadOk(list + offsets::il2cpp::List_Size, size);
+    if (!IsPtr(items) || size <= 0)
+        return;
+    uintptr_t brain = 0;
+    if (!mem.ReadOk(items + offsets::il2cpp::Array_First, brain) || !IsPtr(brain))
+        return;
+    m_cineBrain.store(brain);
+    std::cout << "[+] CinemachineBrain @ 0x" << std::hex << brain << std::dec
+              << " (sInstance.mActiveBrains[0])\n" << std::flush;
+}
+
 bool RobRunSession::FindBattleEntities() {
     if (!EnsureModule()) {
         SetStatus("GameAssembly.dll not loaded yet");
         return false;
-    }
-
-    uintptr_t current = m_battleEntities.load();
-    if (current) {
-        BattleCandidate selected;
-        if (EvaluateBattleEntities(current, selected)) {
-            m_battleEvalFails = 0;
-            return true;
-        }
-        // One bad DMA read is not a map change. Heap-scanning here stalls
-        // the FPGA and SNAP jumps to 1000ms+.
-        if (++m_battleEvalFails < 12)
-            return true;
-        std::cout << "[*] BattleEntities moved, chasing Game chain again\n";
-        m_battleEntities.store(0);
-        m_mapTransition.store(true);
-        m_battleEvalFails = 0;
     }
 
     auto tryCommit = [&](uintptr_t object, const char* source) -> bool {
@@ -970,18 +1185,78 @@ bool RobRunSession::FindBattleEntities() {
         return CommitBattleWorld(candidate, source);
     };
 
+    uintptr_t current = m_battleEntities.load();
+    if (current) {
+        BattleCandidate selected;
+        if (EvaluateBattleEntities(current, selected) &&
+            (selected.characters > 0 || selected.hasPlayer)) {
+            m_battleEvalFails = 0;
+            m_inGame = true;
+            TryBindShoulderCamera();
+            return true;
+        }
+    }
+
+    // Always re-read Game → BattleModel+0x90. A menu stub BattleEntities still
+    // "evaluates" with 0 characters and would otherwise stick after load-in.
     ResolveGameKlass();
     const uintptr_t game = FindGameObject();
     const uintptr_t chained = game ? BattleEntitiesFromGame(game) : 0;
     if (tryCommit(chained, "game-chain"))
         return true;
 
+    {
+        auto& mem = Memory::Get();
+        const int sliceMs = 200;
+        if (m_battleKlass) {
+            uintptr_t needle = m_battleKlass;
+            const auto hits = mem.SearchHeap(&needle, sizeof(needle), 8, 24, true, sliceMs);
+            BattleCandidate best;
+            for (uintptr_t hit : hits) {
+                BattleCandidate candidate;
+                if (!EvaluateBattleEntities(hit, candidate))
+                    continue;
+                if (candidate.score > best.score)
+                    best = candidate;
+            }
+            if (best.address && tryCommit(best.address, "gc-klass"))
+                return true;
+            static auto lastHeapLog = std::chrono::steady_clock::time_point{};
+            const auto nowHeap = std::chrono::steady_clock::now();
+            if (lastHeapLog.time_since_epoch().count() == 0 ||
+                nowHeap - lastHeapLog > std::chrono::seconds(2)) {
+                lastHeapLog = nowHeap;
+                std::cout << "[*] BattleEntities GC hits=" << hits.size()
+                          << " klass=0x" << std::hex << m_battleKlass << std::dec
+                          << " best=" << best.score << "\n" << std::flush;
+            }
+        }
+    }
+
+    current = m_battleEntities.load();
+    if (current && current != chained) {
+        BattleCandidate selected;
+        if (EvaluateBattleEntities(current, selected)) {
+            m_battleEvalFails = 0;
+            return true;
+        }
+        if (++m_battleEvalFails < 12)
+            return true;
+        std::cout << "[*] BattleEntities moved, chasing Game chain again\n";
+        m_battleEntities.store(0);
+        m_mapTransition.store(true);
+        m_battleEvalFails = 0;
+    }
+
     m_inGame = false;
     m_espReady.store(false);
-    if (game) {
+    if (game && !chained) {
+        SetStatus("Game locked — waiting for BattleModel world (BattleEntities+0x90)");
+        Splash::SetDetail("Game instance is live. Match world appears at BattleModel+0x90.");
+    } else if (game) {
         char detail[180];
         snprintf(detail, sizeof(detail),
-                 "Game 0x%llx   camera BattleModel+0x358   players BattleEntities+0x90 when the match starts",
+                 "Game 0x%llx   camera BattleModel+0x358   players BattleEntities+0x90",
                  static_cast<unsigned long long>(game));
         SetStatus("In menu");
         Splash::SetDetail(detail);
@@ -989,8 +1264,8 @@ bool RobRunSession::FindBattleEntities() {
         SetStatus("Waiting for UnityPlayer.dll");
         Splash::SetDetail("UnityPlayer.dll is not in the module map yet");
     } else if (ResolveGameKlass()) {
-        SetStatus("In menu");
-        Splash::SetDetail("Game class is known. Match camera is BattleModel+0x358. Players are BattleEntities+0x90.");
+        SetStatus("Chasing UnityEntry.Game via GOM");
+        Splash::SetDetail("Game class is known. Walking UnityPlayer GameObjectManager for UnityEntry+0x28.");
     } else {
         SetStatus("Waiting for Game TypeInfo");
         Splash::SetDetail("Game TypeInfo slot has not resolved");
@@ -1392,7 +1667,9 @@ bool RobRunSession::ResolveCharacter(uintptr_t character, GameEntity& entity) co
         uintptr_t deadModel = mem.Read<uintptr_t>(character + offsets::character::IsDead);
         entity.deadAddr = ModelValueAddress(deadModel);
     }
-    return entity.posVec || entity.posX || entity.repPosAddr;
+    if (!entity.posVec && !entity.posX && !entity.repPosAddr)
+        entity.isEnabled = false;
+    return true;
 }
 
 
@@ -1456,6 +1733,16 @@ void RobRunSession::CacheActors() {
     uintptr_t world = mem.Read<uintptr_t>(battle + offsets::battle_entities::WorldEntities);
     uintptr_t slotsModel = mem.Read<uintptr_t>(battle + offsets::battle_entities::CharacterSlots);
     uintptr_t playerEnt = mem.Read<uintptr_t>(battle + offsets::battle_entities::Player);
+    {
+        static uintptr_t lastWorldLog = 0;
+        if (world != lastWorldLog) {
+            lastWorldLog = world;
+            std::cout << "[*] CacheActors battle=0x" << std::hex << battle
+                      << " world=" << (IsPtr(world) ? world : 0)
+                      << " player=" << (IsPtr(playerEnt) ? playerEnt : 0)
+                      << std::dec << "\n" << std::flush;
+        }
+    }
 
     uintptr_t localCharacter = 0;
     int localId = -1;
@@ -1708,29 +1995,45 @@ void RobRunSession::CacheActors() {
     constexpr int kMaxBattlePlayers = 300;
     auto addCharacterDict = [&](uintptr_t dict, bool requireKlass) {
         std::vector<DictItem> characters;
-        if (!ReadIntDictionary(dict, characters, kMaxBattlePlayers)) return;
+        uintptr_t live = DictionaryObject(dict, kMaxBattlePlayers);
+        const int listed = live ? mem.Read<int>(live + offsets::il2cpp::Dict_Count) : -1;
+        if (!ReadIntDictionary(dict, characters, kMaxBattlePlayers)) {
+            std::cout << "[*] character dict failed count=" << listed << "\n" << std::flush;
+            return;
+        }
+        if (characters.empty() && listed > 0)
+            std::cout << "[*] character dict count=" << listed << " walked=0\n" << std::flush;
         for (const auto& item : characters)
             addCharacter(item.key, item.value, requireKlass);
     };
-
+    auto addBattleCharactersFromModels = [&](uintptr_t dict) {
+        std::vector<DictItem> modelItems;
+        if (!ReadIntDictionary(dict, modelItems, 5000)) return;
+        for (const auto& item : modelItems) {
+            uintptr_t klass = IsPtr(item.value) ? mem.Read<uintptr_t>(item.value) : 0;
+            if (MatchesKlassName(klass, "BattleCharacterModel"))
+                addCharacter(item.key, item.value, false);
+        }
+    };
     if (IsPtr(world)) {
         addCharacterDict(mem.Read<uintptr_t>(world + offsets::world::BattleCharacters), false);
         addCharacterDict(mem.Read<uintptr_t>(world + offsets::world::NotSpawnedCharacters), false);
+    }
+    {
+        int playersNow = 0;
+        for (const auto& e : actors) {
+            if (e.type == EntityType::Player)
+                ++playersNow;
+        }
+        if (playersNow == 0) {
+            addBattleCharactersFromModels(
+                mem.Read<uintptr_t>(battle + offsets::battle_entities::Models));
+            addBattleCharactersFromModels(
+                mem.Read<uintptr_t>(battle + offsets::battle_entities::EntityModels));
+        }
+    }
 
-        auto addBattleCharactersFromModels = [&](uintptr_t dict) {
-            std::vector<DictItem> modelItems;
-            if (!ReadIntDictionary(dict, modelItems, 5000)) return;
-            for (const auto& item : modelItems) {
-                uintptr_t klass = IsPtr(item.value) ? mem.Read<uintptr_t>(item.value) : 0;
-                if (MatchesKlassName(klass, "BattleCharacterModel"))
-                    addCharacter(item.key, item.value, false);
-            }
-        };
-        addBattleCharactersFromModels(
-            mem.Read<uintptr_t>(battle + offsets::battle_entities::Models));
-        addBattleCharactersFromModels(
-            mem.Read<uintptr_t>(battle + offsets::battle_entities::EntityModels));
-
+    if (IsPtr(world)) {
         bool haveLocal = false;
         for (const auto& e : actors) {
             if (e.isLocalPlayer) { haveLocal = true; break; }
@@ -1754,6 +2057,39 @@ void RobRunSession::CacheActors() {
             if (!localClan.empty() && !e.clan.empty() && Names::Lower(e.clan) == Names::Lower(localClan))
                 e.isTeammate = true;
         }
+
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_actors = actors;
+        }
+        int readyPlayers = 0;
+        for (const auto& e : actors) {
+            if (e.type == EntityType::Player)
+                ++readyPlayers;
+        }
+        static int lastReady = -1;
+        if (readyPlayers != lastReady) {
+            lastReady = readyPlayers;
+            std::cout << "[+] Overlay live. players=" << readyPlayers
+                      << " local=" << (IsPtr(localCharacter) ? "yes" : "no")
+                      << "\n" << std::flush;
+        }
+
+        const auto& espCfg = Config::Get().esp;
+        const auto& radarCfg = Config::Get().radar;
+        const bool extras = espCfg.showItems || espCfg.showVehicles || espCfg.showContainers ||
+            espCfg.showGrenades || espCfg.showDeathBags || espCfg.showCargo ||
+            espCfg.showAtm || espCfg.showSafes || espCfg.showVaults || espCfg.showBases ||
+            espCfg.showHideSpots ||
+            (radarCfg.enabled && (radarCfg.showItems || radarCfg.showVehicles ||
+                                  radarCfg.showContainers || radarCfg.showGrenades));
+        static bool firstPlayerPass = true;
+        const bool skipExtras = (firstPlayerPass && readyPlayers > 0) || !extras;
+        if (readyPlayers > 0)
+            firstPlayerPass = false;
+        if (skipExtras) {
+            // Players already published. World extras wait until the next actor tick.
+        } else {
 
         uintptr_t vehicleDict = mem.Read<uintptr_t>(world + offsets::world::Vehicles);
         std::vector<DictItem> vehicles;
@@ -2596,6 +2932,16 @@ void RobRunSession::CacheActors() {
                     remember(std::move(entity));
             }
         }
+        } // extras
+    }
+
+    {
+        bool haveLocal = false;
+        for (const auto& e : actors) {
+            if (e.isLocalPlayer) { haveLocal = true; break; }
+        }
+        if (!haveLocal)
+            addCharacter(localId, localCharacter, false);
     }
 
     for (auto it = m_known.begin(); it != m_known.end(); ) {
@@ -2619,12 +2965,22 @@ void RobRunSession::CacheActors() {
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_actors = actors;
+        auto countOf = [&](uintptr_t dict) {
+            uintptr_t live = DictionaryObject(dict, 100000);
+            if (!live) return -1;
+            return mem.Read<int>(live + offsets::il2cpp::Dict_Count);
+        };
+        const int battleCount = IsPtr(world)
+            ? countOf(mem.Read<uintptr_t>(world + offsets::world::BattleCharacters)) : -1;
+        const int modelCount = countOf(mem.Read<uintptr_t>(battle + offsets::battle_entities::Models));
         m_status = "Connected. players=" + std::to_string(players) +
                    " vehicles=" + std::to_string(vehicles) +
                    " loot=" + std::to_string(items) +
                    " grenades=" + std::to_string(grenades) +
                    " containers=" + std::to_string(containers) +
-                   " local=" + std::string(IsPtr(localCharacter) ? "yes" : "no");
+                   " local=" + std::string(IsPtr(localCharacter) ? "yes" : "no") +
+                   " chars=" + std::to_string(battleCount) +
+                   " models=" + std::to_string(modelCount);
         static int lastPlayers = -1;
         if (lastPlayers != players) {
             lastPlayers = players;
@@ -2810,13 +3166,43 @@ void RobRunSession::CachePositions() {
         status = m_status;
     }
     if (actors.empty()) {
+        CameraData camera;
+        camera.status = status;
+        RefreshCamera(camera);
+        if (!camera.valid) {
+            auto& mem = Memory::Get();
+            Vector3 p{};
+            float q[4] = { 0.f, 0.f, 0.f, 1.f };
+            uintptr_t pos = m_clientPos.load();
+            uintptr_t quat = m_clientLookQuat.load();
+            uintptr_t brain = m_cineBrain.load();
+            if (IsPtr(brain)) {
+                mem.ReadOk(brain + offsets::cinemachine_brain::RawPosition, p);
+                mem.ReadRaw(brain + offsets::cinemachine_brain::RawOrientation, q, sizeof(q));
+            }
+            if (!FinitePosition(p) && IsPtr(pos))
+                mem.ReadOk(pos, p);
+            if (IsPtr(quat) && !UnitQuat(q[0], q[1], q[2], q[3]))
+                mem.ReadRaw(quat, q, sizeof(q));
+            if (FinitePosition(p)) {
+                if (!IsPtr(brain))
+                    p.y += 1.55f;
+                camera.viewInfo.location = p;
+                if (UnitQuat(q[0], q[1], q[2], q[3]))
+                    SetCameraBasis(camera.viewInfo, q[0], q[1], q[2], q[3]);
+                else
+                    ApplyOrthonormal(camera.viewInfo, { 0.f, 0.f, 1.f });
+                camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
+            }
+        }
+        camera.generation = m_snapshotGeneration.fetch_add(1, std::memory_order_relaxed) + 1;
+        camera.captured = std::chrono::steady_clock::now();
+        if (!status.empty())
+            camera.status = status;
         std::lock_guard<std::mutex> lock(m_mutex);
         m_entities.clear();
         m_localPlayer = {};
-        m_camera.valid = false;
-        m_camera.status = status.empty() ? m_camera.status : status;
-        m_camera.generation = m_snapshotGeneration.fetch_add(1, std::memory_order_relaxed) + 1;
-        m_camera.captured = std::chrono::steady_clock::now();
+        m_camera = std::move(camera);
         return;
     }
 
@@ -2853,13 +3239,21 @@ void RobRunSession::CachePositions() {
         Vector3 up{};
         float distance = 0.f;
     };
+    struct CineSample {
+        Vector3 rawPos{};
+        float rawQuat[4] = { 0.f, 0.f, 0.f, 1.f };
+        Vector3 posCorr{};
+        float fov = 0.f;
+    };
     std::vector<Sample> samples(actors.size());
     ClientSample clientSample;
     BattleCamSample battleCamSample;
+    CineSample cineSample;
     uintptr_t clientPos = m_clientPos.load();
     uintptr_t clientLookQuat = m_clientLookQuat.load();
     uintptr_t clientYawAddr = m_clientYaw.load();
     uintptr_t clientPitchAddr = m_clientPitch.load();
+    uintptr_t cineBrain = m_cineBrain.load();
     uintptr_t battleCam = m_battleCamera.load();
     if (!IsPtr(battleCam) && IsPtr(m_battleModel.load())) {
         uintptr_t fromModel = 0;
@@ -2921,6 +3315,15 @@ void RobRunSession::CachePositions() {
                             &battleCamSample.up, sizeof(Vector3));
             scatter.Prepare(battleCam + offsets::battle_camera::DistanceToFollowTarget,
                             &battleCamSample.distance);
+        } else if (IsPtr(cineBrain)) {
+            scatter.Prepare(cineBrain + offsets::cinemachine_brain::RawPosition,
+                            &cineSample.rawPos, sizeof(Vector3));
+            scatter.Prepare(cineBrain + offsets::cinemachine_brain::RawOrientation,
+                            cineSample.rawQuat, sizeof(cineSample.rawQuat));
+            scatter.Prepare(cineBrain + offsets::cinemachine_brain::PositionCorrection,
+                            &cineSample.posCorr, sizeof(Vector3));
+            scatter.Prepare(cineBrain + offsets::cinemachine_brain::FieldOfView,
+                            &cineSample.fov);
         }
         scatter.Execute();
     }
@@ -3136,6 +3539,29 @@ void RobRunSession::CachePositions() {
                            battleCamSample.orient[3]);
         }
         camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
+    } else if (FinitePosition(cineSample.rawPos)) {
+        Vector3 loc = cineSample.rawPos;
+        if (cineSample.posCorr.IsValid() && cineSample.posCorr.Length() < 8.f)
+            loc = loc + cineSample.posCorr;
+        camera.viewInfo.location = loc;
+        if (UnitQuat(cineSample.rawQuat[0], cineSample.rawQuat[1],
+                     cineSample.rawQuat[2], cineSample.rawQuat[3]))
+            SetCameraBasis(camera.viewInfo, cineSample.rawQuat[0], cineSample.rawQuat[1],
+                           cineSample.rawQuat[2], cineSample.rawQuat[3]);
+        if (cineSample.fov > 10.f && cineSample.fov < 120.f)
+            camera.viewInfo.fov = cineSample.fov;
+        camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
+    } else if (haveLocal && FinitePosition(local.position)) {
+        Vector3 lens = local.position;
+        lens.y += 1.55f;
+        camera.viewInfo.location = lens;
+        Vector3 fwd = local.aimForward;
+        if (fwd.Length() < 0.2f && UnitQuat(clientSample.quaternion[0], clientSample.quaternion[1],
+                                            clientSample.quaternion[2], clientSample.quaternion[3]))
+            fwd = QuatForward(clientSample.quaternion[0], clientSample.quaternion[1],
+                              clientSample.quaternion[2], clientSample.quaternion[3]);
+        ApplyOrthonormal(camera.viewInfo, fwd);
+        camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
     }
     ApplyFreecamCamera(camera);
     WriteMaterialChams(actors);
@@ -3233,6 +3659,22 @@ void RobRunSession::RefreshCamera(CameraData& camera) {
         }
     }
     if (!IsPtr(battleCam)) {
+        uintptr_t brain = m_cineBrain.load();
+        if (IsPtr(brain)) {
+            Vector3 p{};
+            float q[4] = { 0.f, 0.f, 0.f, 1.f };
+            auto& mem = Memory::Get();
+            mem.ReadOk(brain + offsets::cinemachine_brain::RawPosition, p);
+            mem.ReadRaw(brain + offsets::cinemachine_brain::RawOrientation, q, sizeof(q));
+            if (FinitePosition(p)) {
+                camera.viewInfo.location = p;
+                if (UnitQuat(q[0], q[1], q[2], q[3]))
+                    SetCameraBasis(camera.viewInfo, q[0], q[1], q[2], q[3]);
+                camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
+                if (camera.valid)
+                    return;
+            }
+        }
         camera.valid = false;
         return;
     }

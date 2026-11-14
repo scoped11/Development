@@ -32,12 +32,9 @@ struct StompPlan {
     uint32_t thunk_rva = 0;
     uint32_t payload_rva = 0;
     uint32_t payload_size = 0;
-    // PE headers are not copied into the victim hole; relocs use base = hole - header_skip.
-    uint32_t header_skip = 0;
 };
 
 uint32_t PeSizeOfImage(const std::vector<uint8_t>& payloadFile);
-uint32_t PeFirstSectionRva(const std::vector<uint8_t>& payloadFile);
 
 bool LookupVictimDosName(const wchar_t* shortName, std::wstring& moduleName, std::wstring& dosName);
 /// Core storage/filter stack — placement may succeed but live patch often bugchecks (0x3B).

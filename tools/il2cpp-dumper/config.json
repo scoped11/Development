@@ -1,4 +1,4 @@
-﻿{
+{
   "DumpMethod": true,
   "DumpField": true,
   "DumpProperty": true,
@@ -6,7 +6,7 @@
   "DumpFieldOffset": true,
   "DumpMethodOffset": true,
   "DumpTypeDefIndex": true,
-  "GenerateDummyDll": true,
+  "GenerateDummyDll": false,
   "GenerateStruct": true,
   "DummyDllAddToken": true,
   "RequireAnyKey": false,

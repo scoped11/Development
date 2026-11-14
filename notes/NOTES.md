@@ -10,7 +10,7 @@
 | Install path | `D:\SteamLibrary\steamapps\common\Rob Run` | user |
 | IL2CPP binary | `GameAssembly.dll` (147,842,560 B) | dir listing |
 | Metadata | `ROB RUN_Data\il2cpp_data\Metadata\global-metadata.dat` (34,367,080 B) | dir listing |
-| **Metadata version** | **39** (uint32 LE at file offset 0) | read first 4 bytes = 0x27 |
+| **Metadata version** | **39** (uint32 LE at file offset **4**; magic `0xFAB11BAF` at 0) | `AF 1B B1 FA 27 00 00 00` |
 | **Anti-cheat** | **EasyAntiCheat (EAC)** | `EasyAntiCheat/` dir |
 | Launcher | `start_protected_game.exe` (EAC protected) | dir listing |
 | Existing IDA DB | `GameAssembly.dll.i64` (2.1 GB) + .id0/.id1/.id2/.nam/.til | dir listing (dated 11/11) |
@@ -19,12 +19,13 @@
 
 | Tool | Version | Location | Notes |
 |---|---|---|---|
-| **wklin8607/Il2CppDumper** | **v6.7.48** (net8.0) | `C:\Users\baile\AppData\Local\Temp\opencode\Il2CppDumper\wklin8607-v6.7.48\Il2CppDumper.exe` | actively-maintained fork; we had v6.7.46 (too old) |
-| old Il2CppDumper | v6.7.46 | `...\Il2CppDumper\Il2CppDumper.exe` | outdated |
+| **c01ns/Il2CppDumper** | **v39.1** (net8.0) | `tools\il2cpp-dumper\` | Unity 6000 metadata v39. Numeric typeStart, correct Dictionary interfaces. |
+| wklin8607/Il2CppDumper | v6.7.48 | `tools\il2cpp-dumper-wklin-6.7.48\` | accepted v39 but dump.cs printed `Il2CppDumper.TypeDefinitionIndex` and mapped `Dictionary<,>` onto `FixedList` interfaces — **not used** |
+| Perfare Il2CppDumper | v6.7.46 | — | rejects metadata 39 (`NotSupportedException`) |
 | Cpp2IL | 2022.0.7 (latest *stable*) | — | too old for v39; not used |
 | .NET runtime | .NET 8.0.28 (+ 6.0.36, 9.0.17) | `dotnet --list-runtimes` | dumper targets net8.0 ✓ |
 | **IDA Pro** | **9.4** | `C:\Program Files\IDA Professional 9.4` | installed |
-| **IDA MCP** | `ida-mcp.exe` (46 KB) | `C:\Users\baile\.local\bin\ida-mcp.exe` | configured in `opencode.json` (`--agent=opencode`) |
+| **IDA MCP** | `ida-mcp.exe` (46 KB) | `C:\Users\USER\.local\bin\ida-mcp.exe` | configured in `opencode.json` (`--agent=opencode`) |
 
 ### Config decisions
 - Set `RequireAnyKey: false` so the CLI dumper does not wait for a keypress.
@@ -48,15 +49,19 @@
 5. **Research DMA cheat building + optimization** (read scheduling, prefetch, polling frequency, batching reads, anti-cheat DMA detection).
 6. **Build the DMA cheat**: reader (PC2/reader) + overlay/aimbot/ESP + KMBox input. Basic features first (ESP, health, distance, crosshair, basic aimbot), then add features found in the structure.
 
-## 4. DMA product (2026-11-12)
+## 4. DMA product (2026-11-14)
 
-Workspace: `C:\Users\baile\OneDrive\Desktop\Development`
+Workspace: `C:\Development`
 - Source: `dma\`
 - Debug overlay: `debug\RobRunDMA.exe` (default)
 - Approved overlay: `build\` — empty until `-Section Build -IApprove`
-- Dump: `dumps\2026-11-12\` (metadata v39)
+- Dump: `dumps\2026-11-14\` (metadata v39; GameAssembly `0x8FDC000`)
 - Dumper: `tools\il2cpp-dumper\` (wklin 6.7.48)
-- TypeInfo `BattleEntitiesModel = 0x81D15E8`; GameAssembly `0x8CFE600`
+- TypeInfo `BattleEntitiesModel = 0x81D46B0`; GameAssembly `0x8FDC000`
+- Feature list + silent-aim write path: `dma\README.md`
+- Field notes: `dumps\2026-11-14\OFFSET_REPORT.md`
+
+Silent aim is **not** a `UserCmd` patch. `ShotArgsSystem` consumes `LookDirectionModel` + `ShotInterpolationModel` and stores the ray on `ShotArgsModel.Direction`. Overlay writes those over DMA and leaves `CharacterRotationModel` (camera) alone. Memory aim still writes client yaw/pitch.
 
 ## 5. Open Questions
 - Live attach on the 2nd PC / FPGA firmware in `2ND-PC`

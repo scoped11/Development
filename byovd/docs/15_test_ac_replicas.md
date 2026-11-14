@@ -155,16 +155,6 @@ R6 same: BE heartbeat/report paths differ from EAC.
 .\scripts\run-timed-harness.ps1 -Profile r6
 ```
 
-## Signed-module replica (disk stays vendor-signed)
-
-Borrowed identity on DriverLab-E: inbox victim (`wcifs` / `luafv`) stays **Valid** Microsoft Authenticode; payload is stomp memory only. **Not** a PKCS#7 graft onto `VmLabDrv.sys`.
-
-```powershell
-& Z:\driver-lab\vm\bg\guest-signed-module-replica.ps1 -Profile rust -Victim wcifs
-```
-
-Doc: `driver-lab/docs/31_signed_module_replica.md`. Lab CA load of **your** driver is `29_labforge_method.md` (different story).
-
 ## See also
 
 - `16_timed_ac_harness_method.md` — **TH** method with AC running (no game)

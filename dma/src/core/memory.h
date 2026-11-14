@@ -98,7 +98,7 @@ public:
     // Chunked FPGA reads with a wall-clock deadline — never VMMDLL_MemSearch
     // (a single 100MB+ region hangs the FPGA and SNAP jumps to 1000ms+).
     std::vector<uintptr_t> SearchHeap(const void* pattern, size_t size, size_t align, size_t maxResults,
-                                      bool gcOnly = true);
+                                      bool gcOnly = true, int timeoutMs = 0);
 
     // CR3/DTB fix for anti-cheat bypass
     bool FixCr3();

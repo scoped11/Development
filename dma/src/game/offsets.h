@@ -4,7 +4,8 @@
 // ============================================================================
 // ROB RUN (Unity IL2CPP) — offsets
 //
-// Dump: 2026-11-14 (Il2CppDumper, metadata v39). Synced 2026-11-14 UTC. GameAssembly SizeOfImage 0x8fdc000.
+// Dump: 2026-11-14-c01ns-v39.1 (c01ns Il2CppDumper v39.1, metadata v39).
+// Synced 2026-11-14 UTC. GameAssembly SizeOfImage 0x8fdc000.
 // Steam buildid 26615022. PE SizeOfImage 0x8FDC000. Getters rechecked on the live DLL:
 //   Game.get_GameModel                         0x904DA0  [rcx+0xD0]
 //   GameModel.get_BattleModel                  0x7EB6B0  [rcx+0x10]
@@ -30,8 +31,8 @@
 namespace offsets {
 
     // PE SizeOfImage for this Steam build. File size on disk is smaller (~0x8D01800).
-    constexpr size_t kDumpGameAssemblySize = 0x8FDC000ULL;
-    constexpr size_t kLiveGameAssemblySize = 0x8FDC000ULL;
+    constexpr size_t kDumpGameAssemblySize = 0X8FDC000ULL;
+    constexpr size_t kLiveGameAssemblySize = 0X8FDC000ULL;
     // Previous Steam build (this morning, 0x8CFE600) if the game was not restarted.
     constexpr size_t kPriorGameAssemblySize = 0x8CFE600ULL;
     // Older SizeOfImage still seen on some VAD walks.

@@ -32,8 +32,6 @@
 | `26_vm_kernel_driver_lab.md` | **VmLab** IOCTL driver (GH tutorial track, VM-only) |
 | `27_vm_bypass_confidence.md` | VM **L2/L3** pass gates — EAC/BE parity (not live guarantee) |
 | `28_otl_trusted_load_method.md` | **OTL** — Ordered Trust Load (sign → load → client → AC) |
-| `29_labforge_method.md` | **LabForge** — lab CA Authenticode (not MS countersign, not Corsair) |
-| `31_signed_module_replica.md` | Replica lane: victim disk stays Microsoft-signed (**no graft**; guest pass not recorded) |
 | `../vm/README.md` | Headless **DriverLab-E-26200** VirtualBox lab |
 
 | Doc / script | Action |

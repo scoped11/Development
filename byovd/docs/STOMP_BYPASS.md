@@ -1,6 +1,30 @@
 # STOMP bypass — image-backed driver2 (private)
 
-Status: **[in-tree, lab]** — engine + `Driver2Stomp.sys` build; **dry-run / live stomp on DriverLab-E** (guest ~26300). Live EAC/BE/ACE on build 26200+ **not gated** until cheat-inspector S2 passes on guest.
+Status: **[in-tree, lab]** — engine + `Driver2Stomp.sys` build; **dry-run / live stomp on DriverLab-E** (guest ~26200). Live EAC/BE/ACE on build 26200+ **not gated** until cheat-inspector S2 passes on guest.
+
+## Current focus (2026-11-14 — what we are doing now)
+
+Two parallel tracks on **DriverLab-E-26200**; both are lab-only.
+
+| Track | Goal | Guest entry | Trust on real CI |
+|-------|------|-------------|------------------|
+| **A — Stomp (primary)** | IOCTL hijack on **signed victim** image (`wcifs`), mock AC **after** map | `guest-stomp-victim-scan.ps1` → `guest-stomp-lane-full.ps1` | Yes when placement is dead/CC-only and on-disk victim unchanged |
+| **B — Authenticode graft (replica / structural)** | Copy PKCS#7 cert table from a signed PE onto another (e.g. EAC → `VmLabDrv`) for replica experiments | `guest-authenticode-graft-lab.ps1` | **No** on foreign payload (`HashMismatch`); **Valid** only on byte-identical digest region (e.g. `wcifs` copy test) |
+
+**Active engineering right now**
+
+1. **Stomp:** `PlacementRegionStrict` — dead cluster or `0xCC` only; no `PlanSafeSpan` / tail fallback on live map. Guest plan winner: **`wcifs`** (`cluster_rva=0x4028`, `need=0x1400`, build `d0d8e4ff…`). VM order unchanged: stop mock AC → map → `Driver2Client` probe → start mock AC → probe again.
+2. **Graft:** `driver-lab/vm/offline/Add-AuthenticodeGraft.ps1` + guest runner. Host identity test **Valid** on `wcifs` copy. On guest, first full run hit worker **exit 124** (180s timeout, likely slow `Get-AuthenticodeSignature` on large replica sources) — **not a BSOD**. Re-run with **`-SkipVerify`** (wcifs lane only); use **`-IncludeReplica`** when you explicitly want the EAC→VmLabDrv `HashMismatch` demo.
+
+**BSOD log on guest this session (do not confuse with graft timeout)**
+
+| Time (local) | Code | Context |
+|--------------|------|---------|
+| ~09:33–09:50 | **0x3B** | Live stomp on **fltMgr** / **wcifs** (pre-strict placement) |
+| ~10:44, ~10:54 | **0xDA** | Kernel stomp lane / live map in flight (`09a96de91faf`, no clean worker exit) |
+| 11:47 graft job | **124** | Worker timeout — VM stayed up |
+
+After **0x3B** or **0xDA**: clean boot (snapshot or `VBoxManage poweroff`/`startvm`), confirm `guest-bsod-check.ps1`, re-sync **BUILD.txt**, then plan/dry-run before the next live map.
 
 ## Opsec
 
@@ -54,7 +78,7 @@ Per `byovd/docs/15_test_ac_replicas.md`: mock EAC/BE must be **stopped** before 
 4. `Start-AcReplicaServices.ps1 -Profile rust|r6`
 5. `Driver2Client.exe` probe again
 
-Orchestrator: `driver-lab/vm/bg/guest-signed-module-replica.ps1` (appearance gate: disk SHA-256 and Authenticode stay the victim’s). `guest-stomp-lane-full.ps1` only forwards to it. **No** Authenticode graft onto another `.sys`. Reboot guest after **0x3B** before the next live map. Doc: `driver-lab/docs/31_signed_module_replica.md`.
+Orchestrator: `driver-lab/vm/bg/guest-stomp-lane-full.ps1`. Reboot guest after **0x3B** before the next live map.
 
 ## Live sequence (target)
 
@@ -93,10 +117,10 @@ Share: `Z:\byovd`, worker: `driver-lab/vm/bg/`.
 | `guest-kill-stuck-mapper.ps1` | Kill `mapper_nal`, stop vehicle services, related guest scripts |
 | `guest-stomp-plan-only.ps1` | Guest `stomp_plan.exe` (seconds, no vehicle) |
 | `guest-stomp-dryrun-watchdog.ps1` | BUILD stamp → `mapper_nal --stomp-dry-run` (user-only, no vehicle open) |
-| `guest-signed-module-replica.ps1` | Disk identity gate + live stomp + L2 replica + client probe |
-| `guest-stomp-lane-full.ps1` | Wrapper for `guest-signed-module-replica.ps1` |
 | `guest-lab-preflight.ps1` | Secure Boot + testsigning gate for offline vault jobs (exit **126**) |
 | `misc/stomp_plan.ps1` + `bin/stomp_plan.exe` | Host-only placement before guest map |
+| `guest-authenticode-graft-lab.ps1` | Track B: wcifs identity (+ optional replica); writes `signed-module-replica.json` |
+| `vm/offline/Add-AuthenticodeGraft.ps1` | Cert-table graft implementation (host or guest via `Z:\driver-lab\vm\offline`) |
 
 See `driver-lab/vm/bg/README.md` for hangs/timeouts.
 
@@ -123,7 +147,7 @@ Force-trusted test sign on guest still fails **`0xc0000428`** / `sc start` 577 �
 
 - `src/mapper/stomp.{h,cpp}` — enumerate, dead-code proof, placement, patch, verify
 - `src/mapper/main_nal.cpp` — `--stomp-dry-run` exits **before** vehicle open (`ExecuteStompDryRunUserOnly`); live stomp still runs after smoke; `g_stompKeepVehicle`
-- `PlanPlacement` — dead cluster → **longest `.text` CC run** → high-water tail; `stomp_plan` prints `max_cc` on failure
+- `PlanPlacement` — dead cluster → **CC slack** only; each candidate must pass `PlacementRegionStrict` (dead or `0xCC` on disk, no live `.text`); `stomp_plan` prints `max_safe` / `max_cc` on failure
 - **Sizing gate:** on host **26200**, `luafv` / `wcifs` fail (`need=0x7000`, `max_cc≈0x7c`) — run `stomp_plan` on **guest** probe winners or shrink `Driver2Stomp` before live map
 - `driver2/src/Driver2Stomp.c` — lazy-init dispatch hijack; `.stompdata` contract (+0x00 orig, +0x08 `fnGetRoutine`, +0x10 `MmCopyVirtualMemory`, +0x18 sweep, +0x1C `STM2`)
 - `driver2/Driver2Runner.cpp` — `--mode stomp`

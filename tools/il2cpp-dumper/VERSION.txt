@@ -1,0 +1,9 @@
+c01ns/Il2CppDumper v39.1
+https://github.com/c01ns/Il2CppDumper/releases/tag/v39.1
+Unity 6000 / IL2CPP metadata v39 (variable-width TypeIndex)
+
+Replaced wklin 6.7.48 (tools/il2cpp-dumper-wklin-6.7.48).
+wklin accepted v39 but dumped TypeDefinitionIndex as a type name
+and mapped System.Dictionary onto Unity.Collections FixedList interfaces.
+c01ns v39.1 prints numeric image typeStart values and correct Dictionary
+interfaces. Open-generic field offsets remain 0x0 (normal).

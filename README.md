@@ -7,7 +7,7 @@ Everything for this title lives here: research, the IL2CPP dumper, dumps, DMA so
 | `research/` | Architecture notes and the game-analysis bible |
 | `notes/` | Working log (`NOTES.md`, `PROGRESS.md`) |
 | `dumps/` | Il2CppDumper output (`dump.cs`, `script.json`, DummyDll) |
-| `tools/il2cpp-dumper/` | wklin **v6.7.48** (metadata **v39**) |
+| `tools/il2cpp-dumper/` | **c01ns v39.1** (Unity 6000 metadata **v39**) |
 | `dma/` | Overlay source, CMake, LeechCore/VMM libs |
 | `byovd/` | BYOVD lab map (RwTest); **Lane D**: live reads here + kernel proof on no-AC VM — [byovd/docs/12_lane_d_split_trust.md](byovd/docs/12_lane_d_split_trust.md) |
 | `driver-lab/` | Index + **DriverLabLoader.exe** (splash + lab map actions) — [driver-lab/README.md](driver-lab/README.md) |
@@ -21,7 +21,9 @@ Everything for this title lives here: research, the IL2CPP dumper, dumps, DMA so
 .\debug\RobRunDMA.exe
 ```
 
-INSERT opens the menu. Footer: **Transparent** (see-through overlay) or **Fuser** (solid 2nd-PC), plus **Uninject**.
+INSERT opens the menu. Footer: **Transparent** (see-through overlay) or **Fuser** (solid 2nd-PC), plus **Uninject**. F2 aim, F6 freecam.
+
+Product features and dump-backed silent aim: [`dma/README.md`](dma/README.md). Offset notes: [`dumps/2026-11-14-c01ns-v39.1/OFFSET_REPORT.md`](dumps/2026-11-14-c01ns-v39.1/OFFSET_REPORT.md).
 
 Dump + offset sync also rebuilds **debug** only:
 

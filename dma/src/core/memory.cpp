@@ -925,7 +925,7 @@ std::vector<uintptr_t> Memory::SearchRange(const void* pattern, size_t size, siz
 }
 
 std::vector<uintptr_t> Memory::SearchHeap(const void* pattern, size_t size, size_t align, size_t maxResults,
-                                          bool gcOnly) {
+                                          bool gcOnly, int timeoutMs) {
     std::vector<uintptr_t> hits;
     if (!m_vmm || !m_pid || !pattern || size == 0 || size > 64)
         return hits;
@@ -972,7 +972,9 @@ std::vector<uintptr_t> Memory::SearchHeap(const void* pattern, size_t size, size
     }
 
     const auto now = std::chrono::steady_clock::now();
-    if (cur->regions.empty() || now - cur->built > std::chrono::seconds(15)) {
+    if (g_motionBurst.load(std::memory_order_acquire) > 0)
+        return hits;
+    if (cur->regions.empty() || now - cur->built > std::chrono::seconds(90)) {
         std::vector<Region> regions;
         PVMMDLL_MAP_VAD pVad = nullptr;
         DWORD totalVad = 0;
@@ -1012,8 +1014,8 @@ std::vector<uintptr_t> Memory::SearchHeap(const void* pattern, size_t size, size
             const uint64_t committed = static_cast<uint64_t>(e.CommitCharge) * 4096ull;
             if (gcOnly && !(e.fPrivateMemory || e.fHeap))
                 continue;
-            // Unity 6 GC sections are 4–96MB. 128MB+ private VADs are Windows heaps.
-            if (gcOnly && (bytes < 0x100000ULL || bytes > 0x6000000ULL))
+            // Unity 6 GC sections are often 256KB–96MB. 128MB+ private VADs are Windows heaps.
+            if (gcOnly && (bytes < 0x40000ULL || bytes > 0x8000000ULL))
                 continue;
             if (gcOnly && committed * 4ull < bytes) {
                 ++sparseDrop;
@@ -1024,11 +1026,13 @@ std::vector<uintptr_t> Memory::SearchHeap(const void* pattern, size_t size, size
         }
         VMMDLL_MemFree(pVad);
         auto gcRank = [&](const Region& r) {
-            if (r.bytes >= 0x400000ULL && r.bytes <= 0x1800000ULL) return 0;
-            if (r.bytes > 0x1800000ULL && r.bytes <= 0x3000000ULL) return 1;
-            if (r.bytes > 0x3000000ULL && r.bytes <= 0x6000000ULL) return 2;
-            if (r.bytes >= 0x100000ULL && r.bytes < 0x400000ULL) return 3;
-            return 4;
+            const bool band = r.start >= 0x250000000ULL && r.start < 0x360000000ULL;
+            int sizeRank = 4;
+            if (r.bytes >= 0x400000ULL && r.bytes <= 0x1800000ULL) sizeRank = 0;
+            else if (r.bytes > 0x1800000ULL && r.bytes <= 0x3000000ULL) sizeRank = 1;
+            else if (r.bytes > 0x3000000ULL && r.bytes <= 0x6000000ULL) sizeRank = 2;
+            else if (r.bytes >= 0x100000ULL && r.bytes < 0x400000ULL) sizeRank = 3;
+            return band ? sizeRank : sizeRank + 5;
         };
         std::sort(regions.begin(), regions.end(), [&](const Region& a, const Region& b) {
             const int ra = gcRank(a);
@@ -1078,9 +1082,13 @@ std::vector<uintptr_t> Memory::SearchHeap(const void* pattern, size_t size, size
     // 256KB is one FPGA transaction that finishes in a few milliseconds.
     // A 2MB NOCACHE read cannot be cancelled, so the 120ms deadline never
     // ran and the position thread sat on the lock until SNAP hit ~1000ms.
-    constexpr size_t kWindow = 0x40000;
+    const size_t kWindow = timeoutMs >= 40 ? 0x80000ull : 0x40000ull;
     std::vector<uint8_t> buf(kWindow);
-    const auto deadline = now + std::chrono::milliseconds(gcOnly ? 12 : 8);
+    if (timeoutMs <= 0)
+        timeoutMs = gcOnly ? 12 : 8;
+    if (timeoutMs > 250)
+        timeoutMs = 250;
+    const auto deadline = now + std::chrono::milliseconds(timeoutMs);
     size_t idx = cur->regionIdx;
     uintptr_t va = cur->va ? cur->va : cur->regions[idx].start;
     const size_t nreg = cur->regions.size();
@@ -1130,6 +1138,11 @@ std::vector<uintptr_t> Memory::SearchHeap(const void* pattern, size_t size, size
             va += chunk;
         }
         if (va >= region.end) {
+            std::cout << "[*] heap region " << idx << "/" << nreg
+                      << " done hits=" << hits.size()
+                      << " next=0x" << std::hex
+                      << (nreg ? cur->regions[(idx + 1) % nreg].start : 0)
+                      << std::dec << "\n" << std::flush;
             idx = (idx + 1) % nreg;
             va = cur->regions[idx].start;
         }

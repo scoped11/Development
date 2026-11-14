@@ -585,6 +585,23 @@ namespace {
 
     void PageSystem(AppConfig& cfg, const CameraData& camera) {
         auto& g = cfg.general;
+        Section("Link");
+        auto& mem = Memory::Get();
+        if (mem.IsConnected()) {
+            ImGui::TextColored(ImVec4(0.55f, 0.85f, 0.55f, 1.f), "Connected");
+            ImGui::SameLine();
+            ImGui::TextDisabled("pid %u", mem.GetPID());
+        } else {
+            ImGui::TextColored(ImVec4(0.9f, 0.45f, 0.35f, 1.f), "Waiting");
+        }
+        if (!camera.status.empty())
+            ImGui::TextWrapped("%s", camera.status.c_str());
+        ImGui::TextDisabled("Camera %s  gen %llu  age %.0f ms",
+            camera.valid ? "locked" : "no lock",
+            static_cast<unsigned long long>(camera.generation),
+            camera.AgeMs());
+        ImGui::TextDisabled("INSERT toggles this menu. Uninject is on the footer of every page.");
+
         Section("Process");
         char procBuf[256];
         strncpy_s(procBuf, g.processName.c_str(), sizeof(procBuf) - 1);
@@ -618,25 +635,9 @@ namespace {
         ImGui::TextWrapped("Added silent aim: shot look writes LookDirection/ShotArgs without moving the camera.");
         ImGui::TextWrapped("Added triggerbot, EMA/Bezier smoothing, stomach bone, cham styles, material color writes, armor bars, loot filters, Segoe UI ESP font, and DMA freecam (F6).");
         ImGui::TextWrapped("Added base ESP, hidden-in-prop ESP, 3D chams, camera/death-bag/ATM ESP, team ESP, OOF arrows, big radar, item values.");
+        ImGui::TextWrapped("Fixed in-match ESP blank: GOM now walks the full GameObject hash, Game chain refreshes after load-in, camera stays locked with 0 actors.");
         ImGui::TextWrapped("Fixed player dropping from ESP thanks for feedback testers <3");
         ImGui::TextDisabled("Writes stay memory/DMA based.");
-
-        Section("Link");
-        auto& mem = Memory::Get();
-        if (mem.IsConnected()) {
-            ImGui::TextColored(ImVec4(0.55f, 0.85f, 0.55f, 1.f), "Connected");
-            ImGui::SameLine();
-            ImGui::TextDisabled("pid %u", mem.GetPID());
-        } else {
-            ImGui::TextColored(ImVec4(0.9f, 0.45f, 0.35f, 1.f), "Waiting");
-        }
-        if (!camera.status.empty())
-            ImGui::TextWrapped("%s", camera.status.c_str());
-        ImGui::TextDisabled("Camera %s  gen %llu  age %.0f ms",
-            camera.valid ? "locked" : "no lock",
-            static_cast<unsigned long long>(camera.generation),
-            camera.AgeMs());
-        ImGui::TextDisabled("INSERT toggles this menu. Uninject is on the footer of every page.");
     }
 
     void DrawUninjectPopup() {
