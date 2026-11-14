@@ -1,0 +1,12 @@
+{
+  "schema": "driverlab_dump_manifest_v2",
+  "utc": "2026-11-14T01:59:39.929600+00:00",
+  "status": "rejected",
+  "score": 0,
+  "rejection_reason": "dump_identical_to_disk",
+  "disk_sys_path": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\inbox\\oem-sys\\x64\\SIVX64.sys",
+  "disk_sha256": "956d5440e857bdfd6ec5221ac4cbef6c710b8f3ac08350641a7556644b6f2bb6",
+  "dump_path": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\dumps\\inbox\\956d5440e857bdfd\\a0e3144c9d5c\\SIVX64.mem-a0e3144c9d5c.bin",
+  "dump_sha256": "956d5440e857bdfd6ec5221ac4cbef6c710b8f3ac08350641a7556644b6f2bb6",
+  "note": "Not a post-load image \u2014 same bytes as on-disk file."
+}

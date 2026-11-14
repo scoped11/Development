@@ -1,0 +1,5 @@
+$$ driverlab phase 1 — locate mapped image
+.echo DRIVERLAB_PHASE1
+lm m SIVX64
+.echo DRIVERLAB_PHASE1_END
+q

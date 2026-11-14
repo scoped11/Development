@@ -15,6 +15,7 @@ for p in (str(CRACK), str(VM_MCP)):
 from crack_lib import (  # noqa: E402
     crack_driver_profile,
     extract_installer,
+    merge_phys_smoke_result,
     merge_qualify_result,
     resolve_path,
 )
@@ -47,6 +48,11 @@ def run_workflow(
         return {"error": f"unknown workflow {name}", "known": list((cat.get("workflows") or {}).keys())}
 
     steps = wf.get("steps") or []
+    if "phys_smoke" in steps and preset != "siv":
+        return {
+            "error": "phys_smoke is guarded to preset siv (read-only IOCTL 0x10 at PA 0x1000). No mapper, no write.",
+            "preset": preset,
+        }
     out: dict = {"workflow": name, "steps": []}
 
     if "profile" in steps:
@@ -86,11 +92,39 @@ def run_workflow(
             step["stdout"] = stdout[-500:]
         out["steps"].append(step)
 
+    if "phys_smoke" in steps:
+        ps = r"& 'Z:\driver-lab\vm\bg\guest-siv-phys-smoke.ps1'"
+        code, stdout, stderr, job = queue_bg_job(
+            "exec", powershell=ps, timeout_sec=timeout_sec, stall_sec=min(90, timeout_sec)
+        )
+        step = {"step": "phys_smoke", "guard": "read_only_ioctl_0x10_pa_0x1000", "host_exit": code}
+        if job:
+            step["job_id"] = job.get("id")
+            step["guest_exit"] = job.get("exit")
+            step["stdout_tail"] = str(job.get("stdout") or "").splitlines()[-12:]
+            sha = (out.get("profile") or {}).get("sha256") or ""
+            if sha:
+                merged = merge_phys_smoke_result(sha[:16], str(job.get("stdout") or ""), int(job.get("exit") or 1))
+                if merged:
+                    step["vm_phys"] = merged.get("vm_phys")
+        else:
+            step["stderr"] = stderr[-500:]
+            step["stdout"] = stdout[-500:]
+        out["steps"].append(step)
+
     if "extract" in steps:
         if not installer:
             return {"error": "extract_profile needs installer path"}
         extracted = extract_installer(installer)
-        out["steps"].append({"step": "extract", "sys_count": extracted.get("sys_count"), "root": extracted.get("extract_root")})
+        out["steps"].append(
+            {
+                "step": "extract",
+                "sys_count": extracted.get("sys_count"),
+                "root": extracted.get("extract_root"),
+                "installer_kind": extracted.get("installer_kind"),
+                "notes": extracted.get("notes"),
+            }
+        )
         cards = []
         for row in extracted.get("sys_files") or []:
             card = crack_driver_profile(row["path"], write_card=write_card)

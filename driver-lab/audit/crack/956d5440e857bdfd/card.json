@@ -1,6 +1,6 @@
 {
   "schema": "driverlab_crack_card_v1",
-  "utc": "2026-11-14T01:15:11.487532+00:00",
+  "utc": "2026-11-14T02:07:10.417747+00:00",
   "path": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\inbox\\oem-sys\\x64\\SIVX64.sys",
   "name": "SIVX64.sys",
   "size": 211144,
@@ -124,17 +124,60 @@
     },
     "honest_summary": "Public LOL / classic vehicle names are dead for paid AC + CI."
   },
+  "pe_unpack": {
+    "verdict": "static_re_ok",
+    "high_entropy_sections": [],
+    "zero_raw_executable": [],
+    "rwx_sections": [
+      "INIT"
+    ],
+    "rwx_unexpected": [],
+    "expanded_executable": [],
+    "pack_string_hints": []
+  },
   "next_steps": [
     "Run crack_qualify on guest (load + CreateFile on devices_try).",
     "Open IDA on this hash; ticket IRP_MJ_CREATE + DEVICE_CONTROL.",
     "If lane.paid_live_lane is avoid_mapper_vehicle, do not plan live mapper."
   ],
   "vm_qualify": {
-    "utc": "2026-11-14T01:15:31.899701+00:00",
+    "utc": "2026-11-14T02:07:30.902644+00:00",
     "exit": 1,
     "stdout_tail": [
       "CREATEFILE_OK \\\\.\\Global\\SIVDRIVER"
     ],
     "load_open_ok": true
+  },
+  "vm_phys": {
+    "utc": "2026-11-14T02:07:51.169490+00:00",
+    "exit": 1,
+    "stdout_tail": [
+      "OPEN \\\\.\\Global\\SIVDRIVER",
+      "IOCTL 0x10 pa=0x1000 ok=True gle=203 got=16 bytes=E8 D0 97 DE 00 00 00 00 93 00 00 00 00 00 00 00",
+      "IOCTL 0x14 pa=0x1000 ok=False gle=24 got=0 bytes=00 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+    ],
+    "guard": "read_only_ioctl_0x10_pa_0x1000",
+    "mapper": false,
+    "write_attempted": false,
+    "reads": [
+      {
+        "code": 16,
+        "pa": 4096,
+        "ok": true,
+        "gle": 203,
+        "got": 16,
+        "bytes": "E8 D0 97 DE 00 00 00 00 93 00 00 00 00 00 00 00"
+      },
+      {
+        "code": 20,
+        "pa": 4096,
+        "ok": false,
+        "gle": 24,
+        "got": 0,
+        "bytes": "00 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      }
+    ],
+    "phys_read_ok": true,
+    "sample_bytes": "E8 D0 97 DE 00 00 00 00 93 00 00 00 00 00 00 00"
   }
 }

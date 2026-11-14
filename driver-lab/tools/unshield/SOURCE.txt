@@ -1,0 +1,6 @@
+unshield 1.6.2 x64
+https://github.com/twogood/unshield
+Archive: https://raw.githubusercontent.com/ScoopInstaller/Binary/master/unshield/unshield-1.6.2-x64.7z
+SHA256: 662fefefc6988a3744ddc6b5b8d2e96ac21876d532f7d23a597c4ca797764a6b
+Files: unshield.exe, unshield-deobfuscate.exe, zlib1.dll
+InstallShield cabinet extractor only. Not a driver decryptor.

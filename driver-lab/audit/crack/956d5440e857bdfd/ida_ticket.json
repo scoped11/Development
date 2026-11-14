@@ -1,0 +1,101 @@
+{
+  "schema": "driverlab_ida_ticket_v1",
+  "utc": "2026-11-14T01:59:41.675145+00:00",
+  "capability_id": "956d5440e857bdfd6ec5221ac4cbef6c710b8f3ac08350641a7556644b6f2bb6@SIVX64.sys",
+  "sha256": "956d5440e857bdfd6ec5221ac4cbef6c710b8f3ac08350641a7556644b6f2bb6",
+  "name": "SIVX64.sys",
+  "route": "static_ida",
+  "host": "main_pc",
+  "ida_input_path": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\inbox\\ida-staging\\956d5440e857bdfd\\SIVX64.sys",
+  "pe_unpack_verdict": "static_re_ok",
+  "card_path": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\crack\\956d5440e857bdfd\\card.json",
+  "ida_mcp_namespace": "user-ida-pro-mcp",
+  "ida_open": {
+    "tool": "idb_open",
+    "input_path": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\inbox\\ida-staging\\956d5440e857bdfd\\SIVX64.sys",
+    "mode": "prefer_headless",
+    "run_auto_analysis": true,
+    "init_hexrays": true
+  },
+  "ida_sequence": [
+    {
+      "tool": "idb_open",
+      "args": {
+        "mode": "prefer_headless",
+        "init_hexrays": true
+      }
+    },
+    {
+      "tool": "survey_binary",
+      "args": {}
+    },
+    {
+      "tool": "search_text",
+      "hint": "MmMapIoSpace, IoCreateDevice, IRP_MJ_DEVICE_CONTROL"
+    },
+    {
+      "tool": "find_regex",
+      "hint": "\\\\\\\\\\.\\\\\\\\|\\\\\\\\Device\\\\\\\\"
+    },
+    {
+      "tool": "decompile",
+      "hint": "DriverEntry and IRP_MJ_DEVICE_CONTROL dispatch"
+    },
+    {
+      "tool": "xrefs_to",
+      "hint": "ioctl switch / MajorFunction table"
+    }
+  ],
+  "device_string_candidates": [
+    "\\Device\\Harddisk%u",
+    "\\Device\\Harddisk%u\\Partition0",
+    "\\Device\\NTPNP_PCI%04u",
+    "\\Device\\SIVDRIVER",
+    "\\DosDevices\\Global\\SIVDRIVER",
+    "\\DosDevices\\Global\\VMC_Card_0",
+    "\\DosDevices\\SIVDRIVER",
+    "SIVDRIVER"
+  ],
+  "byovd_tier": 1,
+  "lane": {
+    "anti_cheat_bypass": false,
+    "anti_cheat_note": "No tool bypasses EAC/BE/ACE/Vanguard. This block records local heuristics only; live titles add kernel/user/server/behavior checks.",
+    "loldrivers_hash_match": true,
+    "win11_vuln_blocklist_hint": "likely_when_blocklist_on",
+    "paid_tier_heuristic": {
+      "eac_paid": "varies",
+      "battleye_paid": "varies",
+      "ace_paid": "no_match"
+    },
+    "routing": {
+      "paid_live_lane": "avoid_mapper_vehicle",
+      "driverlab_vm_lane": "qualify_ioctl_only_in_lab"
+    },
+    "honest_summary": "Public LOL / classic vehicle names are dead for paid AC + CI."
+  },
+  "registry_sync": {
+    "host_drop": {
+      "processed": [],
+      "errors": [],
+      "drop_dir": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\dumps\\host-drop"
+    },
+    "inbox": {
+      "scanned": 1,
+      "validated": 0,
+      "rejected": 1,
+      "results": [
+        {
+          "skipped": true,
+          "status": "rejected"
+        }
+      ]
+    }
+  },
+  "auto_pick": {
+    "error": "no_validated_dump",
+    "disk_sha256": "956d5440e857bdfd6ec5221ac4cbef6c710b8f3ac08350641a7556644b6f2bb6",
+    "candidates": 1,
+    "hint": "Register via dump_registry register or drop under C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\dumps\\host-drop"
+  },
+  "ida_ready": true
+}

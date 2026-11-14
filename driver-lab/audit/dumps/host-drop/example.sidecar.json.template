@@ -1,0 +1,8 @@
+{
+  "disk_sys_path": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\inbox\\oem-sys\\x64\\REPLACE.sys",
+  "dump_path": "C:\\dumps\\REPLACE.mem.bin",
+  "capture_method": "writemem",
+  "kernel_base": "0x0",
+  "size_of_image": 0,
+  "note": "Rename to *.json and fill paths after kernel dump"
+}

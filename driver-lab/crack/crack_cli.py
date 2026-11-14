@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from crack_lib import crack_driver_profile, extract_installer, find_sys_files  # noqa: E402
+from crack_lib import crack_driver_profile, extract_installer, find_sys_files, pe_unpack_assess  # noqa: E402
 
 
 def main() -> int:
@@ -19,7 +19,7 @@ def main() -> int:
     sp.add_argument("path")
     sp.add_argument("--no-write", action="store_true")
 
-    ex = sub.add_parser("extract", help="Recursive 7z extract installer")
+    ex = sub.add_parser("extract", help="Extract installer (7z, unshield, innounp)")
     ex.add_argument("path")
     ex.add_argument("--depth", type=int, default=4)
 
@@ -27,11 +27,16 @@ def main() -> int:
     fs.add_argument("path")
     fs.add_argument("--limit", type=int, default=50)
 
+    pe = sub.add_parser("pe-unpack", help="PE entropy / packer assess")
+    pe.add_argument("path")
+
     args = p.parse_args()
     if args.cmd == "profile":
         out = crack_driver_profile(args.path, write_card=not args.no_write)
     elif args.cmd == "extract":
         out = extract_installer(args.path, max_depth=args.depth)
+    elif args.cmd == "pe-unpack":
+        out = pe_unpack_assess(args.path)
     else:
         out = {"sys": find_sys_files(Path(args.path), limit=args.limit)}
     print(json.dumps(out, indent=2))

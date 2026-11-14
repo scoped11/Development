@@ -20,6 +20,9 @@ HUB = Path(__file__).resolve().parent
 VM_MCP = HUB.parent / "vm" / "mcp"
 if str(VM_MCP) not in sys.path:
     sys.path.insert(0, str(VM_MCP))
+from mcp_stdio_bootstrap import configure_stdio_logging  # noqa: E402
+
+configure_stdio_logging()
 
 from lab_bg import bg_worker_snapshot, queue_bg_job, read_bg_job  # noqa: E402
 from lab_lib import (  # noqa: E402

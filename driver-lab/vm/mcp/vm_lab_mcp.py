@@ -9,6 +9,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+from mcp_stdio_bootstrap import configure_stdio_logging
+
+configure_stdio_logging()
+
 ROOT = Path(__file__).resolve().parents[1]
 BG = ROOT / "bg"
 EXEC = ROOT / "host-guest-exec.ps1"

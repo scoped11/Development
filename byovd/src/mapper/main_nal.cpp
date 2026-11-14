@@ -286,8 +286,10 @@ static HANDLE OpenVehicleDeviceHandle(void)
             FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
     }
     if (g_useSivDriver) {
-        return CreateFileW(L"\\\\.\\SIVDRIVER", GENERIC_READ | GENERIC_WRITE,
-            FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+        std::string sivErr;
+        if (!SivEnsureLoadDriverPriv(sivErr))
+            return INVALID_HANDLE_VALUE;
+        return SivCreateDeviceHandle();
     }
     if (g_useThrottleStop) {
         HANDLE hTs = CreateFileW(L"\\\\.\\TsSvc", GENERIC_READ | GENERIC_WRITE,
@@ -1496,6 +1498,8 @@ static uint64_t KernelAlloc(KernelPrimitives& prim, uint64_t kernelBase,
 }
 
 int main(int argc, char* argv[]) {
+    setvbuf(stdout, nullptr, _IONBF, 0);
+    setvbuf(stderr, nullptr, _IONBF, 0);
     // Open log with write-through so data survives BSOD (no OS cache)
     // Use %TEMP% for log to avoid hardcoded suspicious paths
     char logPath[MAX_PATH];

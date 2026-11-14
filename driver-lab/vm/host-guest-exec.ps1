@@ -17,6 +17,9 @@ if (-not (Test-Path $CredentialsFile)) {
 
 $cred = Get-Content $CredentialsFile -Raw | ConvertFrom-Json
 $exe = $Command[0]
+if ($exe -match '^(?i)powershell(\.exe)?$') {
+    $exe = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+}
 $args = @()
 if ($Command.Count -gt 1) { $args = $Command[1..($Command.Count - 1)] }
 

@@ -16,11 +16,36 @@
       "vm": true,
       "presets": ["siv", "sonix", "ioc"]
     },
+    "qualify_phys": {
+      "title": "SIV qualify then read-only phys smoke",
+      "steps": ["profile", "qualify", "phys_smoke"],
+      "needs": ["preset"],
+      "vm": true,
+      "presets": ["siv"],
+      "guard": "read_only_ioctl_0x10_pa_0x1000",
+      "note": "No mapper. No write. IOCTL 0x14 is probed only to confirm it rejects a 16-byte buffer."
+    },
     "extract_profile": {
       "title": "Unpack installer then card each .sys",
       "steps": ["extract", "profile_each"],
       "needs": ["installer"],
       "vm": false
+    },
+    "reversal_route": {
+      "title": "Host IDA ticket (static or packed routing)",
+      "steps": ["reversal_route"],
+      "needs": ["sys"],
+      "vm": false,
+      "host": true,
+      "note": "Writes audit/crack/<sha>/ida_ticket.json; use crack_reversal_route MCP or reversal_bridge.py"
+    },
+    "reversal_auto": {
+      "title": "Dump registry sync + auto-pick + IDA ticket",
+      "steps": ["dump_sync", "reversal_auto"],
+      "needs": ["sys"],
+      "vm": true,
+      "host": true,
+      "note": "crack_reversal_auto; guest guest-register-memory-dump.ps1 when packed"
     }
   }
 }

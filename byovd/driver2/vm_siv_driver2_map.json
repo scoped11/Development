@@ -1,0 +1,10 @@
+﻿{
+    "schema":  "driver2_siv_map_v1",
+    "guest":  "DRIVERLAB-E",
+    "utc":  "2026-11-14T03:31:22.9349778Z",
+    "map_exit":  -1,
+    "cr3_ok":  false,
+    "mapped":  true,
+    "probe_exit":  null,
+    "tail":  "mapper_nal started | [*] RwTest.sys: rw-only + hygiene (PiDDB/CI/WdFilter/MZ) + IOCTL wrap | [*] Stealth: PEB command line wiped | [+] Security: integrity CRC locked, anti-dump active, heartbeat started | [*] Mapper stealth: priority boosted to REALTIME | [*] Mapper stealth: thread hidden from debugger | [*] Mapper stealth: flags=0x3f active | [!] Anti-hook: 1/5 map-related exports look hooked â€” map may fail or be observed | [*] Anti-analysis: scan complete, 0 threat(s) detected | [+] Anti-analysis: environment clean | [*] Loading driver from: C:\\Users\\DRIVER~1\\AppData\\Local\\Temp\\SIVX64.sys | [+] SivSvc service started OK"
+}

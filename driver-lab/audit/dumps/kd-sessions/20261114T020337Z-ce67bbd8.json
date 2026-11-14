@@ -1,0 +1,21 @@
+{
+  "utc": "2026-11-14T02:03:37.467270+00:00",
+  "disk_sys": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\inbox\\oem-sys\\x64\\SIVX64.sys",
+  "disk_sha256": "956d5440e857bdfd6ec5221ac4cbef6c710b8f3ac08350641a7556644b6f2bb6",
+  "module": "SIVX64",
+  "kd": "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\kd.exe",
+  "pipe": "\\\\.\\pipe\\DriverLabKD",
+  "connection": "com:pipe,port=\\\\.\\pipe\\DriverLabKD,resets=0,reconnect",
+  "uart": {
+    "vm": "DriverLab-E-26200",
+    "state": "running",
+    "uart1": "off",
+    "uartmode1": "",
+    "pipe_ready": false,
+    "raw_uartmode1": ""
+  },
+  "phase1_script": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\reversal\\windbg\\generated\\20261114T020337Z-SIVX64-phase1.txt",
+  "dump_path": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\audit\\dumps\\raw\\20261114T020337Z-SIVX64.bin",
+  "wait_load": false,
+  "status": "dry_run"
+}

@@ -111,6 +111,7 @@ typedef struct _BATTLEYE_RESP {
 #pragma pack(pop)
 
 static const char* const kBetestStaticDevices[] = {
+    "\\\\.\\VmLab0",
     "\\\\.\\MsFlt0", "\\\\.\\WdFilter1", "\\\\.\\FltMgr2", "\\\\.\\NdProxy0",
     "\\\\.\\TdiFilter", "\\\\.\\MsSecFlt", "\\\\.\\WfpDrv0", "\\\\.\\NtFilter1",
 };
