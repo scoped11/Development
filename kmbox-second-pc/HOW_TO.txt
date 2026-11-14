@@ -1,0 +1,37 @@
+KMBox USB kit for the SECOND PC (overlay PC) — not the game PC.
+
+Wiring
+  Box "serial" / COM  -> this second PC   (this flasher + RobRunDMA)
+  Box "controlled PC" -> GAME PC          (HID mouse)
+  Mouse               -> box HID port
+
+Do NOT run KmboxOnboard.exe on the game PC. That machine has no KMBox COM.
+
+1. Copy this whole folder to the second PC (USB stick / network).
+2. Plug the box SERIAL cable into the second PC. Install CH340 if no new COM.
+3. Run KmboxOnboard.exe with the SERIAL cable in this PC.
+   Double-click is the 115200 listen. It does not reset the chip.
+   If the log says Baud =0, roll the mouse wheel on the KMBox mouse port.
+   Firmware push is KmboxOnboard.exe --flash and stays off until the box is quiet.
+4. Put kmbox_ac_profile.txt next to RobRunDMA.exe if the overlay lives elsewhere.
+
+Mouse id is set in uPyCraft, not by KmboxOnboard.exe.
+
+VID 046D
+PID C547
+
+1. Install tools\redist\vcredist_2010_x86.exe if uPyCraft says msvcr100.dll is missing.
+2. Open tools\upycraft\uPyCraft.exe on the PC that has the COM cable.
+3. Tools -> Board -> esp32
+4. Tools -> Serial -> COM4
+5. Connect. Wait for >>>
+6. Open tools\upycraft\boot.py
+   That file calls device.VID(0x046D) and device.PID(0xC547).
+7. Click Download. Do not click Burn Firmware.
+8. Unplug COM, wait 5 seconds, plug COM and PC back in.
+
+This is not a full USB/HID descriptor clone. It does NOT bypass EAC, BattlEye,
+or ACE. Use IDs you are allowed to use under USB-IF rules.
+
+This writes MicroPython boot.py on stock KMBox B/B+. It is NOT a vendor .bin
+esptool burn.

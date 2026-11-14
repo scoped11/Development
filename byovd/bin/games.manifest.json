@@ -1,0 +1,20 @@
+{
+  "schema": "cheatloader_games_v1",
+  "games": [
+    {
+      "id": "robrun",
+      "name": "Rob Run",
+      "cheat": "bin/robrun_esp_external.exe",
+      "args": "--overlay",
+      "process": "ROB RUN.exe"
+    },
+    {
+      "id": "unturned",
+      "name": "Unturned",
+      "cheat": "bin/externaltest.exe",
+      "args": "",
+      "process": "Unturned.exe",
+      "note": "Placeholder until externaltest is in bin"
+    }
+  ]
+}

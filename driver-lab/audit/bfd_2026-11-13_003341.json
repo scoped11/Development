@@ -1,0 +1,68 @@
+﻿{
+    "schema":  "bfd_v1",
+    "captured_utc":  "2026-11-13T05:33:42.3862350Z",
+    "host":  {
+                 "product":  "Windows 10 Home",
+                 "build":  "26200.9974",
+                 "hvci":  0,
+                 "vuln_bl":  0
+             },
+    "ac_seen":  true,
+    "ac_processes":  [
+                         "EasyAntiCheat_EOS:15892"
+                     ],
+    "device_probe":  [
+                         {
+                             "Device":  "\\\\.\\RTCore64",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         },
+                         {
+                             "Device":  "\\\\.\\Nal",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         },
+                         {
+                             "Device":  "\\\\.\\CorsairLLAccess",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         },
+                         {
+                             "Device":  "\\\\.\\TrixxSvc",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         },
+                         {
+                             "Device":  "\\\\.\\ThrottleStop",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         },
+                         {
+                             "Device":  "\\\\.\\SIVDRIVER",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         },
+                         {
+                             "Device":  "\\\\.\\GIO",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         },
+                         {
+                             "Device":  "\\\\.\\ASUSGIO",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         },
+                         {
+                             "Device":  "\\\\.\\GLOBALROOT\\Device\\Nal",
+                             "Opened":  false,
+                             "Win32Error":  2
+                         }
+                     ],
+    "tier0_blocked_devices":  [
+
+                              ],
+    "ci_sys_events":  [
+
+                      ],
+    "method_doc":  "byovd/docs/18_block_fingerprint_delta.md"
+}

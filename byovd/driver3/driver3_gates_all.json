@@ -1,0 +1,154 @@
+﻿{
+    "utc":  "2026-11-13T18:13:18.2566575Z",
+    "profiles":  {
+                     "rust":  {
+                                  "utc":  "2026-11-13T18:13:18.1144728Z",
+                                  "product":  "driver3",
+                                  "profile":  "rust",
+                                  "title":  "Rust (EasyAntiCheat EOS)",
+                                  "ac_family":  "eac",
+                                  "elevated":  false,
+                                  "ac_processes_any":  [
+
+                                                       ],
+                                  "ac_processes_title":  [
+
+                                                         ],
+                                  "dma_tree":  true,
+                                  "driver2_profile_ok":  true,
+                                  "capture_dump":  "driver2/dumps/rust-eac-eos_2026-11-13_0204",
+                                  "route_doc":  "drivers/rust.md",
+                                  "lane_d":  false,
+                                  "recommend_host":  "B",
+                                  "preflight_exit":  null,
+                                  "host_b_runner":  "rust",
+                                  "message":  "Heuristic gate for Rust (EasyAntiCheat EOS) (eac)",
+                                  "next":  [
+                                               ".\\driver3\\ranked.ps1 -Profile rust -Execute -SyncBuildId",
+                                               ".\\driver3\\host-b.ps1 -Profile rust -Execute -ForceMap",
+                                               ".\\driver3\\host-b.ps1 -Profile rust -Execute -ForceMap -Inspector"
+                                           ]
+                              },
+                     "r6":  {
+                                "utc":  "2026-11-13T18:13:18.1450497Z",
+                                "product":  "driver3",
+                                "profile":  "r6",
+                                "title":  "Rainbow Six Siege (BattlEye)",
+                                "ac_family":  "battleye",
+                                "elevated":  false,
+                                "ac_processes_any":  [
+
+                                                     ],
+                                "ac_processes_title":  [
+
+                                                       ],
+                                "dma_tree":  true,
+                                "driver2_profile_ok":  true,
+                                "capture_dump":  "driver2/dumps/r6-battleye_2026-11-13_0214",
+                                "route_doc":  "drivers/r6.md",
+                                "lane_d":  false,
+                                "recommend_host":  "B",
+                                "preflight_exit":  null,
+                                "host_b_runner":  "r6",
+                                "message":  "Heuristic gate for Rainbow Six Siege (BattlEye) (battleye)",
+                                "next":  [
+                                             ".\\driver3\\ranked.ps1 -Profile r6 -Execute -SyncBuildId",
+                                             ".\\driver3\\host-b.ps1 -Profile r6 -Execute -ForceMap",
+                                             ".\\driver3\\host-b.ps1 -Profile r6 -Execute -ForceMap -Inspector"
+                                         ]
+                            },
+                     "arksa":  {
+                                   "utc":  "2026-11-13T18:13:18.1829980Z",
+                                   "product":  "driver3",
+                                   "profile":  "arksa",
+                                   "title":  "ARK Survival Ascended (BattlEye)",
+                                   "ac_family":  "battleye",
+                                   "elevated":  false,
+                                   "ac_processes_any":  [
+
+                                                        ],
+                                   "ac_processes_title":  [
+
+                                                          ],
+                                   "dma_tree":  true,
+                                   "driver2_profile_ok":  true,
+                                   "capture_dump":  "driver2/dumps/r6-battleye_2026-11-13_0214",
+                                   "route_doc":  "drivers/arksa.md",
+                                   "lane_d":  false,
+                                   "recommend_host":  "B",
+                                   "preflight_exit":  null,
+                                   "host_b_runner":  "arksa",
+                                   "message":  "Heuristic gate for ARK Survival Ascended (BattlEye) (battleye)",
+                                   "next":  [
+                                                ".\\driver3\\ranked.ps1 -Profile arksa -Execute -SyncBuildId",
+                                                ".\\driver3\\host-b.ps1 -Profile arksa -Execute -ForceMap",
+                                                ".\\driver3\\host-b.ps1 -Profile arksa -Execute -ForceMap -Inspector"
+                                            ]
+                               },
+                     "deltaforce":  {
+                                        "utc":  "2026-11-13T18:13:18.2157767Z",
+                                        "product":  "driver3",
+                                        "profile":  "deltaforce",
+                                        "title":  "Delta Force (AntiCheat Expert)",
+                                        "ac_family":  "ace",
+                                        "elevated":  false,
+                                        "ac_processes_any":  [
+
+                                                             ],
+                                        "ac_processes_title":  [
+
+                                                               ],
+                                        "dma_tree":  true,
+                                        "driver2_profile_ok":  true,
+                                        "capture_dump":  "driver2/dumps/deltaforce-ace_2026-11-13_0215",
+                                        "route_doc":  "drivers/deltaforce.md",
+                                        "lane_d":  false,
+                                        "recommend_host":  "B",
+                                        "preflight_exit":  null,
+                                        "host_b_runner":  "deltaforce",
+                                        "message":  "Heuristic gate for Delta Force (AntiCheat Expert) (ace)",
+                                        "next":  [
+                                                     ".\\driver3\\ranked.ps1 -Profile deltaforce -Execute -SyncBuildId",
+                                                     ".\\driver3\\host-b.ps1 -Profile deltaforce -Execute -ForceMap",
+                                                     ".\\driver3\\host-b.ps1 -Profile deltaforce -Execute -ForceMap -Inspector"
+                                                 ]
+                                    },
+                     "arenabreakout":  {
+                                           "utc":  "2026-11-13T18:13:18.2514723Z",
+                                           "product":  "driver3",
+                                           "profile":  "arenabreakout",
+                                           "title":  "Arena Breakout Infinite (ACE)",
+                                           "ac_family":  "ace",
+                                           "elevated":  false,
+                                           "ac_processes_any":  [
+
+                                                                ],
+                                           "ac_processes_title":  [
+
+                                                                  ],
+                                           "dma_tree":  true,
+                                           "driver2_profile_ok":  true,
+                                           "capture_dump":  "driver2/dumps/arenabreakout-ace_2026-11-13_0215",
+                                           "route_doc":  "drivers/arenabreakout.md",
+                                           "lane_d":  false,
+                                           "recommend_host":  "B",
+                                           "preflight_exit":  null,
+                                           "host_b_runner":  "arenabreakout",
+                                           "message":  "Heuristic gate for Arena Breakout Infinite (ACE) (ace)",
+                                           "next":  [
+                                                        ".\\driver3\\ranked.ps1 -Profile arenabreakout -Execute -SyncBuildId",
+                                                        ".\\driver3\\host-b.ps1 -Profile arenabreakout -Execute -ForceMap",
+                                                        ".\\driver3\\host-b.ps1 -Profile arenabreakout -Execute -ForceMap -Inspector"
+                                                    ]
+                                       }
+                 },
+    "summary":  {
+                    "lane_d_recommended":  [
+
+                                           ],
+                    "host_a_only":  [
+
+                                    ],
+                    "worst_exit":  0
+                }
+}

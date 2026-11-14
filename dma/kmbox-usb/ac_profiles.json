@@ -1,0 +1,33 @@
+{
+  "schema": "kmbox_ac_profile_v1",
+  "notes": "On-box boot.py reads ac_profile.txt (one line). Host KmboxUsb uses the same names via SetAcProfile. Official KMBox USB B/B+, not MAKCU Net. Not kernel EAC/BE/ACE IOCTL bypass.",
+  "dump_alignment": {
+    "ace": "ACE-CORE/BASE: hidusb, usbccgp, VID_&PID, MatchingDeviceId — stock USB identity only",
+    "eac": "EasyAntiCheat_EOS.sys capture: no HID strings; serial rate + humanized moves",
+    "be": "BEService/BEClient capture: no HID strings; conservative serial pacing"
+  },
+  "profiles": {
+    "eac": {
+      "km_freq": 1000,
+      "km_delay_ms": 120,
+      "host_max_delta": 20,
+      "host_move_steps": 10
+    },
+    "be": {
+      "km_freq": 1000,
+      "km_delay_ms": 150,
+      "host_max_delta": 14,
+      "host_move_steps": 12
+    },
+    "ace": {
+      "km_freq": 1000,
+      "km_delay_ms": 100,
+      "host_max_delta": 18,
+      "host_move_steps": 10
+    },
+    "robrun": {
+      "extends": "eac",
+      "km_delay_ms": 120
+    }
+  }
+}

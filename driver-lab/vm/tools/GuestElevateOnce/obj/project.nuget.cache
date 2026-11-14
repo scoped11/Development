@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "14H7UyPf4GY=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\vm\\tools\\GuestElevateOnce\\GuestElevateOnce.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\baile\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.28\\microsoft.net.illink.tasks.8.0.28.nupkg.sha512",
+    "C:\\Users\\baile\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.28\\microsoft.netcore.app.runtime.win-x64.8.0.28.nupkg.sha512",
+    "C:\\Users\\baile\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.28\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.28.nupkg.sha512",
+    "C:\\Users\\baile\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.28\\microsoft.aspnetcore.app.runtime.win-x64.8.0.28.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "ac_captures_bundle_v1",
+  "root": "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\ac-captures-host",
+  "source_repo": "C:\\Users\\baile\\OneDrive\\Desktop\\Development",
+  "driver_code": "byovd",
+  "captured_utc": "2026-11-13",
+  "host_os_build": "26200.9974",
+  "folders": {
+    "dumps": "Per-title AC binaries + manifest.json per game",
+    "inbox": "Kernel drivers for IDA (SHA in filenames below)",
+    "config": "Lab profile JSON tied to mapper --ac-replica",
+    "sdk": "betest_ioctl.h — usermode IOCTL contract",
+    "examples": "process_rw.cpp — minimal read client",
+    "docs": "Driver usage, R/W, hooks, safety"
+  },
+  "inbox_sha256": {
+    "EasyAntiCheat_EOS.sys": "A38FA3D4158FBD4503DC4D4BA303493B25B9DCFEEDB81D4386F2BB71888CBE7C",
+    "ACE-GAME_deltaforce.sys": "C3FE27FC11CD1BAECF1CD9E2C63F1FDA4EB61A498D1F74B9FDFDC1FC2D696990",
+    "ACE-GAME_arenabreakout.sys": "2B6DB055B37EC90CAC2C62153432BE47CEEA3718B55C0FE400BF9665B61F46E4"
+  }
+}

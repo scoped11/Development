@@ -1,0 +1,12 @@
+{
+  "schema": "driver2_classic_stack_v1",
+  "payload": "driver2/bin/Driver2.sys",
+  "payload_mirror": "bin/Driver2.sys",
+  "prove_payload": "bin/RwTest.sys",
+  "modes": {
+    "prove": { "mapper_args": ["--no-auth", "--ac-safe", "--ac-replica", "<profile>"] },
+    "ioctl": { "mapper_args": ["--no-auth", "--stealth", "3f", "--ac-replica", "<profile>", "--ac-replica-ioctl"] },
+    "session": { "mapper_args": ["--no-auth", "--ac-safe", "--stealth", "3f", "--ac-replica", "<profile>", "--ac-replica-ioctl"], "note": "ranked-safe — no bypass sweep" },
+    "bypass": { "mapper_args": ["--no-auth", "--ac-replica", "<profile>", "--ac-replica-bypass"] }
+  }
+}

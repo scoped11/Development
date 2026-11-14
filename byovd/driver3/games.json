@@ -1,0 +1,125 @@
+{
+  "schema": "driver3_game_catalog_v1",
+  "ranked_entry": "ranked.ps1",
+  "ranked_mode": "host_a_dma",
+  "default_profile": "rust",
+  "profiles": {
+    "rust": {
+      "title": "Rust (EasyAntiCheat EOS)",
+      "ac_family": "eac",
+      "doc": "drivers/rust.md",
+      "driver2_profile_file": "profiles/eac-rust.json",
+      "capture_dump": "driver2/dumps/rust-eac-eos_2026-11-13_0204",
+      "usermode_ac_patterns": [
+        "EasyAntiCheat",
+        "EasyAntiCheat_EOS",
+        "eac_",
+        "RustClient",
+        "Rust"
+      ],
+      "kernel_modules_hint": ["EasyAntiCheat_EOS.sys", "easyantiacheat_eos.sys"],
+      "host_b": { "developer_include_ace": false, "developer_include_be": false, "runner_profile": "rust" }
+    },
+    "r6": {
+      "title": "Rainbow Six Siege (BattlEye)",
+      "ac_family": "battleye",
+      "doc": "drivers/r6.md",
+      "driver2_profile_file": "profiles/be-r6.json",
+      "capture_dump": "driver2/dumps/r6-battleye_2026-11-13_0214",
+      "usermode_ac_patterns": [
+        "BEService",
+        "BEClient",
+        "bedaisy",
+        "RainbowSix",
+        "RainbowSix_Vulkan"
+      ],
+      "kernel_modules_hint": ["BEDaisy.sys", "bedaisy.sys"],
+      "host_b": { "developer_include_ace": false, "developer_include_be": true, "runner_profile": "r6" }
+    },
+    "arksa": {
+      "title": "ARK Survival Ascended (BattlEye)",
+      "ac_family": "battleye",
+      "doc": "drivers/arksa.md",
+      "driver2_profile_file": "profiles/be-arksa.json",
+      "capture_dump": "driver2/dumps/r6-battleye_2026-11-13_0214",
+      "usermode_ac_patterns": [
+        "BEService",
+        "BEClient",
+        "ShooterGame",
+        "ArkAscended"
+      ],
+      "kernel_modules_hint": ["BEDaisy.sys"],
+      "host_b": { "developer_include_ace": false, "developer_include_be": true, "runner_profile": "arksa" }
+    },
+    "deltaforce": {
+      "title": "Delta Force (AntiCheat Expert)",
+      "ac_family": "ace",
+      "doc": "drivers/deltaforce.md",
+      "driver2_profile_file": "profiles/ace-deltaforce.json",
+      "capture_dump": "driver2/dumps/deltaforce-ace_2026-11-13_0215",
+      "usermode_ac_patterns": [
+        "SGuard",
+        "SGuardSvc64",
+        "ACE-Service64",
+        "DeltaForce",
+        "DeltaForceClient",
+        "tpwinace"
+      ],
+      "kernel_modules_hint": ["ACE-GAME.sys", "ACE-BASE.sys", "ACE-ADVT.sys", "ACE-CORE.sys"],
+      "host_b": { "developer_include_ace": true, "developer_include_be": true, "runner_profile": "deltaforce" }
+    },
+    "arenabreakout": {
+      "title": "Arena Breakout Infinite (ACE)",
+      "ac_family": "ace",
+      "doc": "drivers/arenabreakout.md",
+      "driver2_profile_file": "profiles/ace-arenabreakout.json",
+      "capture_dump": "driver2/dumps/arenabreakout-ace_2026-11-13_0215",
+      "usermode_ac_patterns": [
+        "SGuard",
+        "SGuardSvc64",
+        "ACE-Service64",
+        "ABInfinite"
+      ],
+      "kernel_modules_hint": ["ACE-GAME.sys", "ACE-BASE.sys"],
+      "host_b": { "developer_include_ace": true, "developer_include_be": false, "runner_profile": "arenabreakout" }
+    },
+    "universal": {
+      "title": "Universal lab (no title IOCTL matrix)",
+      "ac_family": "none",
+      "doc": "drivers/universal.md",
+      "driver2_profile_file": "profiles/universal.json",
+      "usermode_ac_patterns": [],
+      "host_b": { "developer_include_ace": true, "developer_include_be": true, "runner_profile": "universal" }
+    }
+  },
+  "aliases": {
+    "eac": "rust",
+    "eac-rust": "rust",
+    "eos": "rust",
+    "fortnite": "rust",
+    "be": "r6",
+    "be-r6": "r6",
+    "r6s": "r6",
+    "siege": "r6",
+    "battleye": "r6",
+    "be-ark": "arksa",
+    "be-arksa": "arksa",
+    "ark": "arksa",
+    "ace": "deltaforce",
+    "delta": "deltaforce",
+    "deltaforce": "deltaforce",
+    "ace-deltaforce": "deltaforce",
+    "df": "deltaforce",
+    "abi": "arenabreakout",
+    "arena": "arenabreakout",
+    "ace-arena": "arenabreakout",
+    "ace-arenabreakout": "arenabreakout",
+    "arenabreakout-infinite": "arenabreakout"
+  },
+  "ac_family_patterns": {
+    "eac": ["EasyAntiCheat", "EasyAntiCheat_EOS", "eac_"],
+    "battleye": ["BEService", "BEClient", "bedaisy"],
+    "ace": ["SGuard", "SGuardSvc64", "ACE-Service64", "AceService", "acesvc", "tpwinace"],
+    "vgk": ["vgc", "vgtray"]
+  }
+}

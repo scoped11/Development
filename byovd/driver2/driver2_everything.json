@@ -1,0 +1,36 @@
+{
+  "schema": "driver2_built_for_everything_v1",
+  "product": "driver2",
+  "payload": "Driver2.sys",
+  "runner": "Driver2Runner.exe",
+  "built_for": [
+    "vehicle BYOVD map + hygiene (PiDDB, CI hash, WdFilter, name zero)",
+    "stealth 0x3f",
+    "title IOCTL matrix (--ac-replica-ioctl)",
+    "bypass sweep (strip, NMI 0x868, 0x869/0x86A, unified neut)",
+    "symlink hide 0x808 after map",
+    "post-map forensics snapshot",
+    "profiles: rust, r6, deltaforce, arenabreakout, arksa, universal",
+    "Driver2Client direct IOCTL (process + kernel R/W)"
+  ],
+  "not_included": [
+    "module stomp",
+    "dispatch hijack (Lane D live — separate)",
+    "undetected ranked guarantee"
+  ],
+  "entrypoints": {
+    "plan_only_vm": "vm-test.ps1",
+    "plan_only_ranked": "ranked-play.ps1",
+    "execute_vm": "vm-test.ps1 -Execute -ForceMap",
+    "execute_ranked": "ranked-play.ps1 -Execute -ForceMap",
+    "ranked_reads_no_map": "ranked-play.ps1 -DmaOnly",
+    "full_sequence": "everything.ps1 -Execute"
+  },
+  "mapper_flags_driver2": [
+    "--driver2",
+    "--ac-replica",
+    "--ac-replica-ioctl",
+    "--ac-replica-bypass",
+    "--no-auth"
+  ]
+}

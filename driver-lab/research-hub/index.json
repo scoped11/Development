@@ -1,0 +1,16 @@
+{
+  "name": "DriverLab Research Hub",
+  "version": 2,
+  "mcp_servers": ["driverlab-vm", "driverlab-research", "driverlab-crack"],
+  "crack_pipeline": "driver-lab/crack/README.md",
+  "disclaimer": "crack_* tools qualify primitives in VM; they do not bypass anti-cheat on live titles.",
+  "oem_presets": [
+    "siv_open",
+    "siv_phys",
+    "load_open_smoke",
+    "driverstore",
+    "greenfield",
+    "giga_extract",
+    "crack_qualify_siv"
+  ]
+}

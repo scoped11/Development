@@ -1,0 +1,220 @@
+{
+  "schema": "ac_replica_lab_v2",
+  "host_captures": "ac_host_captures.json",
+  "driver2_lab": {
+    "payload": "Driver2.sys",
+    "mapper_flags_bypass": [ "--driver2", "--no-auth", "--ac-replica", "<profile>", "--ac-replica-bypass" ],
+    "mapper_flags_ioctl": [ "--driver2", "--no-auth", "--ac-replica", "<profile>", "--ac-replica-ioctl" ],
+    "approval_gate": "driver2/developer-approval-gate.ps1",
+    "usermode_sdk": "driver2/sdk/driver2_api.h",
+    "client": "Driver2Client.exe"
+  },
+  "profiles": {
+    "rust": {
+      "title": "Rust (EasyAntiCheat EOS)",
+      "ac_family": "eac",
+      "usermode_process_patterns": [
+        "EasyAntiCheat",
+        "EasyAntiCheat_EOS",
+        "eac_",
+        "RustClient",
+        "Rust"
+      ],
+      "kernel_modules_hint": [
+        "easyantiacheat_eos.sys"
+      ],
+      "host_capture": {
+        "driver_sha256": "A38FA3D4158FBD4503DC4D4BA303493B25B9DCFEEDB81D4386F2BB71888CBE7C",
+        "dump": "driver-lab/dumps/rust-eac-eos_2026-11-13_0204"
+      },
+      "mapper_lab": {
+        "prove_payload": "RwTest.sys",
+        "prove_flags": [ "--ac-safe", "--ac-replica", "rust" ],
+        "ioctl_payload": "Betest.sys",
+        "ioctl_flags": [ "--ac-replica", "rust", "--ac-replica-ioctl", "--no-auth", "--stealth", "3f" ],
+        "bypass_flags": [ "--ac-replica", "rust", "--ac-replica-bypass", "--no-auth", "--driver", "rtcore" ],
+        "bypass_payload": "Betest.sys",
+        "driver2_bypass_payload": "Driver2.sys",
+        "driver2_bypass_flags": [ "--driver2", "--ac-replica", "rust", "--ac-replica-bypass", "--no-auth" ],
+        "ioctl_masks": {
+          "eac": "7f",
+          "nmi": true,
+          "eac_be_max": true,
+          "kstealth": "0f",
+          "behav": "0f"
+        }
+      },
+      "pass_criteria": {
+        "prove": "process_rw marker read OK after map; replica L1 must not deny vehicle open during map window on lab host",
+        "developer_approval": "driver2/developer-approval-gate.ps1 -Execute score >= 90",
+        "ioctl": "Betest map completes; mapper log shows EAC improve IOCTL 0x851 response; no bugcheck within 5 min on snapshot",
+        "bypass": "Map exit 0; pf_diag shows strip + 0x869; after replica start (no game), process_rw marker OK"
+      },
+      "live_title_note": "Production Rust — use Lane D on game PC; this profile is for your test replica VM"
+    },
+    "r6": {
+      "title": "Rainbow Six Siege (BattlEye)",
+      "ac_family": "battleye",
+      "usermode_process_patterns": [
+        "BEService",
+        "BEClient",
+        "RainbowSix",
+        "RainbowSix_Vulkan",
+        "R6"
+      ],
+      "kernel_modules_hint": [
+        "BEDaisy.sys",
+        "bedaisy.sys"
+      ],
+      "host_capture": {
+        "driver_sha256": null,
+        "dump": "driver-lab/dumps/r6-battleye_2026-11-13_0214",
+        "beservice_sha256": "see manifest.json"
+      },
+      "mapper_lab": {
+        "prove_payload": "RwTest.sys",
+        "prove_flags": [ "--ac-safe", "--ac-replica", "r6" ],
+        "ioctl_payload": "Betest.sys",
+        "ioctl_flags": [ "--ac-replica", "r6", "--ac-replica-ioctl", "--no-auth", "--stealth", "3f" ],
+        "bypass_flags": [ "--ac-replica", "r6", "--ac-replica-bypass", "--no-auth", "--driver", "rtcore" ],
+        "bypass_payload": "Betest.sys",
+        "ioctl_masks": {
+          "battleye": "1f",
+          "nmi": true,
+          "eac_be_max": true,
+          "kstealth": "0f",
+          "behav": "0f"
+        }
+      },
+      "pass_criteria": {
+        "prove": "process_rw marker OK; vehicle device open with replica running OR map on no-replica snapshot",
+        "ioctl": "BattlEye IOCTL 0x852 reports subsystem OK in pf_diag.tmp; snapshot only",
+        "bypass": "Map exit 0; pf_diag shows strip + BE 0x852 + 0x869; after replica start (no game), process_rw OK"
+      },
+      "live_title_note": "Production R6 — same Lane D split; BE scans differ from EAC"
+    },
+    "deltaforce": {
+      "title": "Delta Force (AntiCheat Expert)",
+      "ac_family": "ace",
+      "usermode_process_patterns": [
+        "SGuard",
+        "SGuardSvc64",
+        "ACE-Service64",
+        "DeltaForce",
+        "DeltaForceClient"
+      ],
+      "kernel_modules_hint": [
+        "ACE-GAME.sys",
+        "ACE-BASE.sys",
+        "ACE-ADVT.sys"
+      ],
+      "host_capture": {
+        "driver_sha256_game": "C3FE27FC11CD1BAECF1CD9E2C63F1FDA4EB61A498D1F74B9FDFDC1FC2D696990",
+        "driver_sha256_system32": "2B6DB055B37EC90CAC2C62153432BE47CEEA3718B55C0FE400BF9665B61F46E4",
+        "sguard_build": "1.376.2512.2118",
+        "dump": "driver-lab/dumps/deltaforce-ace_2026-11-13_0215",
+        "ida_target": "driver-lab/reverse/ACE-GAME_deltaforce/bin/ACE-GAME.sys"
+      },
+      "mapper_lab": {
+        "prove_payload": "RwTest.sys",
+        "prove_flags": [ "--ac-safe", "--ac-replica", "deltaforce" ],
+        "ioctl_payload": "Betest.sys",
+        "ioctl_flags": [ "--ac-replica", "deltaforce", "--ac-replica-ioctl", "--no-auth", "--stealth", "3f" ],
+        "bypass_flags": [ "--ac-replica", "deltaforce", "--ac-replica-bypass", "--no-auth", "--driver", "rtcore" ],
+        "bypass_payload": "Betest.sys",
+        "ioctl_masks": {
+          "ace": "3f",
+          "delta": "1f",
+          "ace_vgk_max": true,
+          "nmi": true,
+          "eac_be_max": true,
+          "kstealth": "0f",
+          "behav": "0f"
+        }
+      },
+      "pass_criteria": {
+        "prove": "process_rw marker OK on lab VM snapshot",
+        "ioctl": "pf_diag shows ACE strengthen 0x846 and Delta harden 0x84E",
+        "bypass": "pf_diag strip + 0x869 + 0x86A; IOCTL 0x846/0x84E in map log"
+      },
+      "live_title_note": "Use game-bundle ACE-GAME for static work — system32 copy may differ on this host"
+    },
+    "arenabreakout": {
+      "title": "Arena Breakout Infinite (ACE)",
+      "ac_family": "ace",
+      "usermode_process_patterns": [
+        "SGuard",
+        "SGuardSvc64",
+        "ACE-Service64",
+        "ABInfinite"
+      ],
+      "kernel_modules_hint": [
+        "ACE-GAME.sys",
+        "ACE-BASE.sys"
+      ],
+      "host_capture": {
+        "driver_sha256": "2B6DB055B37EC90CAC2C62153432BE47CEEA3718B55C0FE400BF9665B61F46E4",
+        "sguard_build": "1.369.2511.2095",
+        "dump": "driver-lab/dumps/arenabreakout-ace_2026-11-13_0215",
+        "ida_target": "driver-lab/reverse/ACE-GAME_arenabreakout/bin/ACE-GAME.sys"
+      },
+      "mapper_lab": {
+        "prove_payload": "RwTest.sys",
+        "prove_flags": [ "--ac-safe", "--ac-replica", "arenabreakout" ],
+        "ioctl_payload": "Betest.sys",
+        "ioctl_flags": [ "--ac-replica", "arenabreakout", "--ac-replica-ioctl", "--no-auth", "--stealth", "3f" ],
+        "bypass_flags": [ "--ac-replica", "arenabreakout", "--ac-replica-bypass", "--no-auth", "--driver", "rtcore" ],
+        "bypass_payload": "Betest.sys",
+        "ioctl_masks": {
+          "ace": "3f",
+          "ace_vgk_max": true,
+          "nmi": true,
+          "eac_be_max": true,
+          "kstealth": "0f",
+          "behav": "0f"
+        }
+      },
+      "pass_criteria": {
+        "prove": "process_rw marker OK on lab VM",
+        "ioctl": "pf_diag shows ACE strengthen 0x846",
+        "bypass": "pf_diag strip + 0x869 + 0x86A; ACE 0x846 in map log"
+      },
+      "live_title_note": "ABI ACE-GAME matched system32 at capture time"
+    },
+    "arksa": {
+      "title": "ARK Survival Ascended (BattlEye)",
+      "ac_family": "battleye",
+      "usermode_process_patterns": [
+        "BEService",
+        "BEClient",
+        "ShooterGame"
+      ],
+      "kernel_modules_hint": [
+        "BEDaisy.sys"
+      ],
+      "host_capture": {
+        "usermode_anchor": "BEService_arksa.exe",
+        "dump_note": "pending full title dump"
+      },
+      "mapper_lab": {
+        "prove_flags": [ "--ac-safe", "--ac-replica", "arksa" ],
+        "ioctl_flags": [ "--ac-replica", "arksa", "--ac-replica-ioctl", "--no-auth", "--stealth", "3f" ],
+        "bypass_flags": [ "--ac-replica", "arksa", "--ac-replica-bypass", "--no-auth", "--driver", "rtcore" ],
+        "ioctl_masks": {
+          "battleye": "1f",
+          "nmi": true,
+          "eac_be_max": true
+        }
+      },
+      "pass_criteria": {
+        "ioctl": "Same pf_diag BE 0x852 gate as r6",
+        "bypass": "Same as r6 profile"
+      }
+    }
+  },
+  "replica_levels": {
+    "L1": "Usermode hook: block CreateFile on known vehicle devices",
+    "L2": "Load real EAC/BE/ACE test client on lab VM with unofficial/test build",
+    "L3": "Production multiplayer session — not a pass target for this kit"
+  }
+}

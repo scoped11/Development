@@ -1,0 +1,11 @@
+{
+  "schema": "cheatloader_manifest_v1",
+  "cheats": [
+    {
+      "name": "Example — your cheat",
+      "path": "driver2/bin/MyCheat.exe",
+      "args": "",
+      "note": "Copy your built cheat here or use absolute path in menu"
+    }
+  ]
+}

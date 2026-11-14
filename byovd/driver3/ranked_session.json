@@ -1,0 +1,16 @@
+﻿{
+    "schema":  "driver3_ranked_session_v1",
+    "utc":  "2026-11-13T08:09:21.1981699Z",
+    "hostname":  "DESKTOP-2O8HO54",
+    "profile":  "rust",
+    "title":  "Rust (EasyAntiCheat EOS)",
+    "ac_family":  "eac",
+    "mode":  "ranked_host_a",
+    "lane_d":  true,
+    "gate_exit":  2,
+    "build_id":  "sha256:A38FA3D4158FBD45",
+    "build_gate":  true,
+    "dma_root":  true,
+    "execute":  false,
+    "dma_exe":  null
+}

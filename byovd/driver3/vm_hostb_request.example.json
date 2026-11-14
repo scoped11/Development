@@ -1,0 +1,6 @@
+{
+  "profile": "rust",
+  "forceMap": true,
+  "skipProve": true,
+  "inspector": false
+}

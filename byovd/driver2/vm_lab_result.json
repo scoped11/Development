@@ -1,0 +1,7 @@
+﻿{
+    "schema":  "driver2_vm_lab_v1",
+    "mode":  "plan",
+    "profile":  "rust",
+    "guest":  "DRIVERLAB-E",
+    "utc":  "2026-11-13T18:10:10.6792854Z"
+}

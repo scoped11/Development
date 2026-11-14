@@ -1,0 +1,15 @@
+{
+  "schema": "driver3_ranked_v1",
+  "mode": "lane_d_host_a",
+  "not_claimed": ["kernel_map_on_game_pc", "undetected", "D4"],
+  "live_comm": "dma",
+  "lab_comm": "driver2_host_b",
+  "entry_script": "ranked.ps1",
+  "session_artifact": "ranked_session.json",
+  "requires": [
+    "lane_d.build_id",
+    "dma_tree",
+    "driver3_gate exit 0 or 2 on game PC"
+  ],
+  "titles": ["rust", "r6", "arksa", "deltaforce", "arenabreakout"]
+}

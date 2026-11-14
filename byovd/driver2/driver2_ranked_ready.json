@@ -1,0 +1,74 @@
+﻿{
+    "schema":  "driver2_ranked_ready_v1",
+    "utc":  "2026-11-13T08:30:09.7344413Z",
+    "tier":  "PREPARED",
+    "s_tier":  false,
+    "verified_100":  false,
+    "ranked_ready":  true,
+    "score_pct":  77.8,
+    "titles":  {
+                   "rust":  "Rust EAC",
+                   "r6":  "Rainbow Six BattlEye"
+               },
+    "profiles":  [
+                     "rust",
+                     "r6"
+                 ],
+    "checks":  [
+                   {
+                       "id":  "single_pc_ranked_mode",
+                       "pass":  true,
+                       "detail":  "single_pc_kernel"
+                   },
+                   {
+                       "id":  "host_map_proof",
+                       "pass":  false,
+                       "detail":  "run confirm-ranked-100.ps1 (admin)"
+                   },
+                   {
+                       "id":  "driver2_probe",
+                       "pass":  false,
+                       "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver2\\driver2_ranked_verify.json"
+                   },
+                   {
+                       "id":  "driver2_stack",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "id":  "cheat_inspector",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "id":  "build_id_rust",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "id":  "profile_rust",
+                       "pass":  true,
+                       "detail":  "profiles\\eac-rust.json"
+                   },
+                   {
+                       "id":  "build_id_r6",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "id":  "profile_r6",
+                       "pass":  true,
+                       "detail":  "profiles\\be-r6.json"
+                   }
+               ],
+    "issues":  [
+                   "host_map_proof — run confirm-ranked-100.ps1 (admin)",
+                   "driver2_probe — C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver2\\driver2_ranked_verify.json"
+               ],
+    "play":  {
+                 "rust":  "driver3\\single-pc-play.ps1 -Game rust -Execute -Live -Build",
+                 "r6":  "driver3\\single-pc-play.ps1 -Game r6 -Execute -Live -Build"
+             },
+    "read":  "Driver2Client.exe pread \u003cpid\u003e \u003cva\u003e \u003cn\u003e",
+    "disclaimer":  "Ranked operational — not undetected; kernel on session with live AC is high risk"
+}

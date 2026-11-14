@@ -1,0 +1,312 @@
+﻿{
+    "schema":  "developer_nod_v1",
+    "utc":  "2026-11-13T08:20:16.1668567Z",
+    "nod_pct":  92,
+    "not_claimed":  [
+                        "undetected_ranked",
+                        "D4",
+                        "dma_hardware_autodetect"
+                    ],
+    "profiles":  [
+                     "rust",
+                     "r6",
+                     "arksa",
+                     "deltaforce",
+                     "arenabreakout"
+                 ],
+    "checks":  [
+                   {
+                       "check":  "split_trust_docs",
+                       "pass":  true
+                   },
+                   {
+                       "check":  "per_title_routes",
+                       "pass":  true
+                   },
+                   {
+                       "check":  "ranked_entry",
+                       "pass":  true
+                   },
+                   {
+                       "check":  "driver2_ranked_fail_closed",
+                       "pass":  true,
+                       "detail":  "everything.ps1 blocks ranked Execute"
+                   },
+                   {
+                       "check":  "cheat_inspector_static",
+                       "pass":  true
+                   },
+                   {
+                       "check":  "vm_guest_smoke",
+                       "pass":  true
+                   },
+                   {
+                       "check":  "vm_host_b_proof",
+                       "pass":  false
+                   }
+               ],
+    "live_ready":  [
+                       {
+                           "ok":  true,
+                           "profile":  "rust",
+                           "title":  "Rust (EasyAntiCheat EOS)",
+                           "ac_family":  "eac",
+                           "checks":  [
+                                          {
+                                              "name":  "build_id_manifest",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "ac_dump_fresh",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "dma_tree",
+                                              "pass":  true,
+                                              "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\dma"
+                                          },
+                                          {
+                                              "name":  "dma_binary_or_build",
+                                              "pass":  true,
+                                              "detail":  "build dma/scripts/build-windows.ps1"
+                                          },
+                                          {
+                                              "name":  "lane_d_manifest",
+                                              "pass":  true,
+                                              "detail":  "docs/lab_manifest.json lane_d"
+                                          },
+                                          {
+                                              "name":  "route_card",
+                                              "pass":  true,
+                                              "detail":  "drivers/rust.md"
+                                          },
+                                          {
+                                              "name":  "ranked_fail_closed",
+                                              "pass":  true,
+                                              "detail":  "no kernel default on ranked"
+                                          }
+                                      ],
+                           "issues":  [
+
+                                      ],
+                           "requires_note":  "Hardware DMA required for live Host A reads — not auto-detected",
+                           "not_claimed":  [
+                                               "undetected",
+                                               "D4",
+                                               "no_dma_card_shortcut"
+                                           ]
+                       },
+                       {
+                           "ok":  true,
+                           "profile":  "r6",
+                           "title":  "Rainbow Six Siege (BattlEye)",
+                           "ac_family":  "battleye",
+                           "checks":  [
+                                          {
+                                              "name":  "build_id_manifest",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "ac_dump_fresh",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "dma_tree",
+                                              "pass":  true,
+                                              "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\dma"
+                                          },
+                                          {
+                                              "name":  "dma_binary_or_build",
+                                              "pass":  true,
+                                              "detail":  "build dma/scripts/build-windows.ps1"
+                                          },
+                                          {
+                                              "name":  "lane_d_manifest",
+                                              "pass":  true,
+                                              "detail":  "docs/lab_manifest.json lane_d"
+                                          },
+                                          {
+                                              "name":  "route_card",
+                                              "pass":  true,
+                                              "detail":  "drivers/r6.md"
+                                          },
+                                          {
+                                              "name":  "ranked_fail_closed",
+                                              "pass":  true,
+                                              "detail":  "no kernel default on ranked"
+                                          }
+                                      ],
+                           "issues":  [
+
+                                      ],
+                           "requires_note":  "Hardware DMA required for live Host A reads — not auto-detected",
+                           "not_claimed":  [
+                                               "undetected",
+                                               "D4",
+                                               "no_dma_card_shortcut"
+                                           ]
+                       },
+                       {
+                           "ok":  true,
+                           "profile":  "arksa",
+                           "title":  "ARK Survival Ascended (BattlEye)",
+                           "ac_family":  "battleye",
+                           "checks":  [
+                                          {
+                                              "name":  "build_id_manifest",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "ac_dump_fresh",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "dma_tree",
+                                              "pass":  true,
+                                              "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\dma"
+                                          },
+                                          {
+                                              "name":  "dma_binary_or_build",
+                                              "pass":  true,
+                                              "detail":  "build dma/scripts/build-windows.ps1"
+                                          },
+                                          {
+                                              "name":  "lane_d_manifest",
+                                              "pass":  true,
+                                              "detail":  "docs/lab_manifest.json lane_d"
+                                          },
+                                          {
+                                              "name":  "route_card",
+                                              "pass":  true,
+                                              "detail":  "drivers/arksa.md"
+                                          },
+                                          {
+                                              "name":  "ranked_fail_closed",
+                                              "pass":  true,
+                                              "detail":  "no kernel default on ranked"
+                                          }
+                                      ],
+                           "issues":  [
+
+                                      ],
+                           "requires_note":  "Hardware DMA required for live Host A reads — not auto-detected",
+                           "not_claimed":  [
+                                               "undetected",
+                                               "D4",
+                                               "no_dma_card_shortcut"
+                                           ]
+                       },
+                       {
+                           "ok":  true,
+                           "profile":  "deltaforce",
+                           "title":  "Delta Force (AntiCheat Expert)",
+                           "ac_family":  "ace",
+                           "checks":  [
+                                          {
+                                              "name":  "build_id_manifest",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "ac_dump_fresh",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "dma_tree",
+                                              "pass":  true,
+                                              "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\dma"
+                                          },
+                                          {
+                                              "name":  "dma_binary_or_build",
+                                              "pass":  true,
+                                              "detail":  "build dma/scripts/build-windows.ps1"
+                                          },
+                                          {
+                                              "name":  "lane_d_manifest",
+                                              "pass":  true,
+                                              "detail":  "docs/lab_manifest.json lane_d"
+                                          },
+                                          {
+                                              "name":  "route_card",
+                                              "pass":  true,
+                                              "detail":  "drivers/deltaforce.md"
+                                          },
+                                          {
+                                              "name":  "ranked_fail_closed",
+                                              "pass":  true,
+                                              "detail":  "no kernel default on ranked"
+                                          }
+                                      ],
+                           "issues":  [
+
+                                      ],
+                           "requires_note":  "Hardware DMA required for live Host A reads — not auto-detected",
+                           "not_claimed":  [
+                                               "undetected",
+                                               "D4",
+                                               "no_dma_card_shortcut"
+                                           ]
+                       },
+                       {
+                           "ok":  true,
+                           "profile":  "arenabreakout",
+                           "title":  "Arena Breakout Infinite (ACE)",
+                           "ac_family":  "ace",
+                           "checks":  [
+                                          {
+                                              "name":  "build_id_manifest",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "ac_dump_fresh",
+                                              "pass":  true,
+                                              "detail":  ""
+                                          },
+                                          {
+                                              "name":  "dma_tree",
+                                              "pass":  true,
+                                              "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\dma"
+                                          },
+                                          {
+                                              "name":  "dma_binary_or_build",
+                                              "pass":  true,
+                                              "detail":  "build dma/scripts/build-windows.ps1"
+                                          },
+                                          {
+                                              "name":  "lane_d_manifest",
+                                              "pass":  true,
+                                              "detail":  "docs/lab_manifest.json lane_d"
+                                          },
+                                          {
+                                              "name":  "route_card",
+                                              "pass":  true,
+                                              "detail":  "drivers/arenabreakout.md"
+                                          },
+                                          {
+                                              "name":  "ranked_fail_closed",
+                                              "pass":  true,
+                                              "detail":  "no kernel default on ranked"
+                                          }
+                                      ],
+                           "issues":  [
+
+                                      ],
+                           "requires_note":  "Hardware DMA required for live Host A reads — not auto-detected",
+                           "not_claimed":  [
+                                               "undetected",
+                                               "D4",
+                                               "no_dma_card_shortcut"
+                                           ]
+                       }
+                   ],
+    "dma_note":  "Host A live reads need DMA hardware + built overlay",
+    "respect_summary":  "SDK + Lane D credible for dev shop"
+}

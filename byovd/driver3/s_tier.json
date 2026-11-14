@@ -1,0 +1,85 @@
+﻿{
+    "schema":  "driver3_s_tier_v1",
+    "utc":  "2026-11-13T18:13:19.0058616Z",
+    "tier":  "B",
+    "score_pct":  38.1,
+    "earned":  40,
+    "max":  105,
+    "s_tier":  false,
+    "checks":  [
+                   {
+                       "id":  "scale_a_dashboard",
+                       "weight":  15,
+                       "pass":  true,
+                       "detail":  "score=100 need≥90"
+                   },
+                   {
+                       "id":  "vm_host_b_proof",
+                       "weight":  20,
+                       "pass":  false,
+                       "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\vm_hostb_execute.log"
+                   },
+                   {
+                       "id":  "manifest_kernel_proof",
+                       "weight":  15,
+                       "pass":  false,
+                       "detail":  "lane_d.kernel_proof empty"
+                   },
+                   {
+                       "id":  "dynamic_sdk_gate",
+                       "weight":  15,
+                       "pass":  false,
+                       "detail":  "no dynamic gate"
+                   },
+                   {
+                       "id":  "offsets_vs_dump",
+                       "weight":  10,
+                       "pass":  true,
+                       "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\offsets_validation.json"
+                   },
+                   {
+                       "id":  "all_profiles_live_ready",
+                       "weight":  10,
+                       "pass":  false,
+                       "detail":  "rust,r6,arksa,deltaforce,arenabreakout"
+                   },
+                   {
+                       "id":  "driver2_sdk_ship",
+                       "weight":  10,
+                       "pass":  true,
+                       "detail":  "kernel_lab_s — no FPGA"
+                   },
+                   {
+                       "id":  "live_read_method",
+                       "weight":  5,
+                       "pass":  true,
+                       "detail":  "kernel_lab_s"
+                   },
+                   {
+                       "id":  "developer_nod_integrated",
+                       "weight":  5,
+                       "pass":  false,
+                       "detail":  "nod≥90 + host_b in nod"
+                   }
+               ],
+    "issues":  [
+                   "vm_host_b_proof — C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\vm_hostb_execute.log",
+                   "manifest_kernel_proof — lane_d.kernel_proof empty",
+                   "dynamic_sdk_gate — no dynamic gate",
+                   "all_profiles_live_ready — rust,r6,arksa,deltaforce,arenabreakout",
+                   "developer_nod_integrated — nod≥90 + host_b in nod"
+               ],
+    "not_claimed":  [
+                        "undetected",
+                        "D4",
+                        "live_ranked_kernel"
+                    ],
+    "live_read_method":  "kernel_lab_s",
+    "profiles":  [
+                     "rust",
+                     "r6",
+                     "arksa",
+                     "deltaforce",
+                     "arenabreakout"
+                 ]
+}

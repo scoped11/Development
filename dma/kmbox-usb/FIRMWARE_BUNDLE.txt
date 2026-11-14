@@ -1,0 +1,5 @@
+RobRunDMA onboard bundle (KMBox USB B/B+ MicroPython — not vendor .bin)
+Revision: 2026-11-13-ac-v2
+Files: boot.py, main.py, ac_profile.txt, kmbox_identity.txt (identity v3), identity_presets.json
+Push: python dma/scripts/kmbox_setup.py push --com COMx --ac robrun
+After push: power-cycle both USB cables on the box.

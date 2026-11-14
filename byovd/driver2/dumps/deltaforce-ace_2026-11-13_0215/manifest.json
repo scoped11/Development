@@ -1,0 +1,12 @@
+{
+    "game":  "delta_force",
+    "ac_family":  "ace_tencent",
+    "game_path":  "D:\\Delta Force\\Delta Force",
+    "sguard_product_rc":  "1.376.2512.2118",
+    "ACE_GAME_game_bundle_sha256":  "C3FE27FC11CD1BAECF1CD9E2C63F1FDA4EB61A498D1F74B9FDFDC1FC2D696990",
+    "ACE_GAME_system32_sha256":  "2B6DB055B37EC90CAC2C62153432BE47CEEA3718B55C0FE400BF9665B61F46E4",
+    "kernel_match":  false,
+    "host_os_build":  "26200.9974",
+    "captured_utc":  "2026-11-13T07:15:07.6722063Z",
+    "note":  "Game bundle ACE-GAME differs from system32 on this host — use kernel\\ACE-GAME.sys for title build"
+}

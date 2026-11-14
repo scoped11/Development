@@ -1,0 +1,73 @@
+﻿{
+    "host_id":  "DESKTOP-2O8HO54",
+    "os_build":  "26200.9974",
+    "hvci":  "off",
+    "vulnerable_driver_blocklist":  "off",
+    "vehicle":  "RTCore64.sys",
+    "mapper":  "mapper_nal.exe",
+    "payload_sha256":  "",
+    "mode":  "ac-safe",
+    "tier":  "1",
+    "ac_lab_profiles":  "docs/ac_replica_profiles.json",
+    "ac_host_captures":  "docs/ac_host_captures.json",
+    "ac_preflight_exit":  0,
+    "date_utc":  "2026-11-13",
+    "lane_d":  {
+                   "kernel_proof_host":  "lab-vm",
+                   "method":  "split-trust-calibration-bridge",
+                   "live_read_host":  "game-pc",
+                   "live_read_method":  "kernel_lab_s",
+                   "build_id":  "sha256:A38FA3D4158FBD45",
+                   "kernel_proof":  {
+
+                                    },
+                   "ac_family":  "eac",
+                   "by_profile":  {
+                                      "arksa":  {
+                                                    "profile":  "arksa",
+                                                    "build_id":  "capture:2026-11-13T07:15:01",
+                                                    "utc":  "2026-11-13T18:13:17.1982800Z",
+                                                    "smoke_ok":  true
+                                                },
+                                      "rust":  {
+                                                   "profile":  "rust",
+                                                   "build_id":  "sha256:A38FA3D4158FBD45",
+                                                   "utc":  "2026-11-13T18:13:17.0444894Z",
+                                                   "smoke_ok":  true
+                                               },
+                                      "r6":  {
+                                                 "profile":  "r6",
+                                                 "build_id":  "capture:2026-11-13T07:15:01",
+                                                 "utc":  "2026-11-13T18:13:17.1201877Z",
+                                                 "smoke_ok":  true
+                                             },
+                                      "arenabreakout":  {
+                                                            "profile":  "arenabreakout",
+                                                            "build_id":  "capture:2026-11-13T07:15:13",
+                                                            "utc":  "2026-11-13T18:13:17.2024534Z",
+                                                            "smoke_ok":  true
+                                                        },
+                                      "deltaforce":  {
+                                                         "profile":  "deltaforce",
+                                                         "build_id":  "capture:2026-11-13T07:15:07",
+                                                         "utc":  "2026-11-13T18:13:17.2002755Z",
+                                                         "smoke_ok":  true
+                                                     }
+                                  },
+                   "dma_status":  "ok",
+                   "title":  "Rust (EasyAntiCheat EOS)",
+                   "game":  "rust"
+               },
+    "lane_e":  {
+                   "enabled":  true,
+                   "test_host_profile":  "E-VM",
+                   "primitive_id":  "",
+                   "target_build":  "10.0.26200.9974",
+                   "levels_passed":  [
+
+                                     ],
+                   "ac_observations":  "",
+                   "uses_dispatch_hijack":  false,
+                   "replaces_byovd_on_test_host":  false
+               }
+}

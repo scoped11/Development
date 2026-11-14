@@ -1,0 +1,18 @@
+# Example identities (ROBRUN_IDENTITY_V3). Copy lines into kmbox_identity.txt
+#
+# Stock KMBox on game PC:
+# preset=stock
+# vid=
+# pid=
+#
+# DEFAULT (firmware\\kmbox_identity.txt): Logitech LIGHTSPEED 046D:C547
+# preset=logitech_lightspeed_c547
+# vid=046d
+# pid=c547
+# manufacturer=Logitech
+# product=USB Receiver
+# bcd_device=0110
+#
+# From your real mouse: on game PC run Capture-GameMouseIdentity.ps1
+# Second PC:  Set-KmboxIdentity.ps1 -Preset logitech_lightspeed_c547
+#             Set-KmboxIdentity.ps1 -Capture

@@ -1,0 +1,9 @@
+{
+	"title"											: "Rust",
+	"executable"									: "RustClient.exe",
+	"productid"										: "429c2212ad284866aee071454c2125b5",
+	"sandboxid"										: "ec47bae0651a4765a063c1e83ec41b34",
+	"deploymentid"									: "76796531e86443548754600511f42e9e",
+	"requested_splash"								: "EasyAntiCheat/SplashScreen.png",
+	"wait_for_game_process_exit"					: "false"
+}

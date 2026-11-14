@@ -1,0 +1,18 @@
+{
+  "profile": "arksa",
+  "ac_family": "battleye",
+  "title": "ARK: Survival Ascended",
+  "capture_dump": "dumps/r6-battleye_2026-11-13_0214",
+  "capture_dump_note": "Shared BE bundle until arksa-specific dump; usermode anchor BEService_arksa.exe",
+  "kernel_note": "BEDaisy.sys often absent on disk — same BE IOCTL path as r6",
+  "mapper_bypass": [
+    "bin/Driver2.sys",
+    "--driver", "rtcore",
+    "--no-auth", "--driver2",
+    "--ac-replica", "arksa",
+    "--ac-replica-bypass",
+    "--battleye", "1f"
+  ],
+  "expected_pf_diag": ["0x852", "0x869", "callback strip"],
+  "session_ioctl": ["0x870", "0x805", "0x806"]
+}

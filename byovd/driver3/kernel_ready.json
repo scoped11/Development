@@ -1,0 +1,77 @@
+﻿{
+    "schema":  "kernel_ready_shop_v1",
+    "utc":  "2026-11-13T18:13:17.6952638Z",
+    "grade":  "KERNEL_READY",
+    "shop_ready":  true,
+    "score_pct":  66.7,
+    "profiles":  [
+                     "rust",
+                     "r6"
+                 ],
+    "titles":  {
+                   "rust":  "Rust EAC",
+                   "r6":  "Rainbow Six BattlEye"
+               },
+    "checks":  [
+                   {
+                       "id":  "live_read_kernel_lab_s",
+                       "pass":  true,
+                       "detail":  "kernel_lab_s"
+                   },
+                   {
+                       "id":  "cheat_inspector",
+                       "pass":  true,
+                       "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver2\\cheat_inspector.json"
+                   },
+                   {
+                       "id":  "driver2_stack",
+                       "pass":  true,
+                       "detail":  "bin/"
+                   },
+                   {
+                       "id":  "build_id_rust",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "id":  "profile_rust",
+                       "pass":  false,
+                       "detail":  "vm_host_b_proof — elevated VM map pending"
+                   },
+                   {
+                       "id":  "build_id_r6",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "id":  "profile_r6",
+                       "pass":  false,
+                       "detail":  "vm_host_b_proof — elevated VM map pending"
+                   },
+                   {
+                       "id":  "vm_host_b_map",
+                       "pass":  false,
+                       "detail":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\vm_hostb_execute.log"
+                   },
+                   {
+                       "id":  "kernel_proof_manifest",
+                       "pass":  true,
+                       "detail":  "lane_d"
+                   }
+               ],
+    "issues":  [
+                   "profile_rust — vm_host_b_proof — elevated VM map pending",
+                   "profile_r6 — vm_host_b_proof — elevated VM map pending",
+                   "vm_host_b_map — C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\vm_hostb_execute.log"
+               ],
+    "vm_commands":  {
+                        "rust":  "Z:\\byovd\\bin\\Driver2Runner.exe --profile rust --mode bypass --force-map",
+                        "r6":  "Z:\\byovd\\bin\\Driver2Runner.exe --profile r6 --mode bypass --force-map"
+                    },
+    "cheat_read":  "Z:\\byovd\\bin\\Driver2Client.exe pread \u003cpid\u003e \u003cva_hex\u003e \u003cn\u003e",
+    "not_claimed":  [
+                        "undetected",
+                        "live_ac_host_no_dma",
+                        "D4"
+                    ]
+}

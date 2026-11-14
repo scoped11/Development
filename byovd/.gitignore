@@ -1,0 +1,7 @@
+bin/obj/
+bin/*.exe
+bin/*.sys
+bin/*.obj
+vehicles/*.sys
+vehicles/*.exe
+reference/kdmapper/

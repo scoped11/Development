@@ -1,0 +1,67 @@
+# Default compile tree (local)
+debug/*
+!debug/README.md
+
+# Approved binaries — never commit; only populate with -IApprove
+build/*
+!build/README.md
+
+# IL2CPP dumps are large
+dumps/**/dump.cs
+dumps/**/il2cpp.h
+dumps/**/script.json
+dumps/**/stringliteral.json
+dumps/**/DummyDll/
+
+.vs/
+*.user
+*.suo
+.cursor/*.log
+.cursor/view-link.txt
+.cursor/skeleton-reference.log
+
+# Local artifacts excluded from the GitHub source repository
+*.obj
+*.pdb
+*.ilk
+*.pch
+*.tlog
+*.log
+*.tmp
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.pfx
+*.pem
+*.key
+*.vdi
+*.vhd
+*.vhdx
+*.vmdk
+*.iso
+*.sav
+*.dmp
+*.i64
+*.idb
+*.sys
+*.sys.*
+*.exe
+*.dll
+*.zip
+*.7z
+*.rar
+/driver-lab/vm/vbox/
+/driver-lab/vm/media/
+/driver-lab/vm/bg/
+/driver-lab/audit/inbox/
+/byovd/bin/obj/
+/ac-captures-host/inbox/
+/ac-captures-host/dumps/
+/driver-lab/dumps/
+/.cursor/settings.json
+
+# Generated dump indexes and binary firmware
+/dumps/**/.offset_index.json
+*.bin

@@ -1,0 +1,6 @@
+﻿{
+    "method":  "kernel_lab_s",
+    "utc":  "2026-11-13T18:13:16.8742578Z",
+    "schema":  "driver3_live_read_method_v1",
+    "note":  "VM Driver2, no FPGA"
+}

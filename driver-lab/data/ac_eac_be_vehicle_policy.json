@@ -1,0 +1,85 @@
+{
+  "schema": "ac_vehicle_block_policy_v1",
+  "notes": "Heuristic policy for mapper vehicles — not Epic/Krafton internal lists. Paid-tier = production EAC/BattlEye on Rust/R6-class titles. Free/test clients are weaker.",
+  "tiers": {
+    "paid_eac": {
+      "title": "EasyAntiCheat EOS (Rust, Fortnite, etc.)",
+      "block_filename_patterns": [
+        "(?i)^iqvw64e\\.sys$",
+        "(?i)^NalDrv(Intel)?\\.sys$",
+        "(?i)^RTCore64\\.sys$",
+        "(?i)^RTCoreMini64\\.sys$",
+        "(?i)^gdrv\\.sys$",
+        "(?i)^dbutil(_\\d+)?\\.sys$",
+        "(?i)^capcom\\.sys$",
+        "(?i)^asio\\.sys$",
+        "(?i)^MsIo64\\.sys$",
+        "(?i)^WinRing0(x64)?\\.sys$"
+      ],
+      "block_device_patterns": [
+        "(?i)\\\\\\.\\\\Nal$",
+        "(?i)\\\\\\.\\\\RTCore64$",
+        "(?i)\\\\\\.\\\\GIO$",
+        "(?i)\\\\\\.\\\\ASUSGIO$"
+      ],
+      "confidence": "high_for_iqvw_rtcore_nal",
+      "sources": [
+        "byovd/docs/11_ac_block_vs_hide_plan.md",
+        "byovd/docs/ac_replica_profiles.json L1",
+        "community BYOVD reports (vxcall, elastic)"
+      ]
+    },
+    "paid_ace": {
+      "title": "AntiCheat Expert (Delta Force, Arena Breakout, etc.)",
+      "block_filename_patterns": [
+        "(?i)^iqvw64e\\.sys$",
+        "(?i)^NalDrv(Intel)?\\.sys$",
+        "(?i)^RTCore64\\.sys$",
+        "(?i)^gdrv\\.sys$",
+        "(?i)^dbutil(_\\d+)?\\.sys$",
+        "(?i)^capcom\\.sys$"
+      ],
+      "block_device_patterns": [
+        "(?i)\\\\\\.\\\\Nal$",
+        "(?i)\\\\\\.\\\\RTCore64$",
+        "(?i)\\\\\\.\\\\ACE-GAME$"
+      ],
+      "confidence": "medium_for_lol_vehicles_high_for_ace_game_ioctl",
+      "sources": [
+        "byovd/docs/ac_host_captures.json",
+        "driver-lab/dumps/deltaforce-ace_2026-11-13_0215",
+        "driver-lab/dumps/arenabreakout-ace_2026-11-13_0215"
+      ]
+    },
+    "paid_battleye": {
+      "title": "BattlEye (R6, ARK SA, PUBG, etc.)",
+      "block_filename_patterns": [
+        "(?i)^iqvw64e\\.sys$",
+        "(?i)^NalDrv(Intel)?\\.sys$",
+        "(?i)^RTCore64\\.sys$",
+        "(?i)^gdrv\\.sys$",
+        "(?i)^capcom\\.sys$",
+        "(?i)^MmX64\\.sys$",
+        "(?i)^pciecubed\\.sys$"
+      ],
+      "block_device_patterns": [
+        "(?i)\\\\\\.\\\\Nal$",
+        "(?i)\\\\\\.\\\\RTCore64$"
+      ],
+      "confidence": "high_for_classic_lol",
+      "sources": [
+        "byovd/docs/ac_replica_profiles.json",
+        "research/16_EAC_BE_KERNEL_RESEARCH.md"
+      ]
+    }
+  },
+  "mapper_vehicles": {
+    "RTCore64.sys": { "device": "\\\\.\\RTCore64", "eac_paid": "block_expected", "be_paid": "block_expected" },
+    "NalDrvIntel.sys": { "device": "\\\\.\\Nal", "eac_paid": "block_expected", "be_paid": "block_expected" },
+    "iqvw64e.sys": { "device": "\\\\.\\Nal", "eac_paid": "block_expected", "be_paid": "block_expected" },
+    "CorsairLLAccess64.sys": { "device": "\\\\.\\CorsairLLAccess", "eac_paid": "varies", "be_paid": "varies" },
+    "ThrottleStop.sys": { "device": "\\\\.\\ThrottleStop", "eac_paid": "varies", "be_paid": "varies" },
+    "TRIXX.sys": { "device": "\\\\.\\TrixxSvc", "eac_paid": "varies", "be_paid": "varies" },
+    "SIVX64.sys": { "device": "\\\\.\\SIVDRIVER", "eac_paid": "varies", "be_paid": "varies" }
+  }
+}

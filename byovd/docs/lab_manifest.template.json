@@ -1,0 +1,13 @@
+{
+  "host_id": "lab-vm-1",
+  "os_build": "",
+  "hvci": "unknown",
+  "vulnerable_driver_blocklist": "unknown",
+  "vehicle_file": "NalDrvIntel.sys",
+  "mapper_version": "mapper_nal local build",
+  "payload_path": "bin/Betest.sys",
+  "payload_sha256": "",
+  "mapper_mode": "rw-only",
+  "notes": "",
+  "date_utc": ""
+}

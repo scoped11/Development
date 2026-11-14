@@ -1,0 +1,14 @@
+{
+  "profile": "universal",
+  "ac_family": "eac+be+ace",
+  "title": "Multi-title / unknown AC",
+  "mapper_bypass": [
+    "bin/Driver2.sys",
+    "--driver", "rtcore",
+    "--no-auth", "--driver2",
+    "--ac-replica", "universal",
+    "--ac-replica-bypass"
+  ],
+  "expected_pf_diag": ["0x851 or 0x852 or 0x846", "0x869", "0x86A", "callback strip"],
+  "warning": "Heaviest mask set — use VM snapshot; prefer title-specific profile in production tools"
+}

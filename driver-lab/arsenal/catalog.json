@@ -1,0 +1,26 @@
+{
+  "name": "DriverLab Arsenal",
+  "version": 1,
+  "note": "Workflow launcher for lab driver qualification. Does not bypass anti-cheat.",
+  "workflows": {
+    "profile": {
+      "title": "Static primitive card",
+      "steps": ["profile"],
+      "needs": ["sys"],
+      "vm": false
+    },
+    "qualify": {
+      "title": "VM load/open (open existing device first)",
+      "steps": ["profile", "qualify"],
+      "needs": ["preset"],
+      "vm": true,
+      "presets": ["siv", "sonix", "ioc"]
+    },
+    "extract_profile": {
+      "title": "Unpack installer then card each .sys",
+      "steps": ["extract", "profile_each"],
+      "needs": ["installer"],
+      "vm": false
+    }
+  }
+}

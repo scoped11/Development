@@ -1,0 +1,50 @@
+﻿{
+    "schema":  "s_tier_bundle_v1",
+    "utc":  "2026-11-13T08:20:16.5669249Z",
+    "files":  [
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\s_tier.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\dashboard.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\developer_nod.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\offsets_validation.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\vm_hostb_execute.log"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\vm_guest_smoke.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\driver3_gates_all.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver3\\ranked_session.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\docs\\lab_manifest.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver2\\cheat_inspector.json"
+                  },
+                  {
+                      "present":  true,
+                      "path":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd\\driver2\\developer_approval.json"
+                  }
+              ]
+}

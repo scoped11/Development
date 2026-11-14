@@ -1,0 +1,21 @@
+{
+  "schema": "kmbox_identity_presets_v1",
+  "default": "logitech_lightspeed_c547",
+  "notes": "Default is the game-PC LIGHTSPEED receiver 046D:C547. Host resolves preset names into kmbox_identity.txt before flash. On-box boot.py applies vid/pid plus optional string/bcd fields when device.* supports them. Not a full USB/HID descriptor clone.",
+  "presets": {
+    "stock": {
+      "vid": "",
+      "pid": "",
+      "label": "Stock KMBox (~0x4348)"
+    },
+    "logitech_lightspeed_c547": {
+      "vid": "046d",
+      "pid": "c547",
+      "manufacturer": "Logitech",
+      "product": "USB Receiver",
+      "bcd_device": "0110",
+      "label": "Logitech LIGHTSPEED receiver (G502 X family dongle)",
+      "reference": "HID mouse collection MI_00 on game PC — capture with Capture-GameMouseIdentity.ps1"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+﻿{
+    "vehicle_policy_ref":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\driver-lab\\data\\ac_eac_be_vehicle_policy.json",
+    "doc":  "AC_FINGERPRINTS.md",
+    "profiles":  {
+                     "ace_deltaforce":  {
+                                            "manifest":  {
+                                                             "game":  "delta_force",
+                                                             "host_os_build":  "26200.9974",
+                                                             "captured_utc":  "2026-11-13T07:15:07.6722063Z",
+                                                             "note":  "Game bundle ACE-GAME differs from system32 on this host â€” use kernel\\ACE-GAME.sys for title build"
+                                                         },
+                                            "capture_dir":  "dumps/deltaforce-ace_2026-11-13_0215"
+                                        },
+                     "eac_rust":  {
+                                      "manifest":  {
+                                                       "game":  "rust",
+                                                       "driver_sha256":  "A38FA3D4158FBD4503DC4D4BA303493B25B9DCFEEDB81D4386F2BB71888CBE7C",
+                                                       "host_os_build":  "26200.9974",
+                                                       "captured_utc":  "2026-11-13T07:04:10.3537299Z",
+                                                       "note":  "Rust uses EOS shared driver EasyAntiCheat_EOS.sys; game identity in Settings.json / certificates",
+                                                       "eos_driver_path":  "C:\\Program Files (x86)\\EasyAntiCheat_EOS\\EasyAntiCheat_EOS.sys",
+                                                       "platform":  "steam",
+                                                       "eos_settings":  {
+                                                                            "title":  "Rust",
+                                                                            "executable":  "RustClient.exe",
+                                                                            "productid":  "429c2212ad284866aee071454c2125b5",
+                                                                            "sandboxid":  "ec47bae0651a4765a063c1e83ec41b34",
+                                                                            "deploymentid":  "76796531e86443548754600511f42e9e",
+                                                                            "requested_splash":  "EasyAntiCheat/SplashScreen.png",
+                                                                            "wait_for_game_process_exit":  "false"
+                                                                        }
+                                                   },
+                                      "capture_dir":  "dumps/rust-eac-eos_2026-11-13_0204"
+                                  },
+                     "ace_arenabreakout":  {
+                                               "manifest":  {
+                                                                "game":  "arena_breakout_infinite",
+                                                                "host_os_build":  "26200.9974",
+                                                                "captured_utc":  "2026-11-13T07:15:13.5615012Z",
+                                                                "note":  "ABI bundle ACE-GAME matches system32 on this host"
+                                                            },
+                                               "capture_dir":  "dumps/arenabreakout-ace_2026-11-13_0215"
+                                           },
+                     "be_r6":  {
+                                   "manifest":  {
+                                                    "game":  "rainbow_six_siege",
+                                                    "host_os_build":  "26200.9974",
+                                                    "captured_utc":  "2026-11-13T07:15:01.1194027Z",
+                                                    "note":  "Primary AC BattlEye (GameID r6s). EasyAntiCheat folder is cert/runtime channel only. BEDaisy appears after BE kernel install.",
+                                                    "platform":  "steam",
+                                                    "bedaisy_sha256":  "missing",
+                                                    "beservice_r6s_sha256":  "DD3D72DF4E9866C2E02D64460ED86AE170334133A78C98A8574B2BD94BA1DCD0"
+                                                },
+                                   "capture_dir":  "dumps/r6-battleye_2026-11-13_0214"
+                               }
+                 },
+    "eos_settings_ids":  {
+                             "title":  "Rust",
+                             "executable":  "RustClient.exe",
+                             "productid":  "429c2212ad284866aee071454c2125b5",
+                             "sandboxid":  "ec47bae0651a4765a063c1e83ec41b34",
+                             "deploymentid":  "76796531e86443548754600511f42e9e",
+                             "requested_splash":  "EasyAntiCheat/SplashScreen.png",
+                             "wait_for_game_process_exit":  "false"
+                         },
+    "host_captures_ref":  "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\ac-captures-host\\config\\ac_host_captures.json",
+    "generated_utc":  "2026-11-13T08:33:03.7317184Z",
+    "driver_detection_surfaces_ref":  "../../byovd/docs/04_detection_surfaces.md",
+    "schema":  "driver2_ac_fingerprints_v1"
+}

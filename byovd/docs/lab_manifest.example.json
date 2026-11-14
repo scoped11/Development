@@ -1,0 +1,13 @@
+{
+  "host_id": "baile-dev-pc",
+  "os_build": "10.0.26200",
+  "hvci": "unknown",
+  "vulnerable_driver_blocklist": "unknown",
+  "vehicle_file": "NalDrvIntel.sys",
+  "mapper_version": "mapper_nal.exe built 2026-11-12",
+  "payload_path": "bin/Betest.sys",
+  "payload_sha256": "fill-after-build",
+  "mapper_mode": "rw-only",
+  "notes": "Example manifest — update before each Lab I run",
+  "date_utc": "2026-11-13T04:00:00Z"
+}

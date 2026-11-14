@@ -1,0 +1,37 @@
+<Window x:Class="DriverLabLoader.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Driver Lab"
+        Width="480" Height="520"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize">
+    <Border CornerRadius="12" Background="#0D0D12" BorderBrush="#2A2A38" BorderThickness="1">
+        <Grid Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Driver Lab" Foreground="#E8E8F0" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <MediaElement x:Name="SplashVideo" Grid.Row="1" LoadedBehavior="Manual" UnloadedBehavior="Stop"
+                          Stretch="Uniform" Margin="0,0,0,8" MediaEnded="SplashVideo_MediaEnded"/>
+            <Image x:Name="SplashGif" Grid.Row="1" Stretch="Uniform" Margin="0,0,0,8" Visibility="Collapsed"/>
+
+            <TextBlock x:Name="StageText" Grid.Row="2" Text="Ready" Foreground="#9CA3AF" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,8"/>
+            <ProgressBar x:Name="ProgressBar" Grid.Row="3" Height="6" Minimum="0" Maximum="100" Value="5" Margin="0,0,0,12"/>
+
+            <WrapPanel Grid.Row="4" HorizontalAlignment="Center">
+                <Button Content="Secure map (RwTest)" Click="OnSecureMap" Margin="4" Padding="12,6" MinWidth="140"/>
+                <Button Content="Rust replica bypass" Click="OnRustBypass" Margin="4" Padding="12,6" MinWidth="140"/>
+                <Button Content="R6 replica bypass" Click="OnR6Bypass" Margin="4" Padding="12,6" MinWidth="140"/>
+                <Button Content="Test R/W" Click="OnRwTest" Margin="4" Padding="12,6" MinWidth="100"/>
+                <Button Content="Close" Click="OnClose" Margin="4" Padding="12,6" MinWidth="80"/>
+            </WrapPanel>
+        </Grid>
+    </Border>
+</Window>

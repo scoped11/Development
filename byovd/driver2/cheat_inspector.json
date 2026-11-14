@@ -1,0 +1,318 @@
+﻿{
+    "vehicle_stealth":  "VEHICLE_STEALTH.md",
+    "disclaimer":  "Inspector certifies lab SDK + evidence bundle — not live AC bypass",
+    "tier_plan":  "docs/11_ac_block_vs_hide_plan.md",
+    "static_score_pct":  100,
+    "target_score_pct":  90,
+    "schema":  "driver2_cheat_inspector_v1",
+    "include_ace":  false,
+    "dynamic":  null,
+    "final_score_pct":  100,
+    "utc":  "2026-11-13T18:13:17.2875843Z",
+    "execute":  false,
+    "hostname":  "DESKTOP-2O8HO54",
+    "approved":  true,
+    "checks":  [
+                   {
+                       "category":  "docs",
+                       "name":  "doc_DEVELOPER_SDK.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_DEVELOPER_APPROVAL.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_CHEAT_INSPECTOR.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_AC_FINGERPRINTS.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_EAC_INTEGRATION.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_ACE_INTEGRATION.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_VEHICLE_STEALTH.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_IOCTL_REFERENCE.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_CAPABILITIES.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_CONFIDENCE.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "doc_README.md",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "docs",
+                       "name":  "tier0_block_vs_hide_plan",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "sdk",
+                       "name":  "file_sdk_driver2_api.h",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "sdk",
+                       "name":  "file_sdk_Driver2Session.hpp",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "sdk",
+                       "name":  "file_examples_cheat_dev_minimal.cpp",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "sdk",
+                       "name":  "file_Driver2Runner.cpp",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "eac_rust_manifest",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "eac_rust_anchor",
+                       "pass":  true,
+                       "detail":  "kernel\\EasyAntiCheat_EOS.sys"
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "be_r6_manifest",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "be_r6_anchor",
+                       "pass":  true,
+                       "detail":  "usermode\\BEService_r6s.exe"
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "ace_delta_manifest",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "ace_delta_anchor",
+                       "pass":  true,
+                       "detail":  "kernel\\ACE-GAME.sys"
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "ace_arena_manifest",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "ace_arena_anchor",
+                       "pass":  true,
+                       "detail":  "kernel\\ACE-GAME.sys"
+                   },
+                   {
+                       "category":  "tooling",
+                       "name":  "sync_ac_dumps_script",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "ac_fingerprints_index",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "dump_tracking_rust",
+                       "pass":  true,
+                       "detail":  "profiles\\eac-rust.json"
+                   },
+                   {
+                       "category":  "captures",
+                       "name":  "dump_tracking_r6",
+                       "pass":  true,
+                       "detail":  "profiles\\be-r6.json"
+                   },
+                   {
+                       "category":  "profiles",
+                       "name":  "profile_ace-deltaforce.json",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "profiles",
+                       "name":  "profile_ace-arenabreakout.json",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "profiles",
+                       "name":  "profile_eac-rust.json",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "profiles",
+                       "name":  "profile_be-r6.json",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "profiles",
+                       "name":  "profile_be-arksa.json",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "profiles",
+                       "name":  "profile_universal.json",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "tooling",
+                       "name":  "forensics",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "tooling",
+                       "name":  "approval_gate",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "tooling",
+                       "name":  "ac_preflight",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "tooling",
+                       "name":  "verify_pf_diag",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "build",
+                       "name":  "binaries_present",
+                       "pass":  true,
+                       "detail":  "5/5"
+                   },
+                   {
+                       "category":  "policy",
+                       "name":  "driver2_dkom_unlink_off_by_default",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "policy",
+                       "name":  "symlink_kept_default_log",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "policy",
+                       "name":  "vehicle_encrypt_skipped",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "policy",
+                       "name":  "no_resign_rtcore_doc",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "ioctl",
+                       "name":  "ref_session_870",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "ioctl",
+                       "name":  "ref_ace_846",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "ioctl",
+                       "name":  "ref_eac_844",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "ioctl",
+                       "name":  "ref_eac_851",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "ioctl",
+                       "name":  "ref_be_852",
+                       "pass":  true,
+                       "detail":  ""
+                   },
+                   {
+                       "category":  "host",
+                       "name":  "ac_preflight_ran",
+                       "pass":  true,
+                       "detail":  "skipped (re-run elevated for Tier 0 read)"
+                   },
+                   {
+                       "category":  "host",
+                       "name":  "vehicle_or_tier0_clear",
+                       "pass":  true,
+                       "detail":  "skipped"
+                   }
+               ],
+    "preflight_exit":  null
+}

@@ -1,0 +1,28 @@
+{
+  "profile": "r6",
+  "ac_family": "battleye",
+  "title": "Rainbow Six Siege",
+  "capture_dump": "dumps/r6-battleye_2026-11-13_0214",
+  "capture_dump_lab_mirror": "driver-lab/dumps/r6-battleye_2026-11-13_0214",
+  "kernel_note": "BEDaisy may be missing on disk — use service/runtime dump for full parity",
+  "mapper_bypass": [
+    "bin/Driver2.sys",
+    "--driver", "rtcore",
+    "--no-auth", "--driver2",
+    "--ac-replica", "r6",
+    "--ac-replica-bypass",
+    "--battleye", "1f"
+  ],
+  "expected_pf_diag": ["0x852", "0x869", "callback strip"],
+  "session_ioctl": ["0x870", "0x805", "0x806"],
+  "dump_tracking": {
+    "policy_tier": "paid_battleye",
+    "account_signals": ["gameid_r6s", "beservice_hash"],
+    "kernel_hunt_high": ["known_byovd", "manual_map_pool", "bedaisy_callbacks", "foreign_kernel_rw"],
+    "session_pf_diag": ["0x852"],
+    "forbid_bypass_ioctl": ["0x869", "0x81B"],
+    "session_client_cmds": [
+      { "cmd": "be-improve", "args": "1f" }
+    ]
+  }
+}

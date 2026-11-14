@@ -1,0 +1,33 @@
+{
+  "product": "driver3",
+  "method": "split-trust-calibration-bridge",
+  "doc": "docs/12_lane_d_split_trust.md",
+  "hosts": {
+    "A": {
+      "role": "game_pc_live_reads",
+      "tools": ["dma/scripts/build-windows.ps1", "dumps", "il2cpp"],
+      "forbidden_on_tier0": ["Driver2Runner", "kdmapper", "map on AC session"]
+    },
+    "B": {
+      "role": "lab_vm_kernel_proof",
+      "tools": ["driver2/everything.ps1", "driver2/developer-approval-gate.ps1", "map-secure-rwtest.ps1"]
+    }
+  },
+  "sync": {
+    "file": "docs/lab_manifest.json",
+    "keys": ["lane_d.build_id", "lane_d.kernel_proof", "lane_d.dma_status"]
+  },
+  "gates": {
+    "elevated": "scripts/lane-d-preflight.ps1",
+    "plan": "driver3/lane-gate.ps1"
+  },
+  "tiers": ["D0", "D1", "D2", "D3", "D3i"],
+  "not_claimed": ["D4_live_ranked_byovd"],
+  "games_catalog": "driver3/games.json",
+  "profiles": ["rust", "r6", "arksa", "deltaforce", "arenabreakout"],
+  "ac_families": {
+    "eac": ["rust"],
+    "battleye": ["r6", "arksa"],
+    "ace": ["deltaforce", "arenabreakout"]
+  }
+}

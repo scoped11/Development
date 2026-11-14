@@ -1,0 +1,28 @@
+﻿{
+    "utc":  "2026-11-13T18:13:18.2514723Z",
+    "product":  "driver3",
+    "profile":  "arenabreakout",
+    "title":  "Arena Breakout Infinite (ACE)",
+    "ac_family":  "ace",
+    "elevated":  false,
+    "ac_processes_any":  [
+
+                         ],
+    "ac_processes_title":  [
+
+                           ],
+    "dma_tree":  true,
+    "driver2_profile_ok":  true,
+    "capture_dump":  "driver2/dumps/arenabreakout-ace_2026-11-13_0215",
+    "route_doc":  "drivers/arenabreakout.md",
+    "lane_d":  false,
+    "recommend_host":  "B",
+    "preflight_exit":  null,
+    "host_b_runner":  "arenabreakout",
+    "message":  "Heuristic gate for Arena Breakout Infinite (ACE) (ace)",
+    "next":  [
+                 ".\\driver3\\ranked.ps1 -Profile arenabreakout -Execute -SyncBuildId",
+                 ".\\driver3\\host-b.ps1 -Profile arenabreakout -Execute -ForceMap",
+                 ".\\driver3\\host-b.ps1 -Profile arenabreakout -Execute -ForceMap -Inspector"
+             ]
+}

@@ -1,0 +1,34 @@
+﻿{
+    "profiles":  [
+                     "rust",
+                     "r6",
+                     "deltaforce",
+                     "arenabreakout",
+                     "universal",
+                     "arksa"
+                 ],
+    "target_score_pct":  90,
+    "checks_per_profile":  [
+                               "bypass_map_exit_0",
+                               "pf_diag_bypass",
+                               "strip_869",
+                               "title_ioctl_in_log",
+                               "process_rw",
+                               "driver2_client_probe",
+                               "hygiene_in_pf_diag",
+                               "symlink_kept_log",
+                               "dkom_unlink_skipped_log",
+                               "inspector_tier1_log"
+                           ],
+    "schema":  "driver2_developer_approval_v1",
+    "inspector_tier1":  {
+                            "IsPresent":  false
+                        },
+    "note":  "PLAN ONLY — pass -Execute on DriverLab VM when ready",
+    "execute":  {
+                    "IsPresent":  false
+                },
+    "approved":  true,
+    "scale_a_static_merge":  true,
+    "score_pct":  100
+}
