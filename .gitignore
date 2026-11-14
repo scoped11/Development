@@ -65,3 +65,8 @@ __pycache__/
 # Generated dump indexes and binary firmware
 /dumps/**/.offset_index.json
 *.bin
+
+# Private cloud/account notes and machine-specific lab data
+/notes/RUNPOD_CLOUD_GPU.md
+/driver-lab/audit/hijack_candidates_vm_*
+/driver-lab/vm/offline/assets/driverlab-supplemental-base.xml

@@ -5,6 +5,18 @@
 #include <vector>
 #include <cstring>
 
+// Stomp mode: open the resident victim device (e.g. L"\\\\.\\Dam") instead of Betest pool names.
+inline void Driver2SetDeviceName(const wchar_t* victimDosName)
+{
+    if (!victimDosName || !victimDosName[0]) {
+        BetestSetDeviceOverride(nullptr);
+        return;
+    }
+    char narrow[64]{};
+    WideCharToMultiByte(CP_UTF8, 0, victimDosName, -1, narrow, sizeof(narrow), nullptr, nullptr);
+    BetestSetDeviceOverride(narrow);
+}
+
 inline HANDLE Driver2OpenWithRetry(int attempts = 24, DWORD sleepMs = 250)
 {
     for (int i = 0; i < attempts; i++) {

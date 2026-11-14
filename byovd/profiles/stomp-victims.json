@@ -1,0 +1,8 @@
+{
+  "stomp_victims": [
+    { "name": "dam.sys", "dos_name": "\\\\.\\Dam", "min_text_kb": 64, "status": "candidate" },
+    { "name": "luafv.sys", "dos_name": "\\\\.\\Luafv", "min_text_kb": 96, "status": "candidate" },
+    { "name": "wcifs.sys", "dos_name": "\\\\.\\WCIFS", "min_text_kb": 128, "status": "candidate" }
+  ],
+  "victim_blocklist_regex": "EasyAntiCheat|BEDaisy|BEService|ACE-|iqvw|Nal|RTCore|dbk|kph|WdFilter"
+}

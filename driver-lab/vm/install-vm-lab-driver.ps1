@@ -21,11 +21,13 @@ if ($Uninstall) {
     exit 0
 }
 
-$ts = bcdedit /enum '{current}' 2>$null | Select-String 'testsigning'
-if ($ts -notmatch 'Yes') {
-    Write-Host '[*] Enabling test-signing (VM lab) — reboot if sc start fails'
-    bcdedit /set testsigning on | Out-Null
-    bcdedit /set nointegritychecks on | Out-Null
+$offline = Join-Path $VmRoot 'offline'
+if (Test-Path (Join-Path $offline 'Import-LabPublisher.ps1')) {
+    & (Join-Path $offline 'Import-LabPublisher.ps1')
+    . (Join-Path $offline 'Set-LabProductionBcd.ps1')
+    Set-LabProductionBcd
+} else {
+    Write-Warning 'Import-LabPublisher missing — run offline vault setup first'
 }
 
 Copy-Item $SysSrc $SysDst -Force

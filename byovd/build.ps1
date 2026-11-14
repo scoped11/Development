@@ -57,7 +57,7 @@ cl /nologo /EHsc /std:c++17 /O2 /MT /W3 /D_WIN32_WINNT=0x0A00 ^
 if errorlevel 1 exit /b 1
 cl /nologo /EHsc /std:c++17 /O2 /MT /W3 /D_WIN32_WINNT=0x0A00 ^
   /I"$MapperDir" /I"$KitInclude\um" /I"$KitInclude\shared" /I"$KitInclude\ucrt" ^
-  "$MapperDir\main_nal.cpp" "$MapperDir\mapper.cpp" /Fe"$MapperExe" /link ^
+  "$MapperDir\main_nal.cpp" "$MapperDir\mapper.cpp" "$MapperDir\stomp.cpp" /Fe"$MapperExe" /link ^
   /LIBPATH:"$KitLib\um\x64" /LIBPATH:"$KitLib\ucrt\x64" kernel32.lib user32.lib advapi32.lib ntdll.lib
 if errorlevel 1 exit /b 1
 "@

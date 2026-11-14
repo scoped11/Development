@@ -126,8 +126,39 @@ static const char* const kBetestDynPrefixes[] = {
 #include <vector>
 #include <cstring>
 
+struct BetestDeviceOverrideSlot {
+    char buf[64]{};
+};
+
+inline BetestDeviceOverrideSlot& BetestDeviceOverrideState()
+{
+    static BetestDeviceOverrideSlot s;
+    return s;
+}
+
+inline const char* BetestDeviceOverride()
+{
+    auto& s = BetestDeviceOverrideState();
+    return s.buf[0] ? s.buf : nullptr;
+}
+
+inline void BetestSetDeviceOverride(const char* dosNameA)
+{
+    auto& s = BetestDeviceOverrideState();
+    if (!dosNameA || !dosNameA[0]) {
+        s.buf[0] = '\0';
+        return;
+    }
+    strncpy_s(s.buf, dosNameA, _TRUNCATE);
+}
+
 inline HANDLE BetestOpenDevice()
 {
+    if (const char* ov = BetestDeviceOverride()) {
+        HANDLE h = CreateFileA(ov, GENERIC_READ | GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+        if (h != INVALID_HANDLE_VALUE) return h;
+    }
     static const char* const kVehicleDev[] = {
         "\\\\.\\RTCore64", "\\\\.\\Nal", "\\\\.\\CorsairLLAccess",
         "\\\\.\\TrixxSvc", "\\\\.\\ThrottleStop", "\\\\.\\SIVDRIVER",

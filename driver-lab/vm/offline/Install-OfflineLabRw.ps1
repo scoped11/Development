@@ -97,20 +97,39 @@ public static class NtDrv {
 }
 
 $ntPath = "\Registry\Machine\System\CurrentControlSet\Services\$SvcLeaf"
-$ts = bcdedit /enum '{current}' 2>$null | Select-String 'testsigning'
-if ($ts -notmatch 'Yes') {
-    L 'lab BCD: testsigning on (offline self-sign loads)'
-    bcdedit /set testsigning on | Out-Null
-}
+. (Join-Path $PSScriptRoot 'Set-LabProductionBcd.ps1')
+Set-LabProductionBcd -Log $Log
 
+$manifestMode = 'offline_ntload_vault'
 $st = [NtDrv]::Load($ntPath)
 L "NtLoadDriver $SvcLeaf st=0x$($st.ToString('x'))"
-if ($st -eq -0x3ffffdbb -or $st -eq 0xC0000428) {
-    L 'retry load after BCD self-sign policy'
-    Start-Sleep -Seconds 2
-    $st = [NtDrv]::Load($ntPath)
-    L "NtLoadDriver retry st=0x$($st.ToString('x'))"
+if ($st -eq -0x3ffffdbb -or $st -eq 0xC0000428 -or $st -eq -1073740760) {
+    L 'NtLoad hash/policy fail — try sc start (trusted publisher, testsigning off)'
+    $sysDst = Join-Path $env:SystemRoot 'System32\drivers\VmLabDrv.sys'
+    Copy-Item $dstSys $sysDst -Force
+    $sc = 'VmLabDrv'
+    sc.exe query $sc 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        sc.exe stop $sc 2>$null | Out-Null
+        sc.exe delete $sc 2>$null | Out-Null
+        Start-Sleep -Seconds 1
+    }
+    sc.exe create $sc type= kernel start= demand binPath= 'System32\drivers\VmLabDrv.sys' | Out-Null
+    sc.exe start $sc 2>&1 | ForEach-Object { L $_ }
+    if ($LASTEXITCODE -eq 0) {
+        L 'sc start VmLabDrv OK (production trust path)'
+        $st = 0
+        $manifestMode = 'offline_sc_trusted_v1'
+    } else {
+        L "sc start failed ec=$LASTEXITCODE"
+        Start-Sleep -Seconds 1
+        $st = [NtDrv]::Load($ntPath)
+        L "NtLoadDriver retry st=0x$($st.ToString('x'))"
+    }
+} else {
+    $manifestMode = 'offline_ntload_vault'
 }
+if (-not $manifestMode) { $manifestMode = 'offline_ntload_vault' }
 
 $cliStaged = Join-Path $VmRoot 'vault\staged\VmLabClient.exe'
 $cli = if (Test-Path $cliStaged) { $cliStaged } else { Join-Path $VmRoot 'bin\VmLabClient.exe' }
@@ -128,7 +147,8 @@ $manifest = [ordered]@{
     image      = $dstSys
     ntload_st  = "0x$($st.ToString('x'))"
     client_ec  = $rwEc
-    method     = 'offline_ntload_vault'
+    method     = $manifestMode
+    testsigning = ((bcdedit /enum '{current}' 2>$null | Select-String 'testsigning') -match 'Yes')
 }
 $out = Join-Path $Vault 'offline-lab-rw.json'
 ($manifest | ConvertTo-Json -Depth 5) | Set-Content $out -Encoding UTF8

@@ -1,0 +1,71 @@
+{
+  "schema": "ac_replica_layout_v1",
+  "note": "1:1 guest paths mirroring host capture layout (driver-lab/dumps/*).",
+  "profiles": {
+    "rust": {
+      "dump_glob": "rust-eac-eos_*",
+      "targets": [
+        {
+          "from": "kernel\\EasyAntiCheat_EOS.sys",
+          "to": "C:\\Program Files (x86)\\EasyAntiCheat_EOS\\EasyAntiCheat_EOS.sys",
+          "sha256": "A38FA3D4158FBD4503DC4D4BA303493B25B9DCFEEDB81D4386F2BB71888CBE7C",
+          "kernel_service": "EasyAntiCheat_EOS"
+        },
+        { "from": "eac", "to": "C:\\Program Files (x86)\\EasyAntiCheat_EOS", "recurse": true }
+      ]
+    },
+    "r6": {
+      "dump_glob": "r6-battleye_*",
+      "targets": [
+        { "from": "battleye\\game", "to": "C:\\Program Files (x86)\\Common Files\\BattlEye", "recurse": true },
+        {
+          "from": "usermode\\BEService_r6s.exe",
+          "to": "C:\\Program Files (x86)\\Common Files\\BattlEye\\BEService.exe"
+        },
+        { "from": "eac_certificates", "to": "C:\\Program Files (x86)\\EasyAntiCheat", "recurse": true, "optional": true }
+      ],
+      "usermode_start": "C:\\Program Files (x86)\\Common Files\\BattlEye\\BEService.exe"
+    },
+    "deltaforce": {
+      "dump_glob": "deltaforce-ace_*",
+      "targets": [
+        { "from": "anticheatexpert", "to": "C:\\Program Files\\AntiCheatExpert", "recurse": true },
+        {
+          "from": "kernel\\ACE-GAME.sys",
+          "to": "C:\\Windows\\System32\\drivers\\ACE-GAME.sys",
+          "sha256": "C3FE27FC11CD1BAECF1CD9E2C63F1FDA4EB61A498D1F74B9FDFDC1FC2D696990",
+          "kernel_service": "ACE-GAME"
+        },
+        {
+          "from": "kernel\\ACE-BASE.sys",
+          "to": "C:\\Windows\\System32\\drivers\\ACE-BASE.sys",
+          "kernel_service": "ACE-BASE"
+        },
+        {
+          "from": "kernel\\ACE-ADVT.sys",
+          "to": "C:\\Windows\\System32\\drivers\\ACE-ADVT.sys",
+          "kernel_service": "ACE-ADVT",
+          "optional": true
+        }
+      ],
+      "usermode_patterns": ["SGuardSvc64", "ACE-Service64"]
+    },
+    "arenabreakout": {
+      "dump_glob": "arenabreakout-ace_*",
+      "targets": [
+        { "from": "anticheatexpert", "to": "C:\\Program Files\\AntiCheatExpert", "recurse": true },
+        {
+          "from": "kernel\\ACE-GAME.sys",
+          "to": "C:\\Windows\\System32\\drivers\\ACE-GAME.sys",
+          "sha256": "2B6DB055B37EC90CAC2C62153432BE47CEEA3718B55C0FE400BF9665B61F46E4",
+          "kernel_service": "ACE-GAME"
+        },
+        {
+          "from": "kernel\\ACE-BASE.sys",
+          "to": "C:\\Windows\\System32\\drivers\\ACE-BASE.sys",
+          "kernel_service": "ACE-BASE"
+        }
+      ]
+    }
+  }
+}

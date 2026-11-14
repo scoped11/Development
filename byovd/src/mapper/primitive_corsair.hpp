@@ -353,7 +353,8 @@ static uint64_t CorsairBootstrapCR3(HANDLE h) {
     };
 
     uint64_t cr3 = 0;
-    const uint64_t kMaxPagesPerPhase = 0x4000; // 64MB of low RAM per phase; PA>=4GB wedges MmMapIoSpace
+    // 512MB low RAM per phase (matches MyPort EPROCESS cap); 64MB missed CR3 on 26200 VM.
+    const uint64_t kMaxPagesPerPhase = 0x20000;
 
     // High RAM first wedged MmMapIoSpace at PA 0x100000000 (no bugcheck).
     std::vector<size_t> rangeOrder;

@@ -2,6 +2,7 @@
 // Build: driver2\build.ps1
 
 #include "betest_ioctl.h"
+#include "sdk/driver2_api.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -45,7 +46,7 @@ static std::string FindByovdRoot()
     }
     static const char* kFixed[] = {
         "D:\\hostdev\\byovd",
-        "C:\\Users\\baile\\OneDrive\\Desktop\\Development\\byovd",
+        "C:\\Development\\byovd",
     };
     for (auto p : kFixed) {
         std::string d = DirExist(p);
@@ -138,6 +139,13 @@ static int RunMapperAuto(const std::string& byovd, const char* profile, const ch
 
 static std::string ResolvePayload(const std::string& byovd, const char* mode)
 {
+    if (!strcmp(mode, "stomp")) {
+        std::string st = byovd + "\\driver2\\bin\\Driver2Stomp.sys";
+        if (FileExist(st)) return st;
+        st = byovd + "\\bin\\Driver2Stomp.sys";
+        if (FileExist(st)) return st;
+        return byovd + "\\driver2\\bin\\Driver2Stomp.sys";
+    }
     if (!strcmp(mode, "prove"))
         return byovd + "\\bin\\RwTest.sys";
     std::string d2 = byovd + "\\driver2\\bin\\Driver2.sys";
@@ -206,6 +214,60 @@ static void AppendTitleAcFlags(std::string& cmd, const char* profile, const char
         cmd += " --ace 3f --ace-vgk";
     else if (!_stricmp(profile, "universal"))
         cmd += " --eac 7f --encptr f --battleye 1f --ace 3f --ace-vgk";
+}
+
+static const char* VictimDosA(const char* victimShort)
+{
+    static const struct { const char* key; const char* dos; } k[] = {
+        { "dam", "\\\\.\\Dam" },
+        { "luafv", "\\\\.\\Luafv" },
+        { "wcifs", "\\\\.\\WCIFS" },
+    };
+    if (!victimShort) return nullptr;
+    for (const auto& e : k) {
+        if (!_stricmp(e.key, victimShort)) return e.dos;
+    }
+    static char guess[32];
+    snprintf(guess, sizeof(guess), "\\\\.\\%s", victimShort);
+    if (guess[4]) guess[4] = (char)toupper((unsigned char)guess[4]);
+    return guess;
+}
+
+static int RunStompMapper(const std::string& byovd, const char* driver, const char* victim,
+    bool dryRun, bool forceMap)
+{
+    std::string mapper = byovd + "\\driver2\\bin\\mapper_nal.exe";
+    if (!FileExist(mapper)) mapper = byovd + "\\bin\\mapper_nal.exe";
+    std::string payload = ResolvePayload(byovd, "stomp");
+    if (!FileExist(mapper) || !FileExist(payload)) {
+        printf("[!] Missing mapper or Driver2Stomp.sys — run driver2\\build.ps1\n");
+        return 10;
+    }
+    CopyVehicle(byovd);
+    std::string cmd = "\"" + mapper + "\" \"" + payload + "\" --stomp --victim " + victim;
+    cmd += " --driver " + std::string(driver);
+    cmd += " --no-auth --quiet";
+    if (dryRun) cmd += " --stomp-dry-run";
+    if (forceMap) cmd += " --force-map";
+    cmd += " --no-fallback";
+    printf("[*] stomp map: %s\n", cmd.c_str());
+    char cmdline[2048];
+    snprintf(cmdline, sizeof(cmdline), "%s", cmd.c_str());
+    STARTUPINFOA si{};
+    PROCESS_INFORMATION pi{};
+    si.cb = sizeof(si);
+    std::string cwd = byovd + "\\driver2\\bin";
+    if (!FileExist(cwd + "\\mapper_nal.exe")) cwd = byovd + "\\bin";
+    if (!CreateProcessA(nullptr, cmdline, nullptr, nullptr, FALSE, 0, nullptr, cwd.c_str(), &si, &pi)) {
+        printf("[!] CreateProcess failed err=%lu\n", GetLastError());
+        return 11;
+    }
+    WaitForSingleObject(pi.hProcess, 300000);
+    DWORD ec = 1;
+    GetExitCodeProcess(pi.hProcess, &ec);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    return (int)ec;
 }
 
 static int RunMapper(const std::string& byovd, const char* profile, const char* driver,
@@ -314,7 +376,8 @@ static void Usage()
     printf("Driver2Runner — classic BYOVD stack (driver2\\Driver2.sys)\n\n");
     printf("  Driver2Runner.exe [--profile rust|r6|deltaforce|arenabreakout|universal|...]\n");
     printf("            ACE: ace, delta, df, abi, arena  |  EAC: eac, eos  |  BE: be-r6, siege\n");
-    printf("                    [--mode prove|ioctl|session|bypass]  (default: bypass)\n");
+    printf("                    [--mode prove|ioctl|session|bypass|stomp]  (default: bypass)\n");
+    printf("  stomp: --victim dam|luafv|wcifs  [--dry-run]  (Driver2Stomp.sys + victim device)\n");
     printf("  session: ranked-safe ioctl map (--ac-safe, no bypass sweep)\n");
     printf("  Full sequence: driver2\\everything.ps1 -Execute\n");
     printf("                    [--driver auto|rtcore|nal|corsair|...]  (default: auto)\n");
@@ -328,9 +391,11 @@ int main(int argc, char** argv)
     const char* profile = "rust";
     const char* driver = "rtcore";
     const char* mode = "bypass";
+    const char* victim = "dam";
     bool forceMap = false;
     bool inspector = false;
     bool skipRw = false;
+    bool dryRun = false;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--profile") && i + 1 < argc) {
@@ -342,11 +407,13 @@ int main(int argc, char** argv)
         if (!strcmp(argv[i], "--force-map")) { forceMap = true; continue; }
         if (!strcmp(argv[i], "--inspector")) { inspector = true; continue; }
         if (!strcmp(argv[i], "--skip-rw")) { skipRw = true; continue; }
+        if (!strcmp(argv[i], "--victim") && i + 1 < argc) { victim = argv[++i]; continue; }
+        if (!strcmp(argv[i], "--dry-run")) { dryRun = true; continue; }
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) { Usage(); return 0; }
     }
 
     if (strcmp(mode, "prove") && strcmp(mode, "ioctl") && strcmp(mode, "session") &&
-        strcmp(mode, "bypass")) {
+        strcmp(mode, "bypass") && strcmp(mode, "stomp")) {
         printf("[!] Invalid --mode %s\n", mode);
         return 4;
     }
@@ -367,6 +434,16 @@ int main(int argc, char** argv)
     else if (IsEacProfile(profile)) acTag = " (EAC EOS)";
     else if (IsAceProfile(profile)) acTag = " (ACE)";
     printf("[*] byovd=%s profile=%s mode=%s driver=%s%s\n", byovd.c_str(), profile, mode, driver, acTag);
+
+    if (!strcmp(mode, "stomp")) {
+        int mr = RunStompMapper(byovd, driver, victim, dryRun, forceMap);
+        if (mr != 0) return mr;
+        if (dryRun || skipRw) return 0;
+        const char* dos = VictimDosA(victim);
+        if (dos) BetestSetDeviceOverride(dos);
+        Sleep(500);
+        return ProveRead();
+    }
 
     int mr = !_stricmp(driver, "auto")
         ? RunMapperAuto(byovd, profile, mode, forceMap, inspector)

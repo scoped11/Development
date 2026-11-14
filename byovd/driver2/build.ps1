@@ -27,7 +27,10 @@ $KitInclude = Join-Path $KitRoot "Include\$KitVersion"
 $KitLib = Join-Path $KitRoot "Lib\$KitVersion"
 $PayloadSrc = Join-Path $Driver2Root 'src\Driver2Build.c'
 $PayloadObj = Join-Path $D2Obj 'Driver2Build.obj'
+$StompSrc = Join-Path $Driver2Root 'src\Driver2Stomp.c'
+$StompObj = Join-Path $D2Obj 'Driver2Stomp.obj'
 $Driver2Sys = Join-Path $D2Bin 'Driver2.sys'
+$Driver2StompSys = Join-Path $D2Bin 'Driver2Stomp.sys'
 $RunnerSrc = Join-Path $Driver2Root 'Driver2Runner.cpp'
 $RunnerExe = Join-Path $D2Bin 'Driver2Runner.exe'
 $ClientSrc = Join-Path $Driver2Root 'Driver2Client.cpp'
@@ -43,6 +46,14 @@ cl /nologo /c /kernel /GS- /W3 /D_AMD64_ /DAMD64 /DWIN64 /D_WIN64 /D_WIN32_WINNT
 if errorlevel 1 exit /b 1
 link /nologo /DRIVER /SUBSYSTEM:NATIVE /MACHINE:X64 /ENTRY:DriverEntry /OUT:"$Driver2Sys" ^
   "$PayloadObj" /LIBPATH:"$KitLib\km\x64" /LIBPATH:"$KitLib\ucrt\x64" ^
+  ntoskrnl.lib hal.lib BufferOverflowFastFailK.lib
+if errorlevel 1 exit /b 1
+cl /nologo /c /kernel /GS- /W3 /D_AMD64_ /DAMD64 /DWIN64 /D_WIN64 /D_WIN32_WINNT=0x0A00 /DDRIVER2_STOMP=1 ^
+  /I"$KitInclude\km" /I"$KitInclude\shared" /I"$KitInclude\ucrt" ^
+  /Fo"$StompObj" "$StompSrc"
+if errorlevel 1 exit /b 1
+link /nologo /DRIVER /SUBSYSTEM:NATIVE /MACHINE:X64 /ENTRY:StompThunkEntry /OUT:"$Driver2StompSys" ^
+  "$StompObj" /LIBPATH:"$KitLib\km\x64" /LIBPATH:"$KitLib\ucrt\x64" ^
   ntoskrnl.lib hal.lib BufferOverflowFastFailK.lib
 if errorlevel 1 exit /b 1
 cl /nologo /EHsc /std:c++17 /O2 /MT /W3 /D_WIN32_WINNT=0x0A00 ^
@@ -112,6 +123,7 @@ if ($BuildLoaders) {
 }
 
 Write-Host "[+] $Driver2Sys"
+Write-Host "[+] $Driver2StompSys"
 Write-Host "[+] $RunnerExe"
 Write-Host "[+] $ClientExe"
 if ($MirrorToByovdBin) { Write-Host "[+] Mirrored to $SharedBin" }

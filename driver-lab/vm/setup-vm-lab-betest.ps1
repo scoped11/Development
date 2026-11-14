@@ -4,7 +4,7 @@
 param(
     [ValidateSet('prove', 'ioctl', 'bypass')]
     [string]$Mode = 'bypass',
-    [ValidateSet('rust', 'r6')]
+    [ValidateSet('rust', 'r6', 'deltaforce', 'arenabreakout', 'arksa')]
     [string]$Profile = 'rust',
     [string]$Driver = 'rtcore',
     [switch]$ForceMap,
