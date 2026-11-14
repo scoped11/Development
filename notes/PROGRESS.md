@@ -1,5 +1,5 @@
 # Rob Run DMA Cheat — Progress Log (resume point)
-Last updated: 2026-11-14 — silent aim (LookDirection/ShotArgs DMA, camera unmoved), triggerbot, cham styles, freecam, leftover aim/ESP list. Dump `dumps\2026-11-14\`.
+Last updated: 2026-11-14 — dump `dumps\2026-11-14-v39` (c01ns Il2CppDumper v39.1). Offsets compared; TypeInfo/field constants unchanged.
 
 ## IDA usage protocol (user-specified — applies to THIS local model only: qwen3.8-27b, 32k ctx. Other/stronger AI models may parallelize.)
 1. One task at a time — no multiple background agents/subagents.
@@ -14,7 +14,7 @@ Dump Rob Run (Unity IL2CPP, metadata v39) → verify offsets via IDA MCP → bui
 ## Key paths
 - Game: `D:\SteamLibrary\steamapps\common\Rob Run` (GameAssembly.dll 147,842,560 B; global-metadata.dat v39; EasyAntiCheat, `start_protected_game.exe`)
 - Workspace: `C:\Development`
-- Fresh dump: `dumps\2026-11-14-c01ns-v39.1\` (wklin dump: `dumps\2026-11-14\`)
+- Fresh dump: `dumps\2026-11-14-v39\` (earlier c01ns: `dumps\2026-11-14-c01ns-v39.1\`; wklin: `dumps\2026-11-14\`)
 - Dumper (v39): `tools\il2cpp-dumper\Il2CppDumper.exe` (c01ns v39.1)
 - DMA source: `dma\`
 - Debug output (default): `debug\RobRunDMA.exe`

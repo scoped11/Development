@@ -155,6 +155,7 @@ bool RobRunSession::Initialize(const std::string&) {
     m_battleCamera.store(0);
     m_battleModel.store(0);
     m_cineBrain.store(0);
+    m_worldEntities.store(0);
     m_followPos.store(0);
     m_shotInput.store(0);
     m_fireFlag.store(0);
@@ -184,6 +185,7 @@ void RobRunSession::Shutdown() {
     m_battleCamera.store(0);
     m_battleModel.store(0);
     m_cineBrain.store(0);
+    m_worldEntities.store(0);
     m_followPos.store(0);
     m_shotInput.store(0);
     m_fireFlag.store(0);
@@ -344,7 +346,8 @@ uintptr_t RobRunSession::DictionaryObject(uintptr_t dict, int maxCount) const {
     return 0;
 }
 
-bool RobRunSession::ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out, int maxCount) const {
+bool RobRunSession::ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out, int maxCount,
+                                      const char* valueKlass) const {
     out.clear();
     dict = DictionaryObject(dict, maxCount);
     if (!dict) return false;
@@ -360,29 +363,94 @@ bool RobRunSession::ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out
     if (!IsPtr(entries)) return false;
     int length = mem.Read<int>(entries + offsets::il2cpp::Array_Length);
     if (length < count || length > 100000) return false;
+    // 100k * 0x18 is a multi-megabyte FPGA read. Cap to the live count.
+    const int walkLen = (std::min)(length, (std::max)(count * 2, 64));
 
-    auto walk = [&](uintptr_t stride, uintptr_t keyOff, uintptr_t valOff) {
-        const size_t bytes = static_cast<size_t>(length) * stride;
-        if (bytes == 0 || bytes > 8ull * 1024ull * 1024ull)
+    auto readI32 = [](const uint8_t* p) {
+        int v = 0;
+        memcpy(&v, p, sizeof(v));
+        return v;
+    };
+    auto readU64 = [](const uint8_t* p) {
+        uintptr_t v = 0;
+        memcpy(&v, p, sizeof(v));
+        return v;
+    };
+    auto klassOk = [&](uintptr_t value) {
+        if (!valueKlass || !valueKlass[0])
+            return true;
+        uintptr_t klass = 0;
+        return mem.ReadOk(value, klass) && MatchesKlassName(klass, valueKlass);
+    };
+
+    auto walk = [&](uintptr_t stride, uintptr_t keyOff, uintptr_t valOff, bool skipNegHash) {
+        if (valOff + sizeof(uintptr_t) > stride || keyOff + sizeof(int) > stride)
+            return;
+        const size_t bytes = static_cast<size_t>(walkLen) * stride;
+        if (bytes == 0 || bytes > 256ull * 1024ull)
             return;
         std::vector<uint8_t> raw(bytes);
         if (!mem.ReadRaw(entries + offsets::il2cpp::Array_First, raw.data(), bytes))
             return;
         out.clear();
         out.reserve(static_cast<size_t>(count));
-        for (int i = 0; i < length; ++i) {
+        for (int i = 0; i < walkLen; ++i) {
             const uint8_t* entry = raw.data() + static_cast<size_t>(i) * stride;
-            int hash = *reinterpret_cast<const int*>(entry + offsets::il2cpp::Entry_Hash);
-            if (hash < 0) continue;
-            int key = *reinterpret_cast<const int*>(entry + keyOff);
-            uintptr_t value = *reinterpret_cast<const uintptr_t*>(entry + valOff);
-            if (!IsPtr(value)) continue;
-            out.push_back({ key, value });
+            const int hash = readI32(entry + offsets::il2cpp::Entry_Hash);
+            if (skipNegHash && hash < 0)
+                continue;
+            const uintptr_t value = readU64(entry + valOff);
+            if (!IsPtr(value))
+                continue;
+            out.push_back({ readI32(entry + keyOff), value });
+            if (static_cast<int>(out.size()) >= count)
+                break;
         }
     };
-    walk(offsets::il2cpp::Entry_Stride, offsets::il2cpp::Entry_Key, offsets::il2cpp::Entry_Value);
+    walk(offsets::il2cpp::Entry_Stride, offsets::il2cpp::Entry_Key, offsets::il2cpp::Entry_Value, true);
     if (out.empty())
-        walk(0x20, 0x08, 0x18);
+        walk(0x20, 0x08, 0x18, true);
+    if (out.empty())
+        walk(offsets::il2cpp::Entry_Stride, offsets::il2cpp::Entry_Key, offsets::il2cpp::Entry_Value, false);
+    if (out.empty() && valueKlass && valueKlass[0]) {
+        const size_t bytes = (std::min)(static_cast<size_t>(walkLen) * 0x20ull, 256ull * 1024ull);
+        std::vector<uint8_t> raw(bytes);
+        if (mem.ReadRaw(entries + offsets::il2cpp::Array_First, raw.data(), bytes)) {
+            std::unordered_set<uintptr_t> seen;
+            std::vector<DictItem> cand;
+            for (size_t off = 0; off + 8 <= bytes && cand.size() < 128; off += 8) {
+                const uintptr_t value = readU64(raw.data() + off);
+                if (!IsPtr(value) || (value & 7ull) || !seen.insert(value).second)
+                    continue;
+                int key = 0;
+                if (off >= 8)
+                    key = readI32(raw.data() + off - 8);
+                cand.push_back({ key, value });
+            }
+            for (const auto& c : cand) {
+                if (!klassOk(c.value))
+                    continue;
+                out.push_back(c);
+                if (static_cast<int>(out.size()) >= count)
+                    break;
+            }
+        }
+    }
+    if (out.empty() && count > 0) {
+        static int dumpLogs = 0;
+        if (dumpLogs < 6) {
+            ++dumpLogs;
+            uint8_t head[32]{};
+            mem.ReadRaw(dict, head, sizeof(head));
+            uint8_t row[32]{};
+            mem.ReadRaw(entries + offsets::il2cpp::Array_First, row, sizeof(row));
+            Memory::Get().Log(
+                "[*] dict walk empty count=%d len=%d entries=0x%llx head=%02x%02x%02x%02x row=%02x%02x%02x%02x\n",
+                count, length, static_cast<unsigned long long>(entries),
+                head[0x10], head[0x11], head[0x12], head[0x13],
+                row[0], row[1], row[2], row[3]);
+        }
+    }
     return true;
 }
 
@@ -404,6 +472,7 @@ bool RobRunSession::EvaluateBattleEntities(uintptr_t object, BattleCandidate& re
         return false;
     if (!IsPtr(world))
         return false;
+    result.world = world;
 
     auto countOf = [&](uintptr_t dict, int maxCount) {
         uintptr_t live = DictionaryObject(dict, maxCount);
@@ -676,6 +745,10 @@ uintptr_t RobRunSession::BattleEntitiesFromGame(uintptr_t game) {
     return BattleEntitiesFromGameModel(gameModel);
 }
 
+bool RobRunSession::WorldReady(const BattleCandidate& candidate) const {
+    return candidate.characters > 0 || candidate.hasPlayer;
+}
+
 bool RobRunSession::LooksLikeGame(uintptr_t object, uintptr_t gameKlass) const {
     if (!IsPtr(object) || !gameKlass)
         return false;
@@ -684,7 +757,13 @@ bool RobRunSession::LooksLikeGame(uintptr_t object, uintptr_t gameKlass) const {
     if (!mem.ReadOk(object, header) || header != gameKlass)
         return false;
     uintptr_t gameModel = 0;
-    return mem.ReadOk(object + offsets::game::GameModel, gameModel) && IsPtr(gameModel);
+    if (!mem.ReadOk(object + offsets::game::GameModel, gameModel) || !IsPtr(gameModel))
+        return false;
+    uintptr_t gmKlass = 0;
+    if (!mem.ReadOk(gameModel, gmKlass) || !IsPtr(gmKlass))
+        return false;
+    return MatchesKlassName(gmKlass, "GameModel") ||
+           IsNamedKlass(gmKlass, "GameModel", "Game");
 }
 
 uintptr_t RobRunSession::FindGameViaStatics(uintptr_t gameKlass) {
@@ -705,43 +784,98 @@ uintptr_t RobRunSession::FindGameViaStatics(uintptr_t gameKlass) {
 }
 
 
+uintptr_t RobRunSession::GameFromNativeComponent(uintptr_t nativeComp, uintptr_t gameKlass) const {
+    if (!IsPtr(nativeComp) || !gameKlass)
+        return 0;
+    auto& mem = Memory::Get();
+    static constexpr uintptr_t kManagedOffs[] = {
+        offsets::game_object::ManagedFallback,
+        offsets::game_object::ManagedHandle,
+        offsets::game_object::CachedPtr,
+        0x20, 0x30, 0x38, 0x40, 0x48, 0x50,
+    };
+    auto asManaged = [&](uintptr_t raw) -> uintptr_t {
+        if (!raw)
+            return 0;
+        const uintptr_t p = raw & ~7ull;
+        return IsPtr(p) ? p : 0;
+    };
+    for (uintptr_t managedOff : kManagedOffs) {
+        uintptr_t raw = 0;
+        if (!mem.ReadOk(nativeComp + managedOff, raw))
+            continue;
+        const uintptr_t managed = asManaged(raw);
+        if (!managed)
+            continue;
+        uintptr_t header = 0;
+        if (!mem.ReadOk(managed, header))
+            continue;
+        if (header == gameKlass && LooksLikeGame(managed, gameKlass))
+            return managed;
+        if (MatchesKlassName(header, "UnityEntry")) {
+            uintptr_t game = 0;
+            if (mem.ReadOk(managed + offsets::unity_entry::Game, game) &&
+                LooksLikeGame(game, gameKlass))
+                return game;
+        }
+        uintptr_t game = 0;
+        if (!mem.ReadOk(managed + offsets::unity_entry::Game, game) || !IsPtr(game))
+            continue;
+        if (LooksLikeGame(game, gameKlass))
+            return game;
+    }
+    return 0;
+}
+
 uintptr_t RobRunSession::GameFromNativeGameObject(uintptr_t nativeGo, uintptr_t gameKlass) const {
     if (!IsPtr(nativeGo) || !gameKlass)
         return 0;
     auto& mem = Memory::Get();
-    int count = 0;
-    uintptr_t comps = 0;
-    mem.ReadOk(nativeGo + offsets::game_object::ComponentCount, count);
-    mem.ReadOk(nativeGo + offsets::game_object::Components, comps);
-    if (!IsPtr(comps))
-        return 0;
-    if (count < 1 || count > 64)
-        count = 8;
-    static constexpr uintptr_t kManagedOffs[] = {
-        offsets::game_object::ManagedFallback,
-        offsets::game_object::ManagedHandle,
-        0x10, 0x30, 0x38, 0x40,
-    };
-    for (int i = 0; i < count; ++i) {
-        uintptr_t nativeComp = 0;
-        if (!mem.ReadOk(comps + static_cast<uintptr_t>(i) * offsets::game_object::ComponentStride
-                            + offsets::game_object::ComponentPointer,
-                        nativeComp) ||
-            !IsPtr(nativeComp))
-            continue;
-        for (uintptr_t managedOff : kManagedOffs) {
-            uintptr_t managed = 0;
-            if (!mem.ReadOk(nativeComp + managedOff, managed) || !IsPtr(managed))
-                continue;
-            uintptr_t header = 0;
-            if (mem.ReadOk(managed, header) && header == gameKlass)
-                return managed;
-            uintptr_t game = 0;
-            if (!mem.ReadOk(managed + offsets::unity_entry::Game, game) || !IsPtr(game))
-                continue;
-            if (mem.ReadOk(game, header) && header == gameKlass)
+
+    auto walkArray = [&](uintptr_t arrayPtr, int n) -> uintptr_t {
+        if (!IsPtr(arrayPtr))
+            return 0;
+        if (n < 1 || n > 64)
+            n = 16;
+        for (int i = 0; i < n; ++i) {
+            uintptr_t nativeComp = 0;
+            mem.ReadOk(arrayPtr + static_cast<uintptr_t>(i) * offsets::game_object::ComponentStride
+                           + offsets::game_object::ComponentPointer,
+                       nativeComp);
+            if (const uintptr_t game = GameFromNativeComponent(nativeComp, gameKlass))
                 return game;
         }
+        return 0;
+    };
+
+    uintptr_t slot20 = 0;
+    uintptr_t slot30 = 0;
+    int count38 = 0;
+    mem.ReadOk(nativeGo + offsets::game_object::ComponentsAlt, slot20);
+    mem.ReadOk(nativeGo + offsets::game_object::Components, slot30);
+    mem.ReadOk(nativeGo + offsets::game_object::ComponentCount, count38);
+
+    if (IsPtr(slot30)) {
+        int n = count38;
+        if (n < 1 || n > 64)
+            n = 16;
+        if (const uintptr_t game = walkArray(slot30, n))
+            return game;
+        if (const uintptr_t game = GameFromNativeComponent(slot30, gameKlass))
+            return game;
+    }
+    if (IsPtr(slot20)) {
+        int n = 16;
+        if (!IsPtr(slot30) && count38 > 0 && count38 <= 64)
+            n = count38;
+        else {
+            int altCount = 0;
+            mem.ReadOk(nativeGo + offsets::game_object::ComponentCountAlt, altCount);
+            if (altCount > 0 && altCount <= 64)
+                n = altCount;
+        }
+        if (const uintptr_t game = walkArray(slot20, n))
+            return game;
     }
     return 0;
 }
@@ -757,13 +891,19 @@ uintptr_t RobRunSession::GameFromNativeGameObjects(const std::vector<uintptr_t>&
     const size_t n = (std::min)(nativeGos.size(), size_t{96});
     std::vector<int> count(n, 0);
     std::vector<uintptr_t> comps(n, 0);
+    std::vector<uintptr_t> compsAlt(n, 0);
     for (size_t i = 0; i < n; ++i) {
         if (!IsPtr(nativeGos[i]))
             continue;
         sc.Prepare(nativeGos[i] + offsets::game_object::ComponentCount, &count[i]);
         sc.Prepare(nativeGos[i] + offsets::game_object::Components, &comps[i]);
+        sc.Prepare(nativeGos[i] + offsets::game_object::ComponentsAlt, &compsAlt[i]);
     }
     sc.Execute();
+    for (size_t i = 0; i < n; ++i) {
+        if (!IsPtr(comps[i]) && IsPtr(compsAlt[i]))
+            comps[i] = compsAlt[i];
+    }
 
     std::vector<uintptr_t> nativeComp(n * static_cast<size_t>(kMaxComp), 0);
     for (size_t i = 0; i < n; ++i) {
@@ -803,6 +943,8 @@ uintptr_t RobRunSession::GameFromNativeGameObjects(const std::vector<uintptr_t>&
         }
     }
     sc.Execute();
+    for (size_t i = 0; i < managedN; ++i)
+        managed[i] &= ~7ull;
 
     std::vector<uintptr_t> header(managedN, 0);
     std::vector<uintptr_t> gameField(managedN, 0);
@@ -854,6 +996,8 @@ uintptr_t RobRunSession::FindGameViaGom(uintptr_t gameKlass) {
         return 0;
     auto& mem = Memory::Get();
     if (mem.MotionBurstDepth() > 0)
+        return 0;
+    if (m_inGame.load() && IsPtr(m_battleEntities.load()))
         return 0;
     if (!mem.UnityPlayerBase())
         mem.EnsureUnityPlayer();
@@ -910,23 +1054,15 @@ uintptr_t RobRunSession::FindGameViaGom(uintptr_t gameKlass) {
         }
         return 0;
     };
-    static bool classicTried = false;
-    if (!classicTried) {
-        classicTried = true;
-        if (const uintptr_t game = walkClassic(gomSlot))
+    if (const uintptr_t game = walkClassic(gomSlot))
+        return game;
+    if (gomPtr) {
+        if (const uintptr_t game = walkClassic(gomPtr))
             return game;
-        if (gomPtr) {
-            if (const uintptr_t game = walkClassic(gomPtr))
-                return game;
-        }
     }
 
     if (!gomPtr)
         return 0;
-    static bool hashTried = false;
-    if (hashTried)
-        return 0;
-    hashTried = true;
 
     uint8_t head[0x28]{};
     if (!mem.ReadRaw(gomPtr, head, sizeof(head)))
@@ -971,7 +1107,21 @@ uintptr_t RobRunSession::FindGameViaGom(uintptr_t gameKlass) {
                 const int hash = *reinterpret_cast<const int*>(e);
                 if (hash == offsets::gom::EmptyHash || hash == offsets::gom::DeletedHash)
                     continue;
-                pushGo(*reinterpret_cast<const uintptr_t*>(e + offsets::gom::NodeObject));
+                const uintptr_t slot =
+                    *reinterpret_cast<const uintptr_t*>(e + offsets::gom::EntryList);
+                pushGo(slot);
+                if (!IsPtr(slot))
+                    continue;
+                uintptr_t node = 0;
+                uintptr_t go = 0;
+                mem.ReadOk(slot + offsets::gom::ListFirst, node);
+                mem.ReadOk(slot + offsets::gom::NodeObject, go);
+                pushGo(go);
+                if (IsPtr(node)) {
+                    uintptr_t nested = 0;
+                    mem.ReadOk(node + offsets::gom::NodeObject, nested);
+                    pushGo(nested);
+                }
             }
         }
         if (const uintptr_t game = tryGos())
@@ -1016,13 +1166,50 @@ uintptr_t RobRunSession::FindGameViaGom(uintptr_t gameKlass) {
     }
     if (const uintptr_t game = tryGos())
         return game;
-    static bool logged = false;
-    if (!logged) {
-        logged = true;
+    static auto lastMiss = std::chrono::steady_clock::time_point{};
+    const auto nowMiss = std::chrono::steady_clock::now();
+    if (lastMiss.time_since_epoch().count() == 0 ||
+        nowMiss - lastMiss > std::chrono::seconds(3)) {
+        lastMiss = nowMiss;
         mem.Log("[*] GOM miss ptr=0x%llx buckets=0x%llx live=%d entries=%zu\n",
                 static_cast<unsigned long long>(gomPtr),
                 static_cast<unsigned long long>(buckets),
                 liveCount, entries);
+    }
+    return 0;
+}
+
+uintptr_t RobRunSession::FindGameViaHeap(uintptr_t gameKlass) {
+    if (!gameKlass)
+        return 0;
+    auto& mem = Memory::Get();
+    if (mem.MotionBurstDepth() > 0)
+        return 0;
+    if (m_inGame.load() && IsPtr(m_battleEntities.load()))
+        return 0;
+    const auto now = std::chrono::steady_clock::now();
+    if (m_gameHeapRetry.time_since_epoch().count() != 0 &&
+        now - m_gameHeapRetry < std::chrono::milliseconds(280))
+        return 0;
+    m_gameHeapRetry = now;
+
+    uintptr_t needle = gameKlass;
+    const auto hits = mem.SearchHeap(&needle, sizeof(needle), 8, 16, true, 40);
+    for (uintptr_t hit : hits) {
+        if (!LooksLikeGame(hit, gameKlass))
+            continue;
+        std::cout << "[+] Game @ 0x" << std::hex << hit << std::dec
+                  << " via Game klass heap\n" << std::flush;
+        mem.Log("[+] Game @ 0x%llx via Game klass heap\n",
+                static_cast<unsigned long long>(hit));
+        return hit;
+    }
+    static auto lastLog = std::chrono::steady_clock::time_point{};
+    if (lastLog.time_since_epoch().count() == 0 ||
+        now - lastLog > std::chrono::seconds(2)) {
+        lastLog = now;
+        std::cout << "[*] Game GC hits=" << hits.size()
+                  << " klass=0x" << std::hex << gameKlass << std::dec << "\n" << std::flush;
     }
     return 0;
 }
@@ -1044,6 +1231,11 @@ uintptr_t RobRunSession::FindGameObject() {
         cached = 0;
     }
 
+    // Live match already has BattleEntities. GOM/heap here held the FPGA
+    // long enough that CachePositions aged out and SNAP sat at 1000ms.
+    if (m_inGame.load() && IsPtr(m_battleEntities.load()))
+        return 0;
+
     // Game+0xD0 → GameModel+0x10 → BattleModel+0x90 / +0x358. No heap scan.
     // Game lives on UnityEntry+0x28; UnityPlayer GOM slot is a fixed RVA.
     if (const uintptr_t viaStatics = FindGameViaStatics(klass)) {
@@ -1064,11 +1256,20 @@ uintptr_t RobRunSession::FindGameObject() {
         return viaGom;
     }
 
+    const uintptr_t viaHeap = FindGameViaHeap(klass);
+    if (viaHeap) {
+        m_gameObject.store(viaHeap);
+        BattleEntitiesFromGame(viaHeap);
+        return viaHeap;
+    }
+
     return 0;
 }
 
 bool RobRunSession::CommitBattleWorld(const BattleCandidate& best, const char* source) {
     const uintptr_t prevBattle = m_battleEntities.exchange(best.address);
+    if (IsPtr(best.world))
+        m_worldEntities.store(best.world);
     if (prevBattle != best.address) {
         ++m_battleEpoch;
         m_mapTransition.store(true);
@@ -1090,7 +1291,6 @@ bool RobRunSession::CommitBattleWorld(const BattleCandidate& best, const char* s
                           static_cast<unsigned long long>(best.address), source,
                           best.characters);
     }
-    m_inGame = true;
     SetStatus("In match");
     Splash::SetDetail("World locked. ESP draws from BattleCharacters; lens is BattleCamera or pawn.");
     TryBindShoulderCamera();
@@ -1182,39 +1382,74 @@ bool RobRunSession::FindBattleEntities() {
         BattleCandidate candidate;
         if (!EvaluateBattleEntities(object, candidate))
             return false;
+        if (!WorldReady(candidate))
+            return false;
         return CommitBattleWorld(candidate, source);
     };
 
     uintptr_t current = m_battleEntities.load();
     if (current) {
         BattleCandidate selected;
-        if (EvaluateBattleEntities(current, selected) &&
-            (selected.characters > 0 || selected.hasPlayer)) {
+        if (EvaluateBattleEntities(current, selected) && WorldReady(selected)) {
             m_battleEvalFails = 0;
             m_inGame = true;
             TryBindShoulderCamera();
             return true;
         }
+        ++m_battleEvalFails;
+        if (m_battleEvalFails < 12) {
+            m_inGame = true;
+            TryBindShoulderCamera();
+            return true;
+        }
+        Memory::Get().Log("[*] dropping BattleEntities 0x%llx after %d empty evals\n",
+                          static_cast<unsigned long long>(current), m_battleEvalFails);
+        m_battleEntities.store(0);
+        m_worldEntities.store(0);
+        m_inGame = false;
+        current = 0;
+        m_battleEvalFails = 0;
     }
 
-    // Always re-read Game → BattleModel+0x90. A menu stub BattleEntities still
-    // "evaluates" with 0 characters and would otherwise stick after load-in.
     ResolveGameKlass();
     const uintptr_t game = FindGameObject();
     const uintptr_t chained = game ? BattleEntitiesFromGame(game) : 0;
+
     if (tryCommit(chained, "game-chain"))
         return true;
 
-    {
+    if (chained) {
+        char detail[180];
+        snprintf(detail, sizeof(detail),
+                 "Game 0x%llx   waiting for BattleCharacters at world+0x18",
+                 static_cast<unsigned long long>(game));
+        SetStatus("In menu");
+        Splash::SetDetail(detail);
+        TryBindShoulderCamera();
+        return false;
+    }
+
+    if (!game) {
         auto& mem = Memory::Get();
-        const int sliceMs = 200;
+        if (mem.MotionBurstDepth() > 0)
+            return false;
+        static auto lastBeHeap = std::chrono::steady_clock::time_point{};
+        const auto nowBe = std::chrono::steady_clock::now();
+        if (lastBeHeap.time_since_epoch().count() != 0 &&
+            nowBe - lastBeHeap < std::chrono::milliseconds(280)) {
+            SetStatus("Chasing Game instance (GOM / klass heap)");
+            return false;
+        }
+        lastBeHeap = nowBe;
         if (m_battleKlass) {
             uintptr_t needle = m_battleKlass;
-            const auto hits = mem.SearchHeap(&needle, sizeof(needle), 8, 24, true, sliceMs);
+            const auto hits = mem.SearchHeap(&needle, sizeof(needle), 8, 16, true, 40);
             BattleCandidate best;
             for (uintptr_t hit : hits) {
                 BattleCandidate candidate;
                 if (!EvaluateBattleEntities(hit, candidate))
+                    continue;
+                if (!WorldReady(candidate))
                     continue;
                 if (candidate.score > best.score)
                     best = candidate;
@@ -1233,39 +1468,17 @@ bool RobRunSession::FindBattleEntities() {
         }
     }
 
-    current = m_battleEntities.load();
-    if (current && current != chained) {
-        BattleCandidate selected;
-        if (EvaluateBattleEntities(current, selected)) {
-            m_battleEvalFails = 0;
-            return true;
-        }
-        if (++m_battleEvalFails < 12)
-            return true;
-        std::cout << "[*] BattleEntities moved, chasing Game chain again\n";
-        m_battleEntities.store(0);
-        m_mapTransition.store(true);
-        m_battleEvalFails = 0;
-    }
-
     m_inGame = false;
     m_espReady.store(false);
     if (game && !chained) {
         SetStatus("Game locked — waiting for BattleModel world (BattleEntities+0x90)");
         Splash::SetDetail("Game instance is live. Match world appears at BattleModel+0x90.");
-    } else if (game) {
-        char detail[180];
-        snprintf(detail, sizeof(detail),
-                 "Game 0x%llx   camera BattleModel+0x358   players BattleEntities+0x90",
-                 static_cast<unsigned long long>(game));
-        SetStatus("In menu");
-        Splash::SetDetail(detail);
     } else if (!Memory::Get().GetModuleBase("UnityPlayer.dll")) {
         SetStatus("Waiting for UnityPlayer.dll");
         Splash::SetDetail("UnityPlayer.dll is not in the module map yet");
     } else if (ResolveGameKlass()) {
-        SetStatus("Chasing UnityEntry.Game via GOM");
-        Splash::SetDetail("Game class is known. Walking UnityPlayer GameObjectManager for UnityEntry+0x28.");
+        SetStatus("Chasing Game instance (GOM / klass heap)");
+        Splash::SetDetail("Game class is known. GOM walk plus Game-klass heap bind UnityEntry._game.");
     } else {
         SetStatus("Waiting for Game TypeInfo");
         Splash::SetDetail("Game TypeInfo slot has not resolved");
@@ -1547,7 +1760,7 @@ void RobRunSession::ReadSkeleton(uintptr_t character, GameEntity& entity) const 
     }
 }
 
-bool RobRunSession::ResolveCharacter(uintptr_t character, GameEntity& entity) const {
+bool RobRunSession::ResolveCharacter(uintptr_t character, GameEntity& entity, bool withBones) const {
     auto& mem = Memory::Get();
     entity.address = character;
     entity.creationIndex = mem.Read<int>(character + offsets::character::Id);
@@ -1662,7 +1875,8 @@ bool RobRunSession::ResolveCharacter(uintptr_t character, GameEntity& entity) co
         uintptr_t idPrim = mem.Read<uintptr_t>(vehicle + offsets::in_vehicle::EntityId);
         entity.vehicleIdAddr = PrimitiveValueAddress(idPrim);
     }
-    ReadSkeleton(character, entity);
+    if (withBones)
+        ReadSkeleton(character, entity);
     if (!entity.deadAddr) {
         uintptr_t deadModel = mem.Read<uintptr_t>(character + offsets::character::IsDead);
         entity.deadAddr = ModelValueAddress(deadModel);
@@ -1693,8 +1907,10 @@ void RobRunSession::CacheGlobals() {
         }
     }
     if (!FindBattleEntities()) {
-        m_inGame = false;
-        m_mapTransition.store(true);
+        if (!IsPtr(m_battleEntities.load())) {
+            m_inGame = false;
+            m_mapTransition.store(true);
+        }
         if (m_gameAssemblyPriorBuild &&
             offsets::IsPriorGameAssemblySize(m_gameAssemblySize) &&
             !m_battleEntities.load()) {
@@ -1714,41 +1930,51 @@ void RobRunSession::CacheGlobals() {
         mem.EndDiscoveryBurst();
         return;
     }
-    m_inGame = true;
-    if (m_mapTransition.exchange(false)) {
-        CacheActors();
-        Memory::Get().BeginMotionBurst();
-        CachePositions();
-        Memory::Get().EndMotionBurst();
-        std::cout << "[+] Instant refresh: actors + positions after map change\n" << std::flush;
+    bool actorsEmpty = false;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        actorsEmpty = m_actors.empty();
     }
+    if (m_mapTransition.exchange(false) || actorsEmpty)
+        CacheActors();
+    m_inGame = true;
     mem.EndDiscoveryBurst();
 }
 
 void RobRunSession::CacheActors() {
     uintptr_t battle = m_battleEntities.load();
-    if (!m_inGame || !battle) return;
+    if (!battle) return;
+    static std::mutex s_actorsGate;
+    std::unique_lock<std::mutex> gate(s_actorsGate, std::try_to_lock);
+    if (!gate.owns_lock())
+        return;
     auto& mem = Memory::Get();
+    const bool withBones = !m_actors.empty();
+    Memory::Get().Log("[*] CacheActors battle=0x%llx bones=%d\n",
+                      static_cast<unsigned long long>(battle), withBones ? 1 : 0);
 
-    uintptr_t world = mem.Read<uintptr_t>(battle + offsets::battle_entities::WorldEntities);
+    uintptr_t world = 0;
+    mem.ReadOk(battle + offsets::battle_entities::WorldEntities, world);
+    if (!IsPtr(world))
+        world = m_worldEntities.load();
     uintptr_t slotsModel = mem.Read<uintptr_t>(battle + offsets::battle_entities::CharacterSlots);
     uintptr_t playerEnt = mem.Read<uintptr_t>(battle + offsets::battle_entities::Player);
-    {
-        static uintptr_t lastWorldLog = 0;
-        if (world != lastWorldLog) {
-            lastWorldLog = world;
-            std::cout << "[*] CacheActors battle=0x" << std::hex << battle
-                      << " world=" << (IsPtr(world) ? world : 0)
-                      << " player=" << (IsPtr(playerEnt) ? playerEnt : 0)
-                      << std::dec << "\n" << std::flush;
-        }
-    }
+    Memory::Get().Log("[*] world=0x%llx player=0x%llx\n",
+                      static_cast<unsigned long long>(IsPtr(world) ? world : 0),
+                      static_cast<unsigned long long>(IsPtr(playerEnt) ? playerEnt : 0));
+    if (!IsPtr(world))
+        return;
 
     uintptr_t localCharacter = 0;
     int localId = -1;
     if (IsPtr(playerEnt)) {
         localCharacter = mem.Read<uintptr_t>(playerEnt + offsets::player_entity::ServerModel);
         localId = mem.Read<int>(playerEnt + offsets::player_entity::Id);
+        Memory::Get().Log("[*] local id=%d char=0x%llx\n", localId,
+                          static_cast<unsigned long long>(localCharacter));
+        if (!withBones) {
+            // First pass walks BattleCharacters next; client/recoil wait.
+        } else {
         uintptr_t client = mem.Read<uintptr_t>(playerEnt + offsets::player_entity::ClientModel);
         uintptr_t pos = 0;
         uintptr_t lookQuat = 0;
@@ -1834,6 +2060,7 @@ void RobRunSession::CacheActors() {
         }
         m_fireFlag.store(fireFlag);
         CacheSilentAim(localCharacter);
+        }
     } else {
         m_clientPos.store(0);
         m_clientLookQuat.store(0);
@@ -1857,7 +2084,7 @@ void RobRunSession::CacheActors() {
     std::unordered_map<int, std::string> clans;
     std::unordered_map<int, int64_t> publicIds;
     std::unordered_map<int64_t, std::string> clanByPublic;
-    if (IsPtr(slotsModel)) {
+    if (withBones && IsPtr(slotsModel)) {
         uintptr_t slotDict = mem.Read<uintptr_t>(slotsModel + offsets::slots::ByEntityId);
         std::vector<DictItem> slots;
         if (ReadIntDictionary(slotDict, slots, 128)) {
@@ -1932,6 +2159,31 @@ void RobRunSession::CacheActors() {
         }
     };
 
+    std::unordered_set<uintptr_t> boneOk;
+    if (withBones) {
+        const int cap = (std::clamp)(Config::Get().general.maxBonePlayers, 4, 12);
+        Vector3 origin{};
+        std::vector<std::pair<float, uintptr_t>> rank;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            origin = m_localPlayer.position;
+            for (const auto& e : m_actors) {
+                if (e.type != EntityType::Player)
+                    continue;
+                float d = origin.IsValid() ? e.DistanceTo(origin) : 0.f;
+                rank.push_back({ d, e.address });
+            }
+        }
+        std::sort(rank.begin(), rank.end());
+        for (int i = 0; i < cap && i < static_cast<int>(rank.size()); ++i)
+            boneOk.insert(rank[i].second);
+        if (IsPtr(localCharacter))
+            boneOk.insert(localCharacter);
+    }
+    auto wantBones = [&](uintptr_t character) {
+        return withBones && boneOk.count(character) && mem.MotionBurstDepth() == 0;
+    };
+
     auto addCharacter = [&](int key, uintptr_t character, bool requireKlass) {
         if (!IsPtr(character)) return;
         for (const auto& existing : actors) {
@@ -1961,7 +2213,9 @@ void RobRunSession::CacheActors() {
                                    phase.find("revive") != std::string::npos;
             }
             bindPresence(character, entity);
-            if (entity.boneData && entity.boneBytes > 0 && entity.boneBytes <= 4096) {
+            if (wantBones(character) && (!entity.boneData || entity.boneFloats.empty()))
+                ReadSkeleton(character, entity);
+            if (wantBones(character) && entity.boneData && entity.boneBytes > 0 && entity.boneBytes <= 4096) {
                 entity.boneFloats.resize(static_cast<size_t>(entity.boneBytes / sizeof(float)));
                 if (!mem.ReadRaw(entity.boneData, entity.boneFloats.data(),
                                  static_cast<size_t>(entity.boneBytes)))
@@ -1977,7 +2231,7 @@ void RobRunSession::CacheActors() {
             if (ReadKlassName(klass) != "BattleCharacterModel") return;
         }
         GameEntity entity;
-        if (!ResolveCharacter(character, entity)) return;
+        if (!ResolveCharacter(character, entity, wantBones(character))) return;
         entity.creationIndex = key > 0 ? key : entity.creationIndex;
         entity.isLocalPlayer = (character == localCharacter) || (key == localId && localId > 0);
         auto nameIt = names.find(entity.creationIndex);
@@ -1995,14 +2249,22 @@ void RobRunSession::CacheActors() {
     constexpr int kMaxBattlePlayers = 300;
     auto addCharacterDict = [&](uintptr_t dict, bool requireKlass) {
         std::vector<DictItem> characters;
+        Memory::Get().Log("[*] addCharacterDict 0x%llx\n",
+                          static_cast<unsigned long long>(dict));
         uintptr_t live = DictionaryObject(dict, kMaxBattlePlayers);
         const int listed = live ? mem.Read<int>(live + offsets::il2cpp::Dict_Count) : -1;
-        if (!ReadIntDictionary(dict, characters, kMaxBattlePlayers)) {
-            std::cout << "[*] character dict failed count=" << listed << "\n" << std::flush;
+        Memory::Get().Log("[*] addCharacterDict live=0x%llx listed=%d\n",
+                          static_cast<unsigned long long>(live), listed);
+        if (!ReadIntDictionary(dict, characters, kMaxBattlePlayers, "BattleCharacterModel")) {
+            Memory::Get().Log("[*] character dict failed count=%d\n", listed);
             return;
         }
-        if (characters.empty() && listed > 0)
-            std::cout << "[*] character dict count=" << listed << " walked=0\n" << std::flush;
+        if (characters.empty() && listed > 0) {
+            Memory::Get().Log("[*] character dict count=%d walked=0\n", listed);
+        } else if (listed > 0) {
+            Memory::Get().Log("[+] character dict count=%d walked=%zu\n",
+                              listed, characters.size());
+        }
         for (const auto& item : characters)
             addCharacter(item.key, item.value, requireKlass);
     };
@@ -2016,7 +2278,10 @@ void RobRunSession::CacheActors() {
         }
     };
     if (IsPtr(world)) {
-        addCharacterDict(mem.Read<uintptr_t>(world + offsets::world::BattleCharacters), false);
+        uintptr_t charDict = mem.Read<uintptr_t>(world + offsets::world::BattleCharacters);
+        Memory::Get().Log("[*] BattleCharacters dict=0x%llx\n",
+                          static_cast<unsigned long long>(charDict));
+        addCharacterDict(charDict, false);
         addCharacterDict(mem.Read<uintptr_t>(world + offsets::world::NotSpawnedCharacters), false);
     }
     {
@@ -2025,7 +2290,7 @@ void RobRunSession::CacheActors() {
             if (e.type == EntityType::Player)
                 ++playersNow;
         }
-        if (playersNow == 0) {
+        if (playersNow == 0 && withBones) {
             addBattleCharactersFromModels(
                 mem.Read<uintptr_t>(battle + offsets::battle_entities::Models));
             addBattleCharactersFromModels(
@@ -2070,9 +2335,8 @@ void RobRunSession::CacheActors() {
         static int lastReady = -1;
         if (readyPlayers != lastReady) {
             lastReady = readyPlayers;
-            std::cout << "[+] Overlay live. players=" << readyPlayers
-                      << " local=" << (IsPtr(localCharacter) ? "yes" : "no")
-                      << "\n" << std::flush;
+            Memory::Get().Log("[+] Overlay live. players=%d local=%s\n",
+                              readyPlayers, IsPtr(localCharacter) ? "yes" : "no");
         }
 
         const auto& espCfg = Config::Get().esp;
@@ -2084,12 +2348,18 @@ void RobRunSession::CacheActors() {
             (radarCfg.enabled && (radarCfg.showItems || radarCfg.showVehicles ||
                                   radarCfg.showContainers || radarCfg.showGrenades));
         static bool firstPlayerPass = true;
-        const bool skipExtras = (firstPlayerPass && readyPlayers > 0) || !extras;
+        static auto lastExtras = std::chrono::steady_clock::time_point{};
+        const auto nowExtras = std::chrono::steady_clock::now();
+        const bool extrasDue = lastExtras.time_since_epoch().count() == 0 ||
+            nowExtras - lastExtras > std::chrono::milliseconds(250);
+        const bool skipExtras = firstPlayerPass || !extras || !extrasDue ||
+            mem.MotionBurstDepth() > 0;
         if (readyPlayers > 0)
             firstPlayerPass = false;
         if (skipExtras) {
             // Players already published. World extras wait until the next actor tick.
         } else {
+        lastExtras = nowExtras;
 
         uintptr_t vehicleDict = mem.Read<uintptr_t>(world + offsets::world::Vehicles);
         std::vector<DictItem> vehicles;
@@ -3014,6 +3284,8 @@ void RobRunSession::CacheActors() {
     }
 
     AttachRenderedViews(actors);
+    if (mem.MotionBurstDepth() == 0)
+        WriteMaterialChams(actors);
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_actors = std::move(actors);
@@ -3021,6 +3293,14 @@ void RobRunSession::CacheActors() {
 }
 
 void RobRunSession::AttachRenderedViews(std::vector<GameEntity>& actors) {
+    if (Memory::Get().MotionBurstDepth() > 0)
+        return;
+    static auto lastViews = std::chrono::steady_clock::time_point{};
+    const auto nowViews = std::chrono::steady_clock::now();
+    if (lastViews.time_since_epoch().count() != 0 &&
+        nowViews - lastViews < std::chrono::milliseconds(200))
+        return;
+    lastViews = nowViews;
     for (auto& e : actors)
         e.renderedPos = e.renderedHeadPos = 0;
 
@@ -3162,8 +3442,13 @@ void RobRunSession::CachePositions() {
     std::string status;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        actors = m_actors;
         status = m_status;
+        actors.reserve(64);
+        for (const auto& e : m_actors) {
+            if (e.type == EntityType::Player || e.type == EntityType::Vehicle ||
+                e.type == EntityType::Grenade || e.isLocalPlayer)
+                actors.push_back(e);
+        }
     }
     if (actors.empty()) {
         CameraData camera;
@@ -3498,11 +3783,6 @@ void RobRunSession::CachePositions() {
         }
     }
 
-    for (auto& e : actors) {
-        if (e.type == EntityType::Player && e.boneCount >= 2 && !e.boneFloats.empty())
-            CacheSkeletonPose(e);
-    }
-
     for (const auto& e : actors) {
         if (e.isLocalPlayer && e.isEnabled) {
             local = e;
@@ -3564,7 +3844,6 @@ void RobRunSession::CachePositions() {
         camera.valid = camera.viewInfo.location.IsValid() && camera.viewInfo.hasAxes;
     }
     ApplyFreecamCamera(camera);
-    WriteMaterialChams(actors);
 
     {
         Vector3 clientBody{
@@ -3619,13 +3898,6 @@ void RobRunSession::CachePositions() {
                   << camera.viewInfo.location.y << ","
                   << camera.viewInfo.location.z << ")\n" << std::flush;
     }
-
-    int enabledPlayers = 0;
-    for (const auto& a : actors) {
-        if (a.type == EntityType::Player && a.isEnabled && !a.isLocalPlayer)
-            ++enabledPlayers;
-    }
-    Config::AutoTuneWorkersForEsp(enabledPlayers, true);
 
     actors.erase(std::remove_if(actors.begin(), actors.end(), [](const GameEntity& e) {
         if (e.isLocalPlayer || e.hidingInProp || e.isHidden)

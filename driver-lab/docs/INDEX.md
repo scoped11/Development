@@ -11,6 +11,7 @@
 | `../../byovd/docs/15_test_ac_replicas.md` | Replica prove / ioctl / **bypass** |
 | `../../byovd/docs/05_existing_bypass_catalog.md` | IOCTL & mapper flags |
 | `../../byovd/docs/STOMP_BYPASS.md` | Image-backed `Driver2Stomp` + VM dry-run |
+| `../../byovd/docs/CI_BLOCKAGE.md` | **CI wall (577 / 3004)** and the method we use (stomp, not graft/`sc start`) |
 | `../vm/bg/README.md` | DriverLab-E elevated worker + hang notes |
 
 ## Research (bible)

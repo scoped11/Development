@@ -613,7 +613,7 @@ namespace {
             g.updateRateGlobals, g.updateRateActors, g.updateRatePositions,
             g.skeletonRefreshMs, g.maxBonePlayers);
         ImGui::SliderInt("Globals ms", &g.updateRateGlobals, 100, 5000);
-        ImGui::SliderInt("Positions ms", &g.updateRatePositions, 1, 8);
+        ImGui::SliderInt("Positions ms", &g.updateRatePositions, 8, 50);
         ImGui::SliderInt("Skeleton ms", &g.skeletonRefreshMs, 1, 200);
         ImGui::SliderInt("Actors ms", &g.updateRateActors, 8, 500);
         ImGui::SliderInt("Scatter chunk", &g.scatterMaxPrepares, 128, 2048);

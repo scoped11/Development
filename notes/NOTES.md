@@ -56,11 +56,11 @@ Workspace: `C:\Development`
 - Source: `dma\`
 - Debug overlay: `debug\RobRunDMA.exe` (default)
 - Approved overlay: `build\` — empty until `-Section Build -IApprove`
-- Dump: `dumps\2026-11-14-c01ns-v39.1\` (metadata v39; GameAssembly `0x8FDC000`)
+- Dump: `dumps\2026-11-14-v39\` (c01ns v39.1, metadata v39; GameAssembly `0x8FDC000`)
 - Dumper: `tools\il2cpp-dumper\` (c01ns v39.1). Old wklin dump kept at `dumps\2026-11-14\`
 - TypeInfo `BattleEntitiesModel = 0x81D46B0`; GameAssembly `0x8FDC000`
 - Feature list + silent-aim write path: `dma\README.md`
-- Field notes: `dumps\2026-11-14-c01ns-v39.1\OFFSET_REPORT.md`
+- Field notes: `dumps\2026-11-14-v39\OFFSET_REPORT.md`
 
 Silent aim is **not** a `UserCmd` patch. `ShotArgsSystem` consumes `LookDirectionModel` + `ShotInterpolationModel` and stores the ray on `ShotArgsModel.Direction`. Overlay writes those over DMA and leaves `CharacterRotationModel` (camera) alone. Memory aim still writes client yaw/pitch.
 

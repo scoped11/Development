@@ -17,6 +17,7 @@ struct VictimImage {
     uint32_t image_size = 0;
     uint64_t preferred_base = 0;
     uint32_t text_rva = 0, text_vsize = 0, text_raw_ptr = 0, text_raw_size = 0;
+    uint32_t section_align = 0x1000;
     uint32_t text_used_high_rva = 0;   // last RVA with live code in .text (CC-run heuristic)
     std::vector<uint8_t> raw;
     std::vector<DeadFunc> all_funcs;   // CC-bounded regions in .text
@@ -32,9 +33,11 @@ struct StompPlan {
     uint32_t thunk_rva = 0;
     uint32_t payload_rva = 0;
     uint32_t payload_size = 0;
+    uint32_t header_skip = 0;
 };
 
 uint32_t PeSizeOfImage(const std::vector<uint8_t>& payloadFile);
+uint32_t PeSizeOfHeaders(const std::vector<uint8_t>& payloadFile);
 
 bool LookupVictimDosName(const wchar_t* shortName, std::wstring& moduleName, std::wstring& dosName);
 /// Core storage/filter stack — placement may succeed but live patch often bugchecks (0x3B).

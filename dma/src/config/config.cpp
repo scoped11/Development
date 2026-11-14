@@ -46,17 +46,23 @@ void Config::AutoTuneWorkersForEsp(int enabledPlayers, bool inMatch) {
     if (enabledPlayers < 0)
         enabledPlayers = 0;
     auto& g = s_config.general;
-    g.updateRatePositions = 1;
-    g.skeletonRefreshMs = 8;
     g.overlayVsync = false;
+    // SNAP is camera.AgeMs(). A 1ms position period with extras/bones on the
+    // same FPGA tick overruns to ~1000ms the moment anyone moves.
     if (inMatch) {
+        if (g.updateRatePositions < 8 || g.updateRatePositions > 50)
+            g.updateRatePositions = 16;
         g.updateRateGlobals = 300;
-        g.updateRateActors = 8;
-        g.maxBonePlayers = (std::clamp)(enabledPlayers, 8, 16);
-        g.scatterMaxPrepares = 256;
+        if (g.updateRateActors < 32)
+            g.updateRateActors = 40;
+        if (g.skeletonRefreshMs < 32)
+            g.skeletonRefreshMs = 50;
+        g.maxBonePlayers = (std::clamp)(enabledPlayers > 0 ? (std::min)(enabledPlayers, 8) : 8, 4, 12);
+        g.scatterMaxPrepares = 128;
     } else {
         g.updateRateGlobals = 50;
-        g.updateRateActors = 8;
+        if (g.updateRateActors < 16)
+            g.updateRateActors = 16;
         g.maxBonePlayers = 8;
         g.scatterMaxPrepares = 64;
     }

@@ -4,7 +4,9 @@ Status: **[in-tree, lab]** — engine + `Driver2Stomp.sys` build; **dry-run / li
 
 ## Current focus (2026-11-14 — what we are doing now)
 
-Two parallel tracks on **DriverLab-E-26200**; both are lab-only.
+**CI blockage and the method we use:** `CI_BLOCKAGE.md`. Graft / `sc start` of a new image is blocked (**577** / event **3004**). We do **not** fight that with a fake cert table. We stomp into an already-trusted loaded victim (Track A).
+
+Two parallel tracks on **DriverLab-E-26200**; both are lab-only. Track B is measurement only.
 
 | Track | Goal | Guest entry | Trust on real CI |
 |-------|------|-------------|------------------|
@@ -14,7 +16,11 @@ Two parallel tracks on **DriverLab-E-26200**; both are lab-only.
 **Active engineering right now**
 
 1. **Stomp:** `PlacementRegionStrict` — dead cluster or `0xCC` only; no `PlanSafeSpan` / tail fallback on live map. Guest plan winner: **`wcifs`** (`cluster_rva=0x4028`, `need=0x1400`, build `d0d8e4ff…`). VM order unchanged: stop mock AC → map → `Driver2Client` probe → start mock AC → probe again.
-2. **Graft:** `driver-lab/vm/offline/Add-AuthenticodeGraft.ps1` + guest runner. Host identity test **Valid** on `wcifs` copy. On guest, first full run hit worker **exit 124** (180s timeout, likely slow `Get-AuthenticodeSignature` on large replica sources) — **not a BSOD**. Re-run with **`-SkipVerify`** (wcifs lane only); use **`-IncludeReplica`** when you explicitly want the EAC→VmLabDrv `HashMismatch` demo.
+2. **Graft vs cloned AC — load then flag (2026-11-14 13:53, job `2d85ea1be564`):** `sc start` grafted images **first**, then start ACE/BE. JSON: `driver-lab/vm/bg/graft-load-then-ac.json`.
+   - **Foreign** `VmLabDrv.eac-grafted.sys` → **StartService 577** + Code Integrity **3004** (file hash not found). Never entered the kernel. ACE/BE had nothing resident to scan. No ACE/BE log hits naming the graft.
+   - **Identity** `wcifs.grafted.sys` / `GraftId.sys` → **StartService 2** (cannot double-load wcifs). No CI 3004.
+   - Lab `VmLabDrv.sys` also **577** / CI 3004 on this guest.
+   - **ACE-BASE** + **ACE-ADVT** stayed **RUNNING** through the failed loads. **ACE-GAME** still self-stops (`win32=31`) with no game. Cloned ACs did **not** emit a local flag; **Windows CI** blocked the foreign graft.
 
 **BSOD log on guest this session (do not confuse with graft timeout)**
 

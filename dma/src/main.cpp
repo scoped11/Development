@@ -224,16 +224,17 @@ void PositionWorker() {
     Memory::Get().SetMotionThread(true);
     while (g_running) {
         int& rateMs = Config::Get().general.updateRatePositions;
-        if (rateMs < 1 || rateMs > 8) rateMs = 1;
+        if (rateMs < 8) rateMs = 8;
+        if (rateMs > 50) rateMs = 50;
         const auto period = std::chrono::milliseconds(rateMs);
         const auto start = std::chrono::steady_clock::now();
         if (Memory::Get().IsConnected() && g_session.IsInGame()) {
             g_crashStage = "CachePositions";
             Memory::Get().BeginMotionBurst();
             g_session.CachePositions();
+            Memory::Get().EndMotionBurst();
             g_session.WriteFreecam();
             g_session.ServiceMemoryAim();
-            Memory::Get().EndMotionBurst();
             g_session.ApplyGun();
             g_crashStage = "PositionWorker sleep";
         }

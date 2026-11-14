@@ -974,7 +974,10 @@ std::vector<uintptr_t> Memory::SearchHeap(const void* pattern, size_t size, size
     const auto now = std::chrono::steady_clock::now();
     if (g_motionBurst.load(std::memory_order_acquire) > 0)
         return hits;
-    if (cur->regions.empty() || now - cur->built > std::chrono::seconds(90)) {
+
+    static std::vector<Region> sharedRegions;
+    static std::chrono::steady_clock::time_point sharedBuilt{};
+    if (sharedRegions.empty() || now - sharedBuilt > std::chrono::seconds(90)) {
         std::vector<Region> regions;
         PVMMDLL_MAP_VAD pVad = nullptr;
         DWORD totalVad = 0;
@@ -1045,49 +1048,50 @@ std::vector<uintptr_t> Memory::SearchHeap(const void* pattern, size_t size, size
         });
         if (regions.size() > 120)
             regions.resize(120);
-        const uintptr_t oldVa = cur->va;
-        cur->regions = std::move(regions);
-        cur->built = now;
-        cur->regionIdx = 0;
-        cur->va = cur->regions.empty() ? 0 : cur->regions[0].start;
-        for (size_t i = 0; i < cur->regions.size(); ++i) {
-            if (oldVa >= cur->regions[i].start && oldVa < cur->regions[i].end) {
-                cur->regionIdx = i;
-                cur->va = oldVa;
-                break;
-            }
+        sharedRegions = std::move(regions);
+        sharedBuilt = now;
+        for (auto& slot : cursors) {
+            slot.regions.clear();
+            slot.regionIdx = 0;
+            slot.va = 0;
+            slot.built = {};
         }
         static int loggedRegions = 0;
         if (loggedRegions < 8) {
             ++loggedRegions;
             Log("[*] heap VADs %zu of %u sparse-drop %u",
-                cur->regions.size(), totalVad, sparseDrop);
-            for (size_t i = 0; i < cur->regions.size() && i < 6; ++i)
+                sharedRegions.size(), totalVad, sparseDrop);
+            for (size_t i = 0; i < sharedRegions.size() && i < 6; ++i)
                 Log(" [%zu] 0x%llx %zuKB c=%u", i,
-                    static_cast<unsigned long long>(cur->regions[i].start),
-                    cur->regions[i].bytes / 1024, cur->regions[i].commit);
+                    static_cast<unsigned long long>(sharedRegions[i].start),
+                    sharedRegions[i].bytes / 1024, sharedRegions[i].commit);
             Log("\n");
-            std::cout << "[*] heap VADs " << cur->regions.size() << " of " << totalVad
+            std::cout << "[*] heap VADs " << sharedRegions.size() << " of " << totalVad
                       << " sparse-drop " << sparseDrop;
-            for (size_t i = 0; i < cur->regions.size() && i < 4; ++i)
-                std::cout << " [" << i << "] 0x" << std::hex << cur->regions[i].start
-                          << std::dec << "/" << (cur->regions[i].bytes / 1024) << "KB";
+            for (size_t i = 0; i < sharedRegions.size() && i < 4; ++i)
+                std::cout << " [" << i << "] 0x" << std::hex << sharedRegions[i].start
+                          << std::dec << "/" << (sharedRegions[i].bytes / 1024) << "KB";
             std::cout << "\n" << std::flush;
         }
+    }
+    if (cur->regions.empty()) {
+        cur->regions = sharedRegions;
+        cur->built = sharedBuilt;
+        cur->regionIdx = 0;
+        cur->va = cur->regions.empty() ? 0 : cur->regions[0].start;
     }
     if (cur->regions.empty())
         return hits;
 
     hits.reserve(maxResults);
-    // 256KB is one FPGA transaction that finishes in a few milliseconds.
-    // A 2MB NOCACHE read cannot be cancelled, so the 120ms deadline never
-    // ran and the position thread sat on the lock until SNAP hit ~1000ms.
-    const size_t kWindow = timeoutMs >= 40 ? 0x80000ull : 0x40000ull;
+    // 64KB is cancellable. 512KB NOCACHE reads were what pinned SNAP at 1000ms
+    // because the deadline is only checked after VMMDLL_MemReadEx returns.
+    const size_t kWindow = 0x10000ull;
     std::vector<uint8_t> buf(kWindow);
     if (timeoutMs <= 0)
         timeoutMs = gcOnly ? 12 : 8;
-    if (timeoutMs > 250)
-        timeoutMs = 250;
+    if (timeoutMs > 80)
+        timeoutMs = 80;
     const auto deadline = now + std::chrono::milliseconds(timeoutMs);
     size_t idx = cur->regionIdx;
     uintptr_t va = cur->va ? cur->va : cur->regions[idx].start;
@@ -1240,7 +1244,7 @@ ScatterHandle& Memory::BorrowScatter() {
     if (!t_dmaMotion)
         chunk = (std::min)(chunk, 64);
     else
-        chunk = (std::min)(chunk, 256);
+        chunk = (std::min)(chunk, 128);
     handle.SetMaxQueued(chunk);
     return handle;
 }

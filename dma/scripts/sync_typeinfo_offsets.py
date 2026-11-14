@@ -57,7 +57,7 @@ def patch_offsets_h(meta: dict[str, int], ga_size: int, dump_dir: Path) -> list[
 
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     text = re.sub(
-        r"// Dump: dumps/[^\n]+",
+        r"// Dump: [^\n]+",
         f"// Dump: {dump_dir.name} (Il2CppDumper, metadata v39). "
         f"Synced {stamp} UTC. GameAssembly SizeOfImage {ga_size:#x}.",
         text,

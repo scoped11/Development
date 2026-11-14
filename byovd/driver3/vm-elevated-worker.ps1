@@ -3,5 +3,6 @@ $ErrorActionPreference = 'Continue'
 $bg = 'Z:\driver-lab\vm\bg\worker.ps1'
 if (-not (Test-Path $bg)) { $bg = 'C:\DriverLab\bg\worker.ps1' }
 if (-not (Test-Path $bg)) { exit 0 }
-& $bg
+Copy-Item -LiteralPath $bg -Destination 'C:\DriverLab\bg\worker.ps1' -Force -ErrorAction SilentlyContinue
+& $bg -Loop
 exit $LASTEXITCODE

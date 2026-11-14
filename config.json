@@ -1,0 +1,359 @@
+{
+    "assist": {
+        "acProfile": "robrun",
+        "aim": {
+            "aimKey": 2,
+            "aimKey2": 0,
+            "deadzone": 2.0,
+            "drawFov": true,
+            "dynamicFov": true,
+            "enabled": false,
+            "fov": 120.0,
+            "fovMin": 40.0,
+            "leadMs": 45.0,
+            "leadPx": 4.0,
+            "lockAimKey": false,
+            "maxDistance": 400.0,
+            "memoryAim": true,
+            "noRecoil": false,
+            "noSpread": false,
+            "noSway": false,
+            "prediction": true,
+            "priorityMode": 0,
+            "silentAim": false,
+            "smooth": 1.0,
+            "smoothMode": 0,
+            "targetChest": true,
+            "targetHead": true,
+            "targetKnocked": false,
+            "targetLock": true,
+            "targetNeck": false,
+            "targetPelvis": false,
+            "targetStomach": false,
+            "teamCheck": true,
+            "triggerDelayMax": 45.0,
+            "triggerDelayMin": 20.0,
+            "triggerKey": 0,
+            "triggerTeamCheck": true,
+            "triggerVisibleOnly": true,
+            "triggerbot": false,
+            "visibleOnly": false
+        },
+        "autoConnect": false,
+        "comPort": 0,
+        "hidBcdDevice": "0110",
+        "hidManufacturer": "Logitech",
+        "hidPid": "c547",
+        "hidPreset": "logitech_lightspeed_c547",
+        "hidProduct": "USB Receiver",
+        "hidSerial": "",
+        "hidVid": "046d"
+    },
+    "esp": {
+        "atmColour": {
+            "a": 1.0,
+            "b": 0.44999998807907104,
+            "g": 0.8999999761581421,
+            "r": 0.3499999940395355
+        },
+        "baseClan": true,
+        "baseColour": {
+            "a": 1.0,
+            "b": 0.699999988079071,
+            "g": 0.4000000059604645,
+            "r": 1.0
+        },
+        "baseHasLootOnly": false,
+        "baseHideRaidLocked": false,
+        "baseHideUnsettled": false,
+        "baseMine": true,
+        "baseOthers": true,
+        "basePanel": true,
+        "baseRaidableOnly": false,
+        "boxStyle": 0,
+        "cameraColour": {
+            "a": 1.0,
+            "b": 0.25,
+            "g": 0.8500000238418579,
+            "r": 0.949999988079071
+        },
+        "cargoColour": {
+            "a": 1.0,
+            "b": 0.25,
+            "g": 0.699999988079071,
+            "r": 0.949999988079071
+        },
+        "chamStyle": 1,
+        "civilianColour": {
+            "a": 1.0,
+            "b": 0.7799999713897705,
+            "g": 0.8199999928474426,
+            "r": 0.8199999928474426
+        },
+        "clanBaseColour": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 1.0,
+            "r": 0.0
+        },
+        "containerColour": {
+            "a": 1.0,
+            "b": 0.949999988079071,
+            "g": 0.7799999713897705,
+            "r": 0.550000011920929
+        },
+        "copColour": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 0.4000000059604645,
+            "r": 0.0
+        },
+        "deadColour": {
+            "a": 0.5,
+            "b": 0.4000000059604645,
+            "g": 0.4000000059604645,
+            "r": 0.4000000059604645
+        },
+        "deathBagColour": {
+            "a": 1.0,
+            "b": 0.15000000596046448,
+            "g": 0.44999998807907104,
+            "r": 0.949999988079071
+        },
+        "drawAimLines": false,
+        "drawArmor": true,
+        "drawBoxes": true,
+        "drawChams": true,
+        "drawDistance": true,
+        "drawFragRadius": true,
+        "drawHealth": true,
+        "drawNames": true,
+        "drawOffscreen": true,
+        "drawSkeleton": true,
+        "drawSnaplines": false,
+        "enabled": true,
+        "grenadeColour": {
+            "a": 1.0,
+            "b": 0.699999988079071,
+            "g": 0.4000000059604645,
+            "r": 1.0
+        },
+        "hideDead": false,
+        "hideKnocked": false,
+        "hideTeam": false,
+        "itemColour": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 1.0,
+            "r": 1.0
+        },
+        "lethalGrenadeColour": {
+            "a": 1.0,
+            "b": 0.18000000715255737,
+            "g": 0.25,
+            "r": 1.0
+        },
+        "lootAmmo": true,
+        "lootMeds": true,
+        "lootOther": true,
+        "lootValuables": true,
+        "lootWeapons": true,
+        "materialChams": true,
+        "maxDistanceBases": 800.0,
+        "maxDistanceCameras": 250.0,
+        "maxDistanceContainers": 120.0,
+        "maxDistanceGrenades": 200.0,
+        "maxDistanceItems": 200.0,
+        "maxDistanceMobs": 300.0,
+        "maxDistancePlayers": 500.0,
+        "maxDistanceTeam": 800.0,
+        "maxDistanceVehicles": 500.0,
+        "minItemValue": 0.0,
+        "mobColour": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 0.5,
+            "r": 1.0
+        },
+        "myBaseColour": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 1.0,
+            "r": 0.0
+        },
+        "offscreenCops": true,
+        "offscreenDead": false,
+        "offscreenRobbers": true,
+        "offscreenScaleDistance": true,
+        "offscreenTeammates": true,
+        "openDoorWarning": true,
+        "playerColour": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 1.0,
+            "r": 1.0
+        },
+        "prisonerColour": {
+            "a": 1.0,
+            "b": 0.20000000298023224,
+            "g": 0.550000011920929,
+            "r": 0.8500000238418579
+        },
+        "raidAlerts": true,
+        "robberColour": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 0.0,
+            "r": 1.0
+        },
+        "safeColour": {
+            "a": 1.0,
+            "b": 0.20000000298023224,
+            "g": 0.75,
+            "r": 0.8999999761581421
+        },
+        "settlerColour": {
+            "a": 1.0,
+            "b": 0.550000011920929,
+            "g": 0.8199999928474426,
+            "r": 0.3499999940395355
+        },
+        "showAtm": true,
+        "showBases": true,
+        "showBeard": true,
+        "showCameras": true,
+        "showCargo": true,
+        "showCivilians": true,
+        "showContainerContents": true,
+        "showContainers": true,
+        "showCops": true,
+        "showDeathBags": true,
+        "showEmptyContainers": false,
+        "showGender": true,
+        "showGrenades": true,
+        "showGunIcons": true,
+        "showHair": true,
+        "showHiddenPlayers": true,
+        "showHideSpots": true,
+        "showItemValues": true,
+        "showItems": true,
+        "showLethalGrenades": true,
+        "showMobs": false,
+        "showOutfit": true,
+        "showPlayers": true,
+        "showPoliceUniform": true,
+        "showRobbers": true,
+        "showSafes": true,
+        "showTacticalGrenades": true,
+        "showVaults": true,
+        "showVehicles": true,
+        "tacticalGrenadeColour": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 0.7799999713897705,
+            "r": 0.3499999940395355
+        },
+        "teamColour": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 1.0,
+            "r": 0.0
+        },
+        "teamEsp": true,
+        "vaultColour": {
+            "a": 1.0,
+            "b": 0.15000000596046448,
+            "g": 0.550000011920929,
+            "r": 0.949999988079071
+        },
+        "vehicleColour": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 1.0,
+            "r": 0.0
+        },
+        "visibleOnly": false
+    },
+    "general": {
+        "freeCam": false,
+        "freeCamSpeed": 12.0,
+        "fullscreenOverlay": true,
+        "fuserMode": false,
+        "gameScreenHeight": 0,
+        "gameScreenWidth": 0,
+        "overlayMonitor": 0,
+        "overlayVsync": false,
+        "processName": "ROB RUN.exe",
+        "serverDashboard": true,
+        "streamProof": false,
+        "widgets": true
+    },
+    "radar": {
+        "arrowBlips": true,
+        "backgroundColour": {
+            "a": 0.8500000238418579,
+            "b": 0.10000000149011612,
+            "g": 0.05000000074505806,
+            "r": 0.05000000074505806
+        },
+        "bigRadar": false,
+        "containerColour": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 0.0,
+            "r": 0.699999988079071
+        },
+        "enabled": false,
+        "follow": true,
+        "grenadeColour": {
+            "a": 1.0,
+            "b": 0.699999988079071,
+            "g": 0.4000000059604645,
+            "r": 1.0
+        },
+        "itemColour": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 1.0,
+            "r": 1.0
+        },
+        "localColour": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 1.0,
+            "r": 1.0
+        },
+        "mobColour": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 0.5,
+            "r": 1.0
+        },
+        "playerColour": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 0.0,
+            "r": 1.0
+        },
+        "posX": -1.0,
+        "posY": -1.0,
+        "roleColours": true,
+        "rotateWithCamera": true,
+        "showBases": true,
+        "showCameras": true,
+        "showContainers": true,
+        "showGrenades": true,
+        "showItems": true,
+        "showMobs": true,
+        "showPlayers": true,
+        "showVehicles": true,
+        "size": 300.0,
+        "vehicleColour": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 1.0,
+            "r": 0.0
+        },
+        "zoom": 1.0
+    }
+}

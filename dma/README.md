@@ -4,7 +4,7 @@ FPGA/VMMDLL overlay for Rob Run. Offsets are **compiled into the exe** (`src/gam
 
 ESP / aim world-to-screen uses **BattleCameraModel** (`BattleModel+0x358`): world position plus Forward/Right/Up of the **shoulder lens**. The pawn look quaternion is not the camera. Cinemachine brain pose is not used (that parked boxes in the sky). ESP is invalid until that shoulder pose is live.
 
-Dump used: `dumps/2026-11-14/` (GameAssembly `0x8FDC000`).
+Dump used: `dumps/2026-11-14-v39/` (c01ns Il2CppDumper v39.1, metadata v39, GameAssembly `0x8FDC000`).
 
 ## Features (2026-11-14)
 
@@ -73,7 +73,7 @@ Minimap, zoom, size, X/Y position (`-1` = default corner), rotate with camera, a
 | `src/core/memory.cpp` | VMM attach, GameAssembly pin |
 | `src/features/*` | ESP, radar, aimbot, HUD |
 | `src/render/*` | DX11 overlay, menu, splash |
-| `../dumps/2026-11-14/OFFSET_REPORT.md` | TypeInfo RVAs + overlay field notes |
+| `../dumps/2026-11-14-v39/OFFSET_REPORT.md` | TypeInfo RVAs + overlay field notes |
 
 ## Build
 

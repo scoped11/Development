@@ -4,7 +4,7 @@
 // ============================================================================
 // ROB RUN (Unity IL2CPP) — offsets
 //
-// Dump: 2026-11-14-c01ns-v39.1 (c01ns Il2CppDumper v39.1, metadata v39).
+// Dump: dumps/2026-11-14-v39 (c01ns Il2CppDumper v39.1, metadata v39).
 // Synced 2026-11-14 UTC. GameAssembly SizeOfImage 0x8fdc000.
 // Steam buildid 26615022. PE SizeOfImage 0x8FDC000. Getters rechecked on the live DLL:
 //   Game.get_GameModel                         0x904DA0  [rcx+0xD0]
@@ -206,13 +206,20 @@ namespace offsets {
     }
 
     namespace game_object {
-        constexpr uintptr_t Components = 0x20;
-        constexpr uintptr_t ComponentCount = 0x30;
+        // Native GameObject. Coopyy / Unity Mono: dynamic_array data at +0x30,
+        // size at +0x38, first component pointer at data+0x8 (stride 0x10).
+        // Unity 6000 still uses that array; +0x20/+0x30 is the older probe.
+        constexpr uintptr_t Components = 0x30;
+        constexpr uintptr_t ComponentCount = 0x38;
+        constexpr uintptr_t ComponentsAlt = 0x20;
+        constexpr uintptr_t ComponentCountAlt = 0x30;
         constexpr uintptr_t Name = 0x50;
         constexpr uintptr_t ComponentStride = 0x10;
         constexpr uintptr_t ComponentPointer = 0x08;
+        constexpr uintptr_t CachedPtr = 0x10; // managed UnityEngine.Object.m_CachedPtr
         constexpr uintptr_t ManagedHandle = 0x18;
         constexpr uintptr_t ManagedFallback = 0x28;
+        constexpr uintptr_t NativeGameObject = 0x30; // native Component → GameObject
     }
 
     namespace unity_entry {

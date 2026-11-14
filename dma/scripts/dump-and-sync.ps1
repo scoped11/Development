@@ -71,6 +71,8 @@ if (-not (Test-Path (Join-Path $out "script.json"))) {
 
 Write-Host "[*] Syncing TypeInfo RVAs into dma\src\game\offsets.h"
 python (Join-Path $PSScriptRoot "sync_typeinfo_offsets.py") --dump-dir $out
+Write-Host "[*] Comparing offsets.h against dump.cs"
+python (Join-Path $PSScriptRoot "validate_offsets_against_dump.py") (Join-Path $out "dump.cs")
 
 if (-not $SkipBuild) {
   Write-Host "[*] Rebuilding debug/ only (build/ requires -IApprove)"

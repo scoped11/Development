@@ -167,11 +167,11 @@ struct GeneralConfig {
     std::string processName = "ROB RUN.exe";
     // Filled by ApplyRecommendedPipeline / AutoTuneWorkersForEsp. Not user knobs.
     int updateRateGlobals   = 200;
-    int updateRateActors    = 8;
-    int updateRatePositions = 1;
-    int skeletonRefreshMs   = 1;
-    int scatterMaxPrepares  = 768;
-    int maxBonePlayers      = 96;
+    int updateRateActors    = 40;
+    int updateRatePositions = 16;
+    int skeletonRefreshMs   = 50;
+    int scatterMaxPrepares  = 128;
+    int maxBonePlayers      = 8;
     bool overlayVsync       = true;
     bool streamProof        = false;
     // false = transparent DWM overlay (click-through until INSERT).

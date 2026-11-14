@@ -38,6 +38,7 @@ public:
 private:
     struct BattleCandidate {
         uintptr_t address = 0;
+        uintptr_t world = 0;
         int characters = -1;
         int waiting = -1;
         int models = -1;
@@ -65,6 +66,9 @@ private:
     uintptr_t FindGameViaStatics(uintptr_t gameKlass);
     bool LooksLikeGame(uintptr_t object, uintptr_t gameKlass) const;
     uintptr_t FindGameViaGom(uintptr_t gameKlass);
+    uintptr_t FindGameViaHeap(uintptr_t gameKlass);
+    bool WorldReady(const BattleCandidate& candidate) const;
+    uintptr_t GameFromNativeComponent(uintptr_t nativeComp, uintptr_t gameKlass) const;
     uintptr_t GameFromNativeGameObject(uintptr_t nativeGo, uintptr_t gameKlass) const;
     uintptr_t GameFromNativeGameObjects(const std::vector<uintptr_t>& nativeGos,
                                         uintptr_t gameKlass) const;
@@ -86,9 +90,10 @@ private:
         uintptr_t value = 0;
     };
     uintptr_t DictionaryObject(uintptr_t dict, int maxCount) const;
-    bool ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out, int maxCount) const;
+    bool ReadIntDictionary(uintptr_t dict, std::vector<DictItem>& out, int maxCount,
+                           const char* valueKlass = nullptr) const;
 
-    bool ResolveCharacter(uintptr_t character, GameEntity& entity) const;
+    bool ResolveCharacter(uintptr_t character, GameEntity& entity, bool withBones = true) const;
     void ReadSkeleton(uintptr_t character, GameEntity& entity) const;
     bool ResolveVectorPosition(uintptr_t primitive, GameEntity& entity) const;
     bool ResolveTransform(uintptr_t transform, GameEntity& entity) const;
@@ -115,6 +120,7 @@ private:
     uintptr_t m_gameKlass = 0;
     std::chrono::steady_clock::time_point m_gameKlassAt{};
     std::chrono::steady_clock::time_point m_gameSearchRetry{};
+    std::chrono::steady_clock::time_point m_gameHeapRetry{};
     int m_battleEvalFails = 0;
     std::atomic<uintptr_t> m_battleEntities{ 0 };
     std::atomic<uintptr_t> m_clientPos{ 0 };
@@ -142,6 +148,7 @@ private:
     std::atomic<uintptr_t> m_battleCamera{ 0 };
     std::atomic<uintptr_t> m_battleModel{ 0 };
     std::atomic<uintptr_t> m_cineBrain{ 0 };
+    std::atomic<uintptr_t> m_worldEntities{ 0 };
     uintptr_t m_lootKlass = 0;
 
     std::atomic<bool> m_inGame{ false };
