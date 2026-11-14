@@ -34,15 +34,16 @@
 
 ## 2. References (URLs)
 
-- wklin8607/Il2CppDumper (chosen dumper, active fork): https://github.com/wklin8607/Il2CppDumper
-- Original (stagnant, v39 issues open): https://github.com/Perfare/Il2CppDumper (issues #891, #892 = "metadata 39 not yet reverse engineered" — but the wklin fork has since added support; verify by running)
+- c01ns/Il2CppDumper v39.1 (current): https://github.com/c01ns/Il2CppDumper/releases/tag/v39.1
+- Perfare/Il2CppDumper (stagnant): https://github.com/Perfare/Il2CppDumper (issues #891/#892 — metadata 39 not supported)
+- roytu PR adding v35–v39: https://github.com/Perfare/Il2CppDumper/pull/903
 - Il2CppInspectorRedux: https://github.com/LukeFZ/Il2CppInspectorRedux
 - Cpp2IL releases: https://github.com/SamboyCoding/Cpp2IL/releases
 - IDA MCP: configured via `opencode.json` → `ida` server.
 
 ## 3. Plan
 
-1. **Dump** metadata v39 → `dump\` with v6.7.48. Verify class/method dumps succeed.
+1. **Dump** metadata v39 with c01ns v39.1. Image lines must show numeric typeStart, not `Il2CppDumper.TypeDefinitionIndex`.
 2. **Identify game structs** from `dump.cs` / `DummyDll`: `Player`, `Character`, `Transform` (position/rotation), `Camera`, health, etc. (Rob Run specific).
 3. **Verify offsets via IDA Pro MCP**: cross-reference dumped field offsets + method addresses against the decompiled/IDA DB; find base pointers (e.g., `UnityEngine::Object`, camera, local player) for a working DMA read chain.
 4. **Build SDK**: C++ struct definitions mirroring the dumped types (from `generate-struct.h` / `dump.cs`).
@@ -55,11 +56,11 @@ Workspace: `C:\Development`
 - Source: `dma\`
 - Debug overlay: `debug\RobRunDMA.exe` (default)
 - Approved overlay: `build\` — empty until `-Section Build -IApprove`
-- Dump: `dumps\2026-11-14\` (metadata v39; GameAssembly `0x8FDC000`)
-- Dumper: `tools\il2cpp-dumper\` (wklin 6.7.48)
+- Dump: `dumps\2026-11-14-c01ns-v39.1\` (metadata v39; GameAssembly `0x8FDC000`)
+- Dumper: `tools\il2cpp-dumper\` (c01ns v39.1). Old wklin dump kept at `dumps\2026-11-14\`
 - TypeInfo `BattleEntitiesModel = 0x81D46B0`; GameAssembly `0x8FDC000`
 - Feature list + silent-aim write path: `dma\README.md`
-- Field notes: `dumps\2026-11-14\OFFSET_REPORT.md`
+- Field notes: `dumps\2026-11-14-c01ns-v39.1\OFFSET_REPORT.md`
 
 Silent aim is **not** a `UserCmd` patch. `ShotArgsSystem` consumes `LookDirectionModel` + `ShotInterpolationModel` and stores the ray on `ShotArgsModel.Direction`. Overlay writes those over DMA and leaves `CharacterRotationModel` (camera) alone. Memory aim still writes client yaw/pitch.
 

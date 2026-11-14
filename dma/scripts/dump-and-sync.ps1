@@ -55,7 +55,7 @@ if ($PSBoundParameters.ContainsKey('DummyDll') -and -not $DummyDll) { $dummy = "
 }
 "@ | Set-Content -Path $cfg -Encoding UTF8
 
-Write-Host "[*] Dumping to $out with $dumper"
+Write-Host "[*] Dumping to $out with c01ns Il2CppDumper v39.1 ($dumper)"
 Push-Location $out
 try {
   & $dumper $ga $meta $out

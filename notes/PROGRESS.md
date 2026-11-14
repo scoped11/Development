@@ -14,8 +14,8 @@ Dump Rob Run (Unity IL2CPP, metadata v39) → verify offsets via IDA MCP → bui
 ## Key paths
 - Game: `D:\SteamLibrary\steamapps\common\Rob Run` (GameAssembly.dll 147,842,560 B; global-metadata.dat v39; EasyAntiCheat, `start_protected_game.exe`)
 - Workspace: `C:\Development`
-- Fresh dump: `dumps\2026-11-14\` (prior: `dumps\2026-11-12\`)
-- Dumper (v39): `tools\il2cpp-dumper\Il2CppDumper.exe` (wklin 6.7.48)
+- Fresh dump: `dumps\2026-11-14-c01ns-v39.1\` (wklin dump: `dumps\2026-11-14\`)
+- Dumper (v39): `tools\il2cpp-dumper\Il2CppDumper.exe` (c01ns v39.1)
 - DMA source: `dma\`
 - Debug output (default): `debug\RobRunDMA.exe`
 - Approved output: `build\` — empty until `-Section Build -IApprove`
