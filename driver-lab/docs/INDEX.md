@@ -11,7 +11,6 @@
 | `../../byovd/docs/15_test_ac_replicas.md` | Replica prove / ioctl / **bypass** |
 | `../../byovd/docs/05_existing_bypass_catalog.md` | IOCTL & mapper flags |
 | `../../byovd/docs/STOMP_BYPASS.md` | Image-backed `Driver2Stomp` + VM dry-run |
-| `31_signed_module_replica.md` | Replica lane: victim disk stays Microsoft-signed (no graft) |
 | `../vm/bg/README.md` | DriverLab-E elevated worker + hang notes |
 
 ## Research (bible)
@@ -34,7 +33,7 @@
 | `27_vm_bypass_confidence.md` | VM **L2/L3** pass gates — EAC/BE parity (not live guarantee) |
 | `28_otl_trusted_load_method.md` | **OTL** — Ordered Trust Load (sign → load → client → AC) |
 | `29_labforge_method.md` | **LabForge** — lab CA Authenticode (not MS countersign, not Corsair) |
-| `31_signed_module_replica.md` | Replica + borrowed identity (victim stays Microsoft-signed on disk) |
+| `31_signed_module_replica.md` | Replica lane: victim disk stays Microsoft-signed (**no graft**; guest pass not recorded) |
 | `../vm/README.md` | Headless **DriverLab-E-26200** VirtualBox lab |
 
 | Doc / script | Action |
