@@ -1,0 +1,50 @@
+[
+    {
+        "File":  "BEService.exe",
+        "Bytes":  29005032,
+        "SHA256":  "DD3D72DF4E9866C2E02D64460ED86AE170334133A78C98A8574B2BD94BA1DCD0",
+        "SigStatus":  0,
+        "Signer":  "CN=BattlEye Innovations e.K., O=BattlEye Innovations e.K., L=Reutlingen, S=Baden-Württemberg, C=DE, SERIALNUMBER=HRA 731472, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.1=Stuttgart, OID.1.3.6.1.4.1.311.60.2.1.2=Baden-Württemberg, OID.1.3.6.1.4.1.311.60.2.1.3=DE",
+        "Source":  "C:\\Program Files (x86)\\Common Files\\BattlEye\\BEService.exe"
+    },
+    {
+        "File":  "BEService_unturned.exe",
+        "Bytes":  29005032,
+        "SHA256":  "DD3D72DF4E9866C2E02D64460ED86AE170334133A78C98A8574B2BD94BA1DCD0",
+        "SigStatus":  0,
+        "Signer":  "CN=BattlEye Innovations e.K., O=BattlEye Innovations e.K., L=Reutlingen, S=Baden-Württemberg, C=DE, SERIALNUMBER=HRA 731472, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.1=Stuttgart, OID.1.3.6.1.4.1.311.60.2.1.2=Baden-Württemberg, OID.1.3.6.1.4.1.311.60.2.1.3=DE",
+        "Source":  "C:\\Program Files (x86)\\Common Files\\BattlEye\\BEService_unturned.exe"
+    },
+    {
+        "File":  "BEService_x64.exe",
+        "Bytes":  18663720,
+        "SHA256":  "1D325B52B55FE35997A5669ED609D1C8877B7FB1EDF599AA736A0FD86704395A",
+        "SigStatus":  0,
+        "Signer":  "CN=BattlEye Innovations e.K., O=BattlEye Innovations e.K., L=Reutlingen, S=Baden-Württemberg, C=DE",
+        "Source":  "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Unturned\\BattlEye\\BEService_x64.exe"
+    },
+    {
+        "File":  "BEClient_x64.dll",
+        "Bytes":  6111496,
+        "SHA256":  "1241EE26CF859988150186536ED05F37462889EB30D72C895B5402C16719C5EB",
+        "SigStatus":  0,
+        "Signer":  "CN=BattlEye Innovations e.K., O=BattlEye Innovations e.K., L=Reutlingen, S=Baden-Württemberg, C=DE",
+        "Source":  "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Unturned\\BattlEye\\BEClient_x64.dll"
+    },
+    {
+        "File":  "BEServer_x64.dll",
+        "Bytes":  382984,
+        "SHA256":  "F22EF1FB4A3C5E2E40C74F960EB21DC1C489D818E28683CFAB96CE4BA020A52B",
+        "SigStatus":  0,
+        "Signer":  "CN=BattlEye Innovations e.K., O=BattlEye Innovations e.K., L=Reutlingen, S=Baden-Württemberg, C=DE",
+        "Source":  "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Unturned\\BattlEye\\BEServer_x64.dll"
+    },
+    {
+        "File":  "Unturned_BE.exe",
+        "Bytes":  1970408,
+        "SHA256":  "D960107CC071D0BD361F5244BE51620FD623C8F45C1926CDE84F075FB7B8C4D7",
+        "SigStatus":  0,
+        "Signer":  "CN=BattlEye Innovations e.K., O=BattlEye Innovations e.K., L=Reutlingen, S=Baden-Württemberg, C=DE, SERIALNUMBER=HRA 731472, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.1=Stuttgart, OID.1.3.6.1.4.1.311.60.2.1.2=Baden-Württemberg, OID.1.3.6.1.4.1.311.60.2.1.3=DE",
+        "Source":  "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Unturned\\Unturned_BE.exe"
+    }
+]

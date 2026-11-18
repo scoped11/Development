@@ -4,7 +4,22 @@
 **Evidence rule:** **Verified** = REA PE tools, Authenticode, Defender/VirusTotal, or guest `rea inspect-*` / PE header parse. **Hypothesis** = public GitHub notes not re-proven on this SHA-256.  
 **Scope:** static documentation only. No live bypass, hypervisor patches, or cheat payloads. Driver images were **not** loaded.
 
-**Session:** 2026-11-17. Guest `AI_workspace` via `VBoxManage guestcontrol` (share **`Z:\`**, not `D:`). Guest copies: `C:\re\artifacts\`.
+**Session:** 2026-11-17 (sample + `analyze`) and **2026-11-18** (DriverEntry / minifilter dispatch). Guest `AI_workspace` via `VBoxManage guestcontrol` (share **`Z:\`**, not `D:`). Guest copies: `C:\re\artifacts\`.
+
+---
+
+## Verified kernel facts
+
+Static REA + Ghidra on guest copies under `C:\re\artifacts\` (drivers **not** loaded). Required fields: device names, IOCTL dispatch, IAT, entry.
+
+| Field | EOS `EasyAntiCheat_EOS.sys` `26797A11…` | Legacy `EasyAntiCheat.sys` `DD60A8CD…` |
+|-------|-----------------------------------------|----------------------------------------|
+| **IAT** | Single import `FLTMGR.SYS!FltRegisterFilter`. Imphash `272647242dc096a27c50c9e914b7a808`. Compiler thunk `FF 25` at `0x140272940`; **zero** `E8` callers. | `FLTMGR.SYS!FltRegisterFilter` + `ntoskrnl.exe` `{__C_specific_handler, __chkstk, PsLookupProcessByProcessId, RtlDeleteRegistryValue, RtlPcToFileHeader, RtlWriteRegistryValue, ZwClose, ZwFlushKey, ZwOpenKey}`. Imphash `015b27e9d0715a67c574c45c768227b4`. Call site `FUN_1400650f8` @ `0x1400658d4`. |
+| **Entry** | PE `AddressOfEntryPoint` RVA `0x272978` → `entry` `0x140272978` (43-byte MSVC wrapper) → `thunk_FUN_1403a572e` → `FUN_1403a572e` → `FUN_140381041` (R12=`RSP+8`) → `FUN_140123b1e` `jmp [r12+0x108]+0x41dcaa`. | PE entry RVA `0xAFDE8` → `entry` `0x1400afde8` (23-byte trampoline) → `0x14071c246` in unnamed `SECTION.6`. **No Ghidra procedure** at that VA (`decompile --file-offset 0x6b3a46` → `procedure_not_found`). |
+| **Device names** | No plaintext `\Device\…`. UTF-16 fragment `\\EasyAntiCheat_EOS\\` at RVA `0x30f3ce`. UM stem `EasyAntiCheat_EOSSys` remains **H-EAC-02**. | Unicode `\Device\EasyAntiCheat` + `\DosDevices\EasyAntiCheat` (file `0xaecc0` / `0xaec70`). |
+| **IOCTL / dispatch** | No plaintext `MajorFunction` / `CTL_CODE` table at DriverEntry. Naive `0x0022xxxx` scan is coincidental (900+ hits). Dispatch after VM `jmp rax` is **not recovered**. | Minifilter: `FLT_REGISTRATION` `DAT_1401060f0` Size 104 Version `0x0202`; ops `{MJ 0xFF, Pre FUN_1400650ac}` then `{MJ 0x80}`. IRP `DEVICE_CONTROL` body is the undefined `SECTION.6` blob, not a `.text` procedure. |
+
+Evidence IDs: EOS entry `ev_37c1df25…` / real-entry `ev_8177f93e…` / `FUN_140381041` `ev_ce486a5b…` / `FUN_140123b1e` `ev_8ce58779…`; legacy entry `ev_6d24798e…`; `FltRegisterFilter` `ev_1a862564…`. JSON: `ac-captures-host/2026-11-18/`.
 
 ---
 
@@ -36,7 +51,14 @@ Sidecar: `ac-captures-host/2026-11-17/hashes.json`. `.sys` bodies are gitignored
 | Legacy `EasyAntiCheat.sys` PE32+ x64 native, 7 sections, entry RVA `0xAFDE8`, timestamp `2023-09-21T13:05:04Z`, `DllCharacteristics=0x1E0` | PE parse | legacy `DD60A8CD…` |
 | Legacy IAT: `FLTMGR.SYS!FltRegisterFilter` **plus** `ntoskrnl.exe` `{__C_specific_handler, __chkstk, PsLookupProcessByProcessId, RtlDeleteRegistryValue, RtlPcToFileHeader, RtlWriteRegistryValue, ZwClose, ZwFlushKey, ZwOpenKey}`. Imphash `015b27e9d0715a67c574c45c768227b4`. No exports. | REA `inspect_pe_imports` `ev_fd8efa9e…` | legacy `DD60A8CD…` |
 | Legacy Unicode strings include `\Device\EasyAntiCheat` and `\DosDevices\EasyAntiCheat` | `strings -el` on staged copy | legacy `DD60A8CD…` |
-| Legacy PE entry `entry` at `0x1400afde8` is a **23-byte trampoline** (not real DriverEntry). Pseudocode: `(*(code *)&LAB_14071c246)(param_1);` — target `0x14071c246` sits in unnamed `SECTION.6`. Incoming DATA xref from PE header `0x1400000a8`. | Guest REA `function` `ev_6d24798e…` on `C:\re\artifacts\EasyAntiCheat.sys` | legacy `DD60A8CD…` |
+| Legacy PE entry `entry` at `0x1400afde8` is a **23-byte trampoline** (not real DriverEntry). Pseudocode: `(*(code *)&LAB_14071c246)(param_1);` — target `0x14071c246` sits in unnamed `SECTION.6`. Incoming DATA xref from PE header `0x1400000a8`. Ghidra has **no** procedure at `0x14071c246` (undefined blob). | Guest REA `function` `ev_6d24798e…` (reconfirmed 2026-11-18) | legacy `DD60A8CD…` |
+| Legacy `FltRegisterFilter` IAT slot RVA `0xb0000`; **one** `.text` call `FF 15` at `0x1400658d4` inside `FUN_1400650f8`. Decompiler: `FltRegisterFilter(param_1, &DAT_1401060f0, &DAT_140186fc0)`. If cookie `DAT_140186fc0 != 0`, returns `0xC0000718`. On success, two APIs are **dynamically resolved** (`FUN_1400855d0` + ROR/XOR constants `0x7ac0820eaa1bd2d7` / `0x402778e3d078ecd2`) and called with the filter cookie. | Guest REA `function` `ev_1a862564…`; host IAT call scan | legacy `DD60A8CD…` |
+| Legacy `FLT_REGISTRATION` at `DAT_1401060f0`: Size **104** (`0x68`), Version **`0x0202`**, Flags **0**. `OperationRegistration` → `0x140106160`. 32-byte records: `{MajorFunction=0xFF (IRP_MJ_ACQUIRE_FOR_SECTION_SYNCHRONIZATION), Flags=0, Pre=FUN_1400650ac, Post=0}` then `{MajorFunction=0x80 (IRP_MJ_OPERATION_END)}`. `FilterUnloadCallback` ptr `0x1400650b4`. This is the **minifilter dispatch table**, not an IRP `DEVICE_CONTROL` table. | PE parse of staged copy + Ghidra names | legacy `DD60A8CD…` |
+| EOS PE entry `entry` at `0x140272978` is a **43-byte MSVC DriverEntry wrapper**, not a packed trampoline. Saves `RBX`/`RDI`, `param_1=RCX` / `param_2=RDX`, calls `FUN_140272948` then `thunk_FUN_1403a572e`. Incoming DATA xrefs: PE header `0x1400000a0` and `.pdata` `0x1426dc5f0`. | Guest REA `function` `ev_37c1df25…` | EOS `26797A11…` |
+| EOS real-init chain: `thunk_FUN_1403a572e` (`0x1401a223f`, 5-byte thunk) → `FUN_1403a572e` (`0x1403a572e` in unnamed SECTION.7): `LEA RSP,[RSP-0x1c0]`; `CALL FUN_140381041`; `AND RSP,-10h`; `JMP FUN_140123b1e`. | Guest REA `function` `ev_8177f93e…` | EOS `26797A11…` |
+| EOS `FUN_140381041` (`0x140381041`, 270 bytes, start of unnamed SECTION.7) is a **register/XMM save frame**. It sets `R12 = RSP+8` (VM context pointer) and `CALL FUN_14038114f`. | Guest REA `function` `ev_ce486a5b…` | EOS `26797A11…` |
+| EOS `FUN_140123b1e` (33 bytes): `mov [r12+0x190], 0x561c7f4b48e431a5`; `jmp [r12+0x108]+0x41dcaa`. Ghidra: **indirect jump, jumptable not recovered**. DriverEntry / IOCTL body after this point is **not** a plaintext `MajorFunction` store in `.text`. | Guest REA `function` `ev_8ce58779…` | EOS `26797A11…` |
+| EOS `FltRegisterFilter` IAT RVA `0x30fdc8`; compiler thunk `FF 25` at `0x140272940` (immediately before PE entry). **Zero** `E8` callers of that thunk in any section — registration is not a direct `.text` call (matches dynamic-resolve hypothesis). | Host IAT/`FF25` scan of staged copy | EOS `26797A11…` |
 | Legacy Authenticode **Valid** (timestamped 2023-09-21; leaf cert expired 2023-10-28 but counter-signed). Signer **EasyAntiCheat Oy**. Defender **no threats**. VT **0 detections**. | Authenticode + Defender + VT | legacy `DD60A8CD…` |
 | EOS usermode `EasyAntiCheat_EOS.exe` is PE32 (i386), imports include `tbs.dll` `{Tbsi_Context_Create, Tbsi_GetDeviceInfo, Tbsip_Cancel_Commands, Tbsip_Context_Close, Tbsip_Submit_Command}`, plus service-control APIs (`CreateServiceW`, `StartServiceW`, …) and `IsDebuggerPresent` | REA `inspect_pe_imports` `ev_f3ec604c…` | exe `0BBE6D48…` |
 | EOS UM Unicode strings: `EasyAntiCheat_EOSSys`, `Global\EasyAntiCheat_EOSEventDriver`, `SYSTEM\CurrentControlSet\Services\EasyAntiCheat_EOS\Attestation`, TPM quote-key registry paths | `strings -el` on `EasyAntiCheat_EOS.exe` | exe `0BBE6D48…` |
@@ -64,8 +86,10 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 
 | Device / symlink | IOCTL (hex) | Direction | Status | Notes |
 |------------------|------------|-----------|--------|-------|
-| `\Device\EasyAntiCheat` + `\DosDevices\EasyAntiCheat` | *(none recovered)* | UM↔KM | **Verified device strings on legacy only** | Legacy `DD60A8CD…` Unicode. No CTL_CODE immediates extracted this session. |
-| EOS kernel | — | — | **Unverified on `26797A11…`** | No `\Device\…` Unicode hit in EOS `.sys`. UM `EasyAntiCheat_EOSSys` is a **hypothesis** stem. |
+| `\Device\EasyAntiCheat` + `\DosDevices\EasyAntiCheat` | *(no CTL_CODE immediates)* | UM↔KM device objects | **Verified strings on legacy** | Unicode at file `0xaecc0` / `0xaec70`. IRP `DEVICE_CONTROL` handler lives in unnamed `SECTION.6` (`0x14071c246`); not a Ghidra procedure. |
+| Legacy minifilter | IRP_MJ `0xFF` then `0x80` | FilterMgr | **Verified `FLT_OPERATION_REGISTRATION`** | Pre `FUN_1400650ac`. Not a `FILE_DEVICE_UNKNOWN` IOCTL catalog. |
+| EOS kernel | — | — | **Device name still unverified on `26797A11…`** | UTF-16 fragment `\\EasyAntiCheat_EOS\\` at RVA `0x30f3ce` (`.rdata`). No `\Device\…` Unicode. Public `\Device\EasyAntiCheat_EOS` stays **H-EAC-02**. |
+| EOS IOCTL / MJ table | — | — | **Verified absent as plaintext at DriverEntry** | Entry chain ends in computed `jmp rax` (`FUN_140123b1e`). Naive `0x0022xxxx` immediates in the file are **not** a CTL_CODE table (900+ coincidental hits). |
 | *(experienceds / adamvalves tables)* | build-specific | — | Hypothesis / other hash | Do not copy into Verified |
 
 ## Components (this install)
@@ -82,10 +106,10 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 | Priority | Target | REA entry points |
 |----------|--------|------------------|
 | P0 | Guest Ghidra `rea analyze` on both staged `.sys` copies | **Done** — legacy 1184 procs (`ev_33134228…`); EOS 6364 procs (`ev_f0a3461e…`) |
-| P1 | EOS entry RVA `0x272978` | `decompile` / `function` — trampoline vs real DriverEntry |
-| P1 | `FltRegisterFilter` IAT thunk `0x14030fdd8` | xrefs — minifilter callbacks |
-| P2 | `IoCreateDevice` / device name construction | strings may be decoded; start from UM `EasyAntiCheat_EOSSys` |
-| P2 | Unnamed VA `0x381000` blob | entropy / decrypt-at-init **documentation only** |
+| P1 | EOS entry RVA `0x272978` | **Done** — wrapper → `FUN_1403a572e` → VM stub `FUN_140123b1e` (`ev_37c1df25…` / `ev_8177f93e…` / `ev_8ce58779…`) |
+| P1 | Legacy `FltRegisterFilter` | **Done** — `FUN_1400650f8` + `FLT_REGISTRATION` `DAT_1401060f0` (`ev_1a862564…`) |
+| P2 | `FUN_14038114f` / VM context at `[r12+0x108]` | follow computed jmp **documentation only** |
+| P2 | EOS `IoCreateDevice` name construction | still encoded; UM stem `EasyAntiCheat_EOSSys` remains H-EAC-02 |
 | P3 | Re-check adamvalves / experienceds RVAs | expected mismatch vs 22 MB public hash |
 
 **Out of scope:** live attach, callback unhooking, rollback-to-old-driver PoCs (`itsunderscores/EAC-Rollback` not cloned).
@@ -98,3 +122,4 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 | 2026-11-17 | REA `inspect_pe_certificates` on EOS | PKCS#7 ASN.1 nesting > 32; Authenticode still Valid via Windows |
 | 2026-11-17 | REA `inspect_binary_hardening` | MCP output schema rejected Windows paths (`path must match ^/`) |
 | 2026-11-17 | Manifest hash `A38FA3D4…` | Driver on disk has been updated; old hash is historical only |
+| 2026-11-18 | Guest `decompile --file-offset 0x6b3a46` (legacy `0x14071c246`) | `procedure_not_found` — trampoline target is undefined bytes in `SECTION.6`, not a Ghidra function |

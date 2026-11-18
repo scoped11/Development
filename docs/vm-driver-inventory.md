@@ -23,7 +23,7 @@ Sam owns production anti-cheat binaries on the **guest**. This table records wha
 |-----------|--------------|----------------|------|--------|-----------|------------------|------------------|
 | `EasyAntiCheat_EOS.sys` | EAC EOS kernel driver | **Yes** (2026-11-17) | 40 474 272 | `26797A1122781CAF12F1A686E33A0883FA1E2895B40C2249932E319B338841C7` | `ac-captures-host\2026-11-17\` + `C:\Program Files (x86)\EasyAntiCheat_EOS\` | `Z:\ac-captures-host\2026-11-17\EasyAntiCheat_EOS.sys` | **Yes** — guest `C:\re\artifacts\` hash-matched. Epic-signed, Defender-clean, VT 0. |
 | `EasyAntiCheat.sys` | EAC **legacy** kernel driver | **Yes** (2026-11-17) | 16 635 000 | `DD60A8CD0771B4FC548FDCEA68EA0FC78FBAAC58A77099731A62E70B03EB1C2A` | `ac-captures-host\2026-11-17\` + `C:\Program Files (x86)\EasyAntiCheat\` | `Z:\ac-captures-host\2026-11-17\EasyAntiCheat.sys` | **Yes** — guest copy hash-matched. EasyAntiCheat Oy signed, Defender-clean, VT 0. |
-| `BEDaisy.sys` | BattlEye kernel driver | **No** | — | — | — | still missing | **No kernel sample** |
+| `BEDaisy.sys` | BattlEye kernel driver | **No** (still missing after 2026-11-18 Unturned BE install) | — | — | — | still missing | **No kernel sample** — packed inside `BEService.exe` `.packer1`; not extracted statically |
 
 **Historical (not on disk now):** Rust dump 2026-11-13 documented EOS `A38FA3D4158FBD4503DC4D4BA303493B25B9DCFEEDB81D4386F2BB71888CBE7C` (42 884 760 bytes). Current EOS is a **different** hash/size.
 
@@ -79,6 +79,8 @@ C:\re\artifacts\Betest.sys   ← copy from D:\hostdev\byovd\bin\Betest.sys
 
 **2026-11-17:** `EasyAntiCheat_EOS.sys` and `EasyAntiCheat.sys` are now under `ac-captures-host\2026-11-17\` (bodies gitignored; hashes in `hashes.json`). `BEDaisy.sys` still absent. Host also has signed UM `BEService_eft/fn/wt.exe` under `C:\Program Files (x86)\Common Files\BattlEye\` — see [re-notes-be.md](re-notes-be.md).
 
+**2026-11-18:** Unturned BattlEye install staged UM under `ac-captures-host\2026-11-18\` (gitignored bodies; `hashes.json` committed): `BEService.exe` / `BEService_unturned.exe` SHA-256 `DD3D72DF…`, `BEService_x64.exe` `1D325B52…`, `BEClient_x64.dll` `1241EE26…`, `BEServer_x64.dll` `F22EF1FB…`, `Unturned_BE.exe` `D960107C…`. Defender-clean, BattlEye-signed. Guest copies at `C:\re\artifacts\`. `BEDaisy.sys` still absent; `BEService` registered **Stopped**.
+
 ## Tools bootstrap (guest)
 
 | Script | Purpose |
@@ -97,7 +99,7 @@ C:\re\artifacts\Betest.sys   ← copy from D:\hostdev\byovd\bin\Betest.sys
 | `VBoxManage guestcontrol` | **OK** (`vboxuser` / `lab.credentials.json`) |
 | VM power | **Running** (GUI/Qt session) |
 | EAC `.sys` on share | **Staged** EOS + legacy — see table above |
-| `BEDaisy.sys` | **Still missing** (host + guest) |
+| `BEDaisy.sys` | **Still missing** after Unturned BE install (host + guest); see [re-notes-be.md](re-notes-be.md) Verified kernel facts |
 
 **Remediation (Sam, in order):**
 
