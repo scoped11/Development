@@ -1,10 +1,10 @@
 # RE notes — BattlEye (BE)
 
-**Binary focus:** Sam installed BattlEye via Unturned on 2026-11-18. **`BEDaisy.sys` is still not on disk** (host or guest) after the service installer; kernel bytes stay packed inside `BEService.exe`. Usermode BE binaries were staged, hashed, and Defender-scanned.  
+**Binary focus:** Sam installed BattlEye via Unturned on 2026-11-18. **`BEDaisy.sys` is still not on disk** (host or guest), including the path Sam named (`C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys`, re-checked 12:14). Kernel bytes stay packed inside `BEService.exe`. Usermode BE binaries were staged, hashed, and Defender-scanned.  
 **Evidence rule:** **Verified** only for files in this lab. Public BEDaisy IOCTL tables stay **Hypothesis**.  
-**Scope:** static documentation only. No live bypass, no callback interception, no cheat payloads, **drivers not loaded**.
+**Scope:** static documentation only. No live bypass, no callback interception, no cheat payloads, **drivers not loaded**. `BEService` was **not** started.
 
-**Session:** 2026-11-17 (hunt) and **2026-11-18** (Unturned BE install + REA PE). Guest share **`Z:\`**. Guest copies of UM: `C:\re\artifacts\`.
+**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + REA PE), and **2026-11-18 12:14** (Sam path re-check). Guest share **`Z:\`**. Guest copies of UM: `C:\re\artifacts\`.
 
 ---
 
@@ -14,7 +14,7 @@ Static only. Drivers **not** loaded. `BEService` left **Stopped**. Required fiel
 
 | Field | This lab (2026-11-18 Unturned install) |
 |-------|----------------------------------------|
-| **Kernel sample** | **`BEDaisy.sys` is not on disk** (host `System32\drivers` / DriverStore / Common Files / Unturned `BattlEye\`; guest same). **No** `HKLM\…\Services\BEDaisy`. UM service `BEService` exists (Type 16 / Start 3 / ImagePath Common Files `BEService.exe`) and is **Stopped**. |
+| **Kernel sample** | **`BEDaisy.sys` is not on disk.** 12:14 re-check of Sam’s path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys`: **file not found**. Host `dir /a` of that folder lists only five UM exes (`BEService.exe`, `_unturned`, `_eft`, `_fn`, `_wt`). `where /R C:\ BEDaisy.sys` empty. Guest `AI_workspace` (`Z:\` share up): no `BEDaisy.sys` under `C:\Windows\System32\drivers`, Program Files, `C:\re`, or `Z:\ac-captures-host`; guest has **no** `Common Files\BattlEye` directory. `E:\SteamLibrary` has **no** `BEDaisy.sys`. **No** `HKLM\…\Services\BEDaisy`. UM `BEService` Type 16 / Start 3 / **Stopped**. |
 | **IAT** | Kernel IAT **N/A** (no `.sys`). Packed `BEService.exe` `DD3D72DF…`: **no** `IMAGE_DIRECTORY_ENTRY_IMPORT`, imphash null, **no** export directory (host REA `inspect_pe_imports` `ev_009691a2…`, `inspect_native_exports` `ev_adb0f36a…`). `BEService_x64.exe` IAT: `WINTRUST!CryptCATAdminAcquireContext`, `CRYPT32!CryptQueryObject`, `WS2_32` ordinal 9, `KERNEL32!Thread32First`, `ADVAPI32!DeleteService` (guest `ev_02b913f0…`). |
 | **Entry** | Kernel DriverEntry **N/A**. `BEService.exe` PE32+ entry RVA `0x42b12dd` in `.packer1` (raw `0x1ba6600`, entropy **8.000**). Nested MZ+PE count = **0**. |
 | **Device names** | ASCII/UTF-16 `BEDaisy` / `\Device\BattlEye` hits = **0** in packed `BEService.exe`. `Unturned_BE.exe` only has installer strings (`BattlEye\BEService.exe`, `BattlEye Service`). Public `\Device\BattlEye` stays **H-BE-01**. |
@@ -31,12 +31,13 @@ Sidecar: `ac-captures-host/2026-11-18/hashes.json`. Guest UM copies hash-matched
 | GitHub `filename:BEDaisy.sys` | **0** PE hits (2026-11-17) |
 | Host `C:\Windows\System32\drivers`, DriverStore, CatRoot, inf | **no** `BEDaisy.sys` after 2026-11-18 install |
 | Guest `C:\Windows\System32\drivers`, Program Files, `C:\re` | **no** `BEDaisy.sys` |
+| `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` (Sam-stated host path, 12:14) | **Not present.** Folder exists; contents are UM `BEService*.exe` only. Folder mtime 12:14 does **not** correspond to a `.sys` file. |
 | `C:\Program Files (x86)\Common Files\BattlEye\` | `BEService.exe` + `BEService_unturned.exe` (**same SHA-256**, 2026-11-18 11:29) plus older `BEService_{eft,fn,wt}.exe` |
 | `C:\Program Files (x86)\Steam\steamapps\common\Unturned\BattlEye\` | `BEClient_x64.dll`, `BEServer_x64.dll`, `BEService_x64.exe`, `Unturned_BE.exe` (installer stub), no `.sys` |
 | `HKLM\SYSTEM\CurrentControlSet\Services\BEService` | Type 16 / Start 3 / ImagePath Common Files `BEService.exe` / **Stopped** — **no** `BEDaisy` service key |
 | Rainbow Six Siege Steam tree | replay crumbs only — no `BattlEye\` kernel drop |
 
-**Conclusion (Verified hunt):** installer registered the **usermode service** and copied packed `BEService.exe`. It did **not** drop `BEDaisy.sys` onto `System32\drivers`. Static 1-byte XOR / nested-MZ scan of `.packer1` found **no** embedded PE. Kernel IOCTL / device / IAT / DriverEntry stay **blocked** until a dropped `BEDaisy.sys` exists (service start would load the driver — **out of static scope**).
+**Conclusion (Verified hunt):** installer registered the **usermode service** and copied packed `BEService.exe`. It did **not** drop `BEDaisy.sys` onto `System32\drivers` or Common Files. Sam’s 12:14 host path is empty. Static 1-byte XOR / nested-MZ scan of `.packer1` found **no** embedded PE. Kernel IOCTL / device / IAT / DriverEntry stay **blocked** until a dropped `BEDaisy.sys` exists as a regular file. Starting `BEService` / launching Unturned to unpack it remains **out of static scope** (would load the driver).
 
 ---
 
@@ -129,7 +130,7 @@ Research clones (docs/JSON, **no** `.sys`): `research-clones\battleye-re`.
 
 ## Next steps
 
-1. **Static scope exhausted** for kernel until `BEDaisy.sys` is a regular file. Do **not** start `BEService` / launch Unturned to drop it unless Sam explicitly authorizes sample acquisition (that is runtime, not this pass).
+1. **Blocked:** Sam’s stated host path has no `BEDaisy.sys`. Copy a regular-file `.sys` into Common Files (or another path) **without** starting `BEService`, then re-run copy+hash+Defender+guest Ghidra. Do **not** start `BEService` / launch Unturned to unpack unless Sam explicitly authorizes sample acquisition (runtime, not this pass).
 2. When a `.sys` exists: Defender + Authenticode + SHA-256; stop if not BattlEye-signed / not Defender-clean.
 3. Guest: `npx.cmd rea-agents@latest inspect-pe-imports C:\re\artifacts\BEDaisy.sys` then `function` on PE entry + `search-bytes` for `\Device\BattlEye`.
 4. Re-prove or **reject** the experienceds IOCTL immediates on that hash.
@@ -142,3 +143,4 @@ Research clones (docs/JSON, **no** `.sys`): `research-clones\battleye-re`.
 | 2026-11-17 | Kernel `BEDaisy.sys` | Not on host, guest, or public GitHub as a PE |
 | 2026-11-17 | R6 Siege folder | Incomplete / replay-only; no BattlEye payload |
 | 2026-11-18 | Unturned BE install | Service registered **Stopped**; no `BEDaisy.sys`; `.packer1` has no nested PE / no plaintext device strings |
+| 2026-11-18 12:14 | Sam path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` | File not found on host (`where /R C:\`), guest `AI_workspace`, or `E:\SteamLibrary`. `BEService` left Stopped. No copy/hash/Ghidra. |

@@ -25,6 +25,6 @@ ac-captures-host/2026-11-18/BEService.exe           # gitignored UM; hashes.json
 ac-captures-host/2026-11-18/hashes.json
 ```
 
-`BEDaisy.sys` was **not** found on host or guest as of 2026-11-17 **or** after the 2026-11-18 Unturned BattlEye install.
+`BEDaisy.sys` was **not** found on host or guest as of 2026-11-17, after the 2026-11-18 Unturned BattlEye install, or at Sam’s stated path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` (re-checked 2026-11-18 12:14). `BEService` left Stopped.
 
 Lab PE smoke test (already on share): `byovd\bin\Betest.sys` — see [docs/rea-vm-smoke-test.md](../docs/rea-vm-smoke-test.md). Do not commit proprietary game binaries unless policy allows.
