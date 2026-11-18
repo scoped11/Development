@@ -1,14 +1,19 @@
 ﻿# Run a program inside DriverLab-E-26200 via VirtualBox Guest Additions (host-side).
 param(
     [Parameter(Mandatory)][string[]]$Command,
-    [string]$VmName = 'DriverLab-E-26200',
-    [string]$CredentialsFile = (Join-Path $PSScriptRoot 'lab.credentials.json'),
+    [string]$VmName = 'AI_workspace',
+    [string]$CredentialsFile = '',
     [int]$TimeoutMs = 120000,
     [string]$Cwd = 'C:\\Windows\\System32',
     [hashtable]$PutEnv = @{}
 )
 
 $ErrorActionPreference = 'SilentlyContinue'
+if (-not $CredentialsFile) {
+    $scriptDir = $PSScriptRoot
+    if (-not $scriptDir) { $scriptDir = Split-Path -LiteralPath $PSCommandPath -Parent }
+    $CredentialsFile = Join-Path $scriptDir 'lab.credentials.json'
+}
 $VBox = 'C:\Program Files\Oracle\VirtualBox\VBoxManage.exe'
 if (-not (Test-Path $VBox)) { throw 'VirtualBox not found' }
 if (-not (Test-Path $CredentialsFile)) {
@@ -17,6 +22,9 @@ if (-not (Test-Path $CredentialsFile)) {
 
 $cred = Get-Content $CredentialsFile -Raw | ConvertFrom-Json
 $exe = $Command[0]
+if ($exe -notmatch '[\\/]' -and $exe -notmatch '\.exe$') {
+    $exe = Join-Path $env:SystemRoot "System32\$exe.exe"
+}
 $args = @()
 if ($Command.Count -gt 1) { $args = $Command[1..($Command.Count - 1)] }
 
