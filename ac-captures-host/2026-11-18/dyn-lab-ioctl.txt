@@ -1,0 +1,300 @@
+﻿
+=== PFAB-21 IOCTL capture pass3 (inline, no DSE, no game) ===
+UTC=2026-11-18T20:49:59.6879038Z
+WHOAMI=aiworkspace\vboxuser
+IS_ADMIN=True
+ADDTYPE_OK
+CDB_EXISTS=True
+KD_EXISTS=True
+
+Windows Boot Loader
+-------------------
+identifier              {current}
+device                  partition=C:
+path                    \WINDOWS\system32\winload.efi
+description             Windows 11
+locale                  en-US
+inherit                 {bootloadersettings}
+recoverysequence        {8df54b90-e308-11f1-abec-c3f27a374c4b}
+displaymessageoverride  Recovery
+recoveryenabled         Yes
+isolatedcontext         Yes
+allowedinmemorysettings 0x15000075
+osdevice                partition=C:
+systemroot              \WINDOWS
+resumeobject            {8df54b8e-e308-11f1-abec-c3f27a374c4b}
+nx                      OptIn
+bootmenupolicy          Standard
+DID_NOT_SET testsigning/nointegritychecks/debug this pass
+==== EOS solo ====
+CREATE [SC] CreateService SUCCESS
+INST EasyAntiCheat_EOS EasyAntiCheat_EOS Instance alt=370010
+SERVICE_NAME: EasyAntiCheat_EOS 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+        PID                : 0
+        FLAGS              :
+SERVICE_NAME: EasyAntiCheat_EOS 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+EasyAntiCheat_EOS                       6       370010         0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+PROBE_BEGIN \\.\EasyAntiCheat_EOS
+TRY_OPEN \\.\EasyAntiCheat_EOS GENERIC_RW acc=0xC0000000
+OPEN \\.\EasyAntiCheat_EOS GENERIC_RW opened=True win32=0 handle=2776
+IOCTL \\.\EasyAntiCheat_EOS GENERIC_RW code=0x00000000 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+IOCTL \\.\EasyAntiCheat_EOS GENERIC_RW code=0x00220000 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+IOCTL \\.\EasyAntiCheat_EOS GENERIC_RW code=0x00220003 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+TRY_OPEN \\.\EasyAntiCheat_EOS NONE acc=0x00000000
+OPEN \\.\EasyAntiCheat_EOS NONE opened=True win32=0 handle=2640
+IOCTL \\.\EasyAntiCheat_EOS NONE code=0x00000000 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+IOCTL \\.\EasyAntiCheat_EOS NONE code=0x00220000 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+IOCTL \\.\EasyAntiCheat_EOS NONE code=0x00220003 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+PROBE_END \\.\EasyAntiCheat_EOS
+PROBE_BEGIN \\.\EasyAntiCheat_EOSSys
+TRY_OPEN \\.\EasyAntiCheat_EOSSys GENERIC_RW acc=0xC0000000
+OPEN \\.\EasyAntiCheat_EOSSys GENERIC_RW opened=False win32=2 handle=-1
+TRY_OPEN \\.\EasyAntiCheat_EOSSys NONE acc=0x00000000
+OPEN \\.\EasyAntiCheat_EOSSys NONE opened=False win32=2 handle=-1
+PROBE_END \\.\EasyAntiCheat_EOSSys
+PROBE_BEGIN \\.\EasyAntiCheat
+TRY_OPEN \\.\EasyAntiCheat GENERIC_RW acc=0xC0000000
+OPEN \\.\EasyAntiCheat GENERIC_RW opened=False win32=2 handle=-1
+TRY_OPEN \\.\EasyAntiCheat NONE acc=0x00000000
+OPEN \\.\EasyAntiCheat NONE opened=False win32=2 handle=-1
+PROBE_END \\.\EasyAntiCheat
+PROBE_BEGIN \\.\BattlEye
+TRY_OPEN \\.\BattlEye GENERIC_RW acc=0xC0000000
+OPEN \\.\BattlEye GENERIC_RW opened=False win32=2 handle=-1
+TRY_OPEN \\.\BattlEye NONE acc=0x00000000
+OPEN \\.\BattlEye NONE opened=False win32=2 handle=-1
+PROBE_END \\.\BattlEye
+PROBE_BEGIN \\.\BEDaisy
+TRY_OPEN \\.\BEDaisy GENERIC_RW acc=0xC0000000
+OPEN \\.\BEDaisy GENERIC_RW opened=False win32=2 handle=-1
+TRY_OPEN \\.\BEDaisy NONE acc=0x00000000
+OPEN \\.\BEDaisy NONE opened=False win32=2 handle=-1
+PROBE_END \\.\BEDaisy
+--- kd -kl ---
+KD_EXIT=-2147467263
+
+Microsoft (R) Windows Debugger Version 10.0.22621.755 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+The system does not support local kernel debugging.
+Local kernel debugging requires Administrative privileges.
+Only a single local kernel debugging session can run at a time.
+Local kernel debugging is disabled by default. You must run "bcdedit -debug on" and reboot to enable it.
+Debuggee initialization failed, HRESULT 0x80004001
+Not implemented
+
+--- cdb DeviceIoControl ---
+CSC=C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\csc.exe exists=True
+
+PROBE_EXE=True
+CDB_EXIT=0
+
+Microsoft (R) Windows Debugger Version 10.0.22621.755 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+CommandLine: C:\re\LabIoctlProbe.exe \\.\EasyAntiCheat_EOS
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+ModLoad: 00000000`00f50000 00000000`00f58000   image00000000`00f50000
+ModLoad: 00007ffb`f2e30000 00007ffb`f309c000   ntdll.dll
+ModLoad: 00007ffb`e0cd0000 00007ffb`e0d3d000   C:\WINDOWS\SYSTEM32\MSCOREE.DLL
+ModLoad: 00007ffb`f2260000 00007ffb`f232b000   C:\WINDOWS\System32\KERNEL32.dll
+ModLoad: 00007ffb`f0130000 00007ffb`f0539000   C:\WINDOWS\System32\KERNELBASE.dll
+ModLoad: 00007ffb`ece30000 00007ffb`ececf000   C:\WINDOWS\SYSTEM32\apphelp.dll
+ModLoad: 00007ffb`f26f0000 00007ffb`f27ac000   C:\WINDOWS\System32\ADVAPI32.dll
+ModLoad: 00007ffb`f2d40000 00007ffb`f2de9000   C:\WINDOWS\System32\msvcrt.dll
+ModLoad: 00007ffb`f0af0000 00007ffb`f0b98000   C:\WINDOWS\System32\sechost.dll
+ModLoad: 00007ffb`f27c0000 00007ffb`f28d8000   C:\WINDOWS\System32\RPCRT4.dll
+ModLoad: 00007ffb`df1f0000 00007ffb`df28b000   C:\Windows\Microsoft.NET\Framework64\v4.0.30319\mscoreei.dll
+ModLoad: 00007ffb`f1590000 00007ffb`f15f8000   C:\WINDOWS\System32\SHLWAPI.dll
+ModLoad: 00007ffb`effd0000 00007ffb`f011c000   C:\WINDOWS\System32\ucrtbase.dll
+ModLoad: 00007ffb`eec70000 00007ffb`eec8b000   C:\WINDOWS\SYSTEM32\kernel.appcore.dll
+ModLoad: 00007ffb`ea680000 00007ffb`ea68b000   C:\WINDOWS\SYSTEM32\VERSION.dll
+ModLoad: 00007ffb`a2e00000 00007ffb`a37a4000   C:\Windows\Microsoft.NET\Framework64\v4.0.30319\clr.dll
+ModLoad: 00007ffb`f2930000 00007ffb`f2b0e000   C:\WINDOWS\System32\USER32.dll
+ModLoad: 00007ffb`ea650000 00007ffb`ea65c000   C:\WINDOWS\SYSTEM32\VCRUNTIME140_1_CLR0400.dll
+ModLoad: 00007ffb`f0800000 00007ffb`f0827000   C:\WINDOWS\System32\win32u.dll
+ModLoad: 00007ffb`e7b50000 00007ffb`e7b6b000   C:\WINDOWS\SYSTEM32\VCRUNTIME140_CLR0400.dll
+ModLoad: 00007ffb`deea0000 00007ffb`def6e000   C:\WINDOWS\SYSTEM32\ucrtbase_clr0400.dll
+ModLoad: 00007ffb`f2330000 00007ffb`f235b000   C:\WINDOWS\System32\GDI32.dll
+ModLoad: 00007ffb`f0540000 00007ffb`f0669000   C:\WINDOWS\System32\gdi32full.dll
+ModLoad: 00007ffb`f0830000 00007ffb`f08d3000   C:\WINDOWS\System32\msvcp_win.dll
+ModLoad: 00007ffb`f0bb0000 00007ffb`f0be1000   C:\WINDOWS\System32\IMM32.DLL
+ModLoad: 00007ffb`f17700
+STOP EasyAntiCheat_EOS SERVICE_NAME: EasyAntiCheat_EOS 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+DELETE EasyAntiCheat_EOS [SC] DeleteService SUCCESS
+==== legacy solo ====
+CREATE [SC] CreateService SUCCESS
+INST EasyAntiCheat EasyAntiCheat Instance alt=370020
+SERVICE_NAME: EasyAntiCheat 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+        PID                : 0
+        FLAGS              :
+SERVICE_NAME: EasyAntiCheat 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+EasyAntiCheat                           6       370020         0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+PROBE_BEGIN \\.\EasyAntiCheat
+TRY_OPEN \\.\EasyAntiCheat GENERIC_RW acc=0xC0000000
+OPEN \\.\EasyAntiCheat GENERIC_RW opened=True win32=0 handle=3008
+IOCTL \\.\EasyAntiCheat GENERIC_RW code=0x00000000 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+IOCTL \\.\EasyAntiCheat GENERIC_RW code=0x00220000 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+IOCTL \\.\EasyAntiCheat GENERIC_RW code=0x00220003 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+TRY_OPEN \\.\EasyAntiCheat NONE acc=0x00000000
+OPEN \\.\EasyAntiCheat NONE opened=True win32=0 handle=2996
+IOCTL \\.\EasyAntiCheat NONE code=0x00000000 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+IOCTL \\.\EasyAntiCheat NONE code=0x00220000 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+IOCTL \\.\EasyAntiCheat NONE code=0x00220003 dio_ok=True dio_win32=203 ret=0 ntstatus=0x00000000
+PROBE_END \\.\EasyAntiCheat
+PROBE_BEGIN \\.\EasyAntiCheat_EOS
+TRY_OPEN \\.\EasyAntiCheat_EOS GENERIC_RW acc=0xC0000000
+OPEN \\.\EasyAntiCheat_EOS GENERIC_RW opened=False win32=2 handle=-1
+TRY_OPEN \\.\EasyAntiCheat_EOS NONE acc=0x00000000
+OPEN \\.\EasyAntiCheat_EOS NONE opened=False win32=2 handle=-1
+PROBE_END \\.\EasyAntiCheat_EOS
+STOP EasyAntiCheat SERVICE_NAME: EasyAntiCheat 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+DELETE EasyAntiCheat [SC] DeleteService SUCCESS
+==== BEDaisy product-name CI 577 only ====
+CREATE [SC] CreateService SUCCESS
+INST BEDaisy BEDaisy Instance alt=370030
+[SC] StartService FAILED 577:
+
+Windows cannot verify the digital signature for this file. A recent hardware or software change might have installed a file that is signed incorrectly or damaged, or that might be malicious software from an unknown source.
+SERVICE_NAME: BEDaisy 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 577  (0x241)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+PROBE_BEGIN \\.\BattlEye
+TRY_OPEN \\.\BattlEye GENERIC_RW acc=0xC0000000
+OPEN \\.\BattlEye GENERIC_RW opened=False win32=2 handle=-1
+TRY_OPEN \\.\BattlEye NONE acc=0x00000000
+OPEN \\.\BattlEye NONE opened=False win32=2 handle=-1
+PROBE_END \\.\BattlEye
+PROBE_BEGIN \\.\BEDaisy
+TRY_OPEN \\.\BEDaisy GENERIC_RW acc=0xC0000000
+OPEN \\.\BEDaisy GENERIC_RW opened=False win32=2 handle=-1
+TRY_OPEN \\.\BEDaisy NONE acc=0x00000000
+OPEN \\.\BEDaisy NONE opened=False win32=2 handle=-1
+PROBE_END \\.\BEDaisy
+STOP BEDaisy [SC] ControlService FAILED 1062:
+
+The service has not been started.
+DELETE BEDaisy [SC] DeleteService SUCCESS
+==== leftover ====
+LEFTOVER EasyAntiCheat_EOS [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+LEFTOVER EasyAntiCheat [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+LEFTOVER BEDaisy [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+IOCTL_SCRIPT_OK
+WROTE=Z:\ac-captures-host\2026-11-18\dyn-lab-ioctl.json rows=26

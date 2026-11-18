@@ -4,7 +4,7 @@
 **Evidence rule:** **Verified** only for files in this lab. Public BEDaisy IOCTL tables stay **Hypothesis** unless re-proven on SHA-256 `E7BCF344…`.  
 **Scope:** static documentation plus a **lab-only** load attempt of `C:\re\artifacts\BEDaisy.sys` on guest `AI_workspace`. No live game, no host Program Files, no DSE disable, no bypass product. `BEService` was **not** started.
 
-**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + UM REA), 12:14 (Sam path empty), **12:25–12:30** (offline Reversing copy + host/guest REA), **afternoon** (skip auto-analyze: objdump + `.pdata` + packed-name blob; Ghidra `-noanalysis`), **evening** (SECTION.6 interpreter entry `0x1417c4ba1`, no EOS-style cookie/`r12` VM), **night** (name MBA `jmp rdx` targets; guest hashes re-checked), **dynamic** (guest `sc start`; DSE/CI 577 on product-named service). Guest share **`Z:\`**. Guest kernel copy: `C:\re\artifacts\BEDaisy.sys`. Live Program Files unused.
+**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + UM REA), 12:14 (Sam path empty), **12:25–12:30** (offline Reversing copy + host/guest REA), **afternoon** (skip auto-analyze: objdump + `.pdata` + packed-name blob; Ghidra `-noanalysis`), **evening** (SECTION.6 interpreter entry `0x1417c4ba1`, no EOS-style cookie/`r12` VM), **night** (name MBA `jmp rdx` targets; guest hashes re-checked), **dynamic** (guest `sc start`; DSE/CI 577 on product-named service), **IOCTL** (reconfirmed product-name **577**; no DOS device; DSE not disabled). Guest share **`Z:\`**. Guest kernel copy: `C:\re\artifacts\BEDaisy.sys`. Live Program Files unused.
 
 ---
 
@@ -24,7 +24,7 @@ Static REA + Ghidra, then a **lab-only** `sc start` on `AI_workspace`. `BEServic
 
 ## Dynamic lab load (AI_workspace, 2026-11-18)
 
-Guest `AIWORKSPACE` only. Image `C:\re\artifacts\BEDaisy.sys` SHA-256 `E7BCF344…`, Authenticode **Valid**. Live Program Files BattlEye **absent**. DSE/CI enforcement **2**. **Did not** set `testsigning` / `nointegritychecks`. WinDbg/kd **not** installed.
+Guest `AIWORKSPACE` only. Image `C:\re\artifacts\BEDaisy.sys` SHA-256 `E7BCF344…`, Authenticode **Valid**. Live Program Files BattlEye **absent**. DSE/CI enforcement **2**. **Did not** set `testsigning` / `nointegritychecks`. WinDbg 1.2611.4001.0 + SDK `kd`/`cdb` **are** installed; local `kd -kl` is blocked by Secure Boot (not by a DSE change).
 
 | Attempt | Result |
 |---------|--------|
@@ -33,9 +33,11 @@ Guest `AIWORKSPACE` only. Image `C:\re\artifacts\BEDaisy.sys` SHA-256 `E7BCF344�
 | Device probe | `\\.\BattlEye` / `\\.\BEDaisy` always win32=2. No `fltmc` BEDaisy row. |
 | Cleanup | `sc delete` SUCCESS. No leftover `BEDaisy` / `LabDynBEDaisy` service. |
 
-IOCTL codes were **not** captured (driver never stayed RUNNING under the product name; no WinDbg).
+IOCTL codes were **not** captured (driver never stayed RUNNING under the product name). Empty-buffer `DeviceIoControl` was sent only to the lab-loaded EAC DOS devices.
 
-Logs: `ac-captures-host/2026-11-18/dyn-lab-load.txt`, `dyn-lab-minifilter.txt`, `dyn-lab-ci-events.txt`.
+**2026-11-18 IOCTL session (document 577 only):** product-named `sc start BEDaisy` again **FAILED 577** (`WIN32_EXIT_CODE 0x241`). `\\.\BattlEye` / `\\.\BEDaisy` still win32=2. DSE / `testsigning` / `nointegritychecks` unchanged. Did **not** retry `LabDynBEDaisy` (that path already reached `FltRegisterFilter`).
+
+Logs: `dyn-lab-load.txt`, `dyn-lab-minifilter.txt`, `dyn-lab-ci-events.txt`, `dyn-lab-ioctl.txt`.
 
 ---
 
@@ -228,7 +230,8 @@ Research clones (docs/JSON, **no** `.sys`): `research-clones\battleye-re`.
 3. **Done (static map):** SECTION.6 interpreter entry is `0x1417c4ba1` (MBA `jmp rdx`). EOS cookie/`r12` ISA is **absent**. `.rdata` 50-ptr table is native `.text`, not VM opcodes.
 4. **Done (static `jmp rdx` names):** taken target `BEDaisy_MBA_reenter` `0x1417c4d07`; alt in `r12` `BEDaisy_MBA_alt` `0x1417c4d0c` → `BEDaisy_rep_movsb_0x28` / `BEDaisy_section6_native_frame` `0x140040767`. Device/IOCTL still unrecovered. File-byte emu **does not** get past the flattening reenter without a real CR0/stack context.
 5. **Done (lab load):** `LabDynBEDaisy` hit FltMgr 0xC0000034; product-named `BEDaisy` hit **CI 577 / event 3004**. Did **not** disable DSE. Runtime DOS devices still absent.
-6. UM-only follow-up: `GetProcAddress` in `BEClient_x64.dll` — still no live attach. WinDbg not on guest.
+6. **Done (IOCTL session):** WinDbg/cdb/kd installed. Product-named `BEDaisy` start reconfirmed **SCM 577**. No DOS device. DSE not disabled. Empty IOCTL capture was EAC-only.
+7. UM-only follow-up: `GetProcAddress` in `BEClient_x64.dll` — still no live attach.
 
 ## Dead ends
 

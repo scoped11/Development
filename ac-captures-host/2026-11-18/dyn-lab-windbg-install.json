@@ -1,0 +1,29 @@
+﻿{
+    "kernel_debug_after":  null,
+    "sdk_exit":  0,
+    "nointegritychecks":  null,
+    "utc":  "2026-11-18T20:40:19.7641964Z",
+    "dse_changed":  false,
+    "dbg_after":  [
+                      "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe",
+                      "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\kd.exe",
+                      "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\windbg.exe",
+                      "C:\\Users\\vboxuser\\AppData\\Local\\Microsoft\\WindowsApps\\WinDbgX.exe",
+                      "C:\\Users\\vboxuser\\AppData\\Local\\Microsoft\\WindowsApps\\Microsoft.WinDbg_8wekyb3d8bbwe\\WinDbgX.exe",
+                      "C:\\Program Files\\WindowsApps\\Microsoft.WinDbg_1.2611.4001.0_x64__8wekyb3d8bbwe\\amd64\\cdb.exe",
+                      "C:\\Program Files\\WindowsApps\\Microsoft.WinDbg_1.2611.4001.0_x64__8wekyb3d8bbwe\\arm64\\cdb.exe",
+                      "C:\\Program Files\\WindowsApps\\Microsoft.WinDbg_1.2611.4001.0_x64__8wekyb3d8bbwe\\x86\\cdb.exe",
+                      "C:\\Program Files\\WindowsApps\\Microsoft.WinDbg_1.2611.4001.0_x64__8wekyb3d8bbwe\\amd64\\kd.exe",
+                      "C:\\Program Files\\WindowsApps\\Microsoft.WinDbg_1.2611.4001.0_x64__8wekyb3d8bbwe\\arm64\\kd.exe",
+                      "C:\\Program Files\\WindowsApps\\Microsoft.WinDbg_1.2611.4001.0_x64__8wekyb3d8bbwe\\x86\\kd.exe",
+                      "C:\\Program Files\\WindowsApps\\Microsoft.WinDbg_1.2611.4001.0_x64__8wekyb3d8bbwe\\DbgX.Shell.exe"
+                  ],
+    "is_admin":  true,
+    "kernel_debug_before":  null,
+    "testsigning":  null,
+    "dbg_before":  {
+
+                   },
+    "reboot_needed":  true,
+    "winget_exit":  0
+}

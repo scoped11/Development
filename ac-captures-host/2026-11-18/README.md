@@ -16,3 +16,5 @@ Night static handler lift (still **not** loaded): `handler-lift-summary.json`, `
 Guest share letter is `Z:\`.
 
 **Dynamic lab load (2026-11-18, `AI_workspace` only):** hash-matched `C:\re\artifacts\` copies. No live game, no Program Files, no DSE disable. Logs: `dyn-lab-probe.txt`, `dyn-lab-load.txt`, `dyn-lab-minifilter.txt`, `dyn-lab-ci-events.txt` (+ JSON). Runtime DOS devices: `\\.\EasyAntiCheat_EOS`, `\\.\EasyAntiCheat`. BEDaisy product-named start: CI **3004** / SCM **577**. Lab services deleted after the probe.
+
+**WinDbg + IOCTL (same day):** installed WinDbg 1.2611.4001.0 + SDK Debuggers 10.0.22621.755. `bcdedit /debug on` blocked by Secure Boot; `kd -kl` HRESULT `0x80004001`. Empty-buffer `DeviceIoControl` on the two EAC DOS devices: NTSTATUS **0** / 0 bytes (`dyn-lab-ioctl.txt`, `dyn-lab-ioctl.json`, `dyn-lab-ioctl-kd.txt`, `dyn-lab-ioctl-cdb.txt`, `dyn-lab-windbg-install.txt`). Product-named `BEDaisy` start reconfirmed **577**. No bypass.

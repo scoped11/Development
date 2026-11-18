@@ -1,0 +1,232 @@
+﻿[
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOS",
+        "access":  "GENERIC_RW",
+        "code":  "0x00000000",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOS",
+        "access":  "GENERIC_RW",
+        "code":  "0x00220000",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOS",
+        "access":  "GENERIC_RW",
+        "code":  "0x00220003",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOS",
+        "access":  "NONE",
+        "code":  "0x00000000",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOS",
+        "access":  "NONE",
+        "code":  "0x00220000",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOS",
+        "access":  "NONE",
+        "code":  "0x00220003",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOSSys",
+        "access":  "GENERIC_RW",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOSSys",
+        "access":  "NONE",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat",
+        "access":  "GENERIC_RW",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat",
+        "access":  "NONE",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\BattlEye",
+        "access":  "GENERIC_RW",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\BattlEye",
+        "access":  "NONE",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\BEDaisy",
+        "access":  "GENERIC_RW",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\BEDaisy",
+        "access":  "NONE",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat",
+        "access":  "GENERIC_RW",
+        "code":  "0x00000000",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat",
+        "access":  "GENERIC_RW",
+        "code":  "0x00220000",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat",
+        "access":  "GENERIC_RW",
+        "code":  "0x00220003",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat",
+        "access":  "NONE",
+        "code":  "0x00000000",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat",
+        "access":  "NONE",
+        "code":  "0x00220000",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat",
+        "access":  "NONE",
+        "code":  "0x00220003",
+        "opened":  true,
+        "open_win32":  0,
+        "dio_ok":  true,
+        "dio_win32":  203,
+        "dio_returned":  0,
+        "ntstatus":  "0x00000000"
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOS",
+        "access":  "GENERIC_RW",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\EasyAntiCheat_EOS",
+        "access":  "NONE",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\BattlEye",
+        "access":  "GENERIC_RW",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\BattlEye",
+        "access":  "NONE",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\BEDaisy",
+        "access":  "GENERIC_RW",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    },
+    {
+        "device":  "\\\\.\\BEDaisy",
+        "access":  "NONE",
+        "code":  null,
+        "opened":  false,
+        "open_win32":  2
+    }
+]

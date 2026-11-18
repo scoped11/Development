@@ -1,0 +1,11 @@
+﻿
+Microsoft (R) Windows Debugger Version 10.0.22621.755 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+The system does not support local kernel debugging.
+Local kernel debugging requires Administrative privileges.
+Only a single local kernel debugging session can run at a time.
+Local kernel debugging is disabled by default. You must run "bcdedit -debug on" and reboot to enable it.
+Debuggee initialization failed, HRESULT 0x80004001
+Not implemented
+
