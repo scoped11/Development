@@ -50,25 +50,40 @@ Captured on **host** before guest Ghidra install (`npm exec rea-agents@latest --
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process
-D:\hostdev\driver-lab\vm\install-ghidra-rea-guest.ps1
+D:\hostdev\driver-lab\vm\bootstrap-vm-tools.ps1
+# or: D:\hostdev\driver-lab\vm\install-ghidra-rea-guest.ps1
 npx.cmd rea-agents@latest setup   # select Cursor; approve MCP
 npx.cmd rea-agents@latest doctor  | Tee-Object D:\hostdev\docs\rea-doctor-guest-snapshot.txt
 ```
+
+Expected doctor shape: [rea-doctor-guest-expected.md](rea-doctor-guest-expected.md).
 
 4. Restart **Cursor on the guest**.
 
 ## Safe analysis prompt (pipeline proof)
 
-Use a **public** PE — not a live protected game binary.
+Use an **owned lab** PE on the share — not a live protected game binary.  
+Inventory: [vm-driver-inventory.md](vm-driver-inventory.md).
 
-**Sample path (always present):** `C:\Windows\System32\notepad.exe`  
-**Optional lab PE:** copy any owned lab driver to `D:\hostdev\ac-captures-host\smoke\` first.
+**Primary sample (on share today):** `D:\hostdev\byovd\bin\Betest.sys`  
+SHA256: `3BC356C9300ADC233D3FF264802856AA372FDB6515BF1103AA6E6DE70C0FD019` · x64 kernel driver · 171 520 bytes.
 
-**Cursor chat prompt:**
+Optional: copy to guest local disk for Ghidra I/O:
 
-> Static documentation only. Open `C:\Windows\System32\notepad.exe` with REA, run `binary_overview`, list image architecture and main sections, and name the PE entry point with evidence. Do not suggest injection or anti-cheat evasion.
+```powershell
+New-Item -ItemType Directory -Force C:\re\artifacts | Out-Null
+Copy-Item D:\hostdev\byovd\bin\Betest.sys C:\re\artifacts\
+```
 
-**Expected tools:** `open_binary` → `binary_overview` (Ghidra backend once `GHIDRA_INSTALL_DIR` is set).
+**After** staging `EasyAntiCheat_EOS.sys` or `BEDaisy.sys` per inventory, repeat the same prompt with that path under `C:\re\artifacts\` (see [re-notes-eac.md](re-notes-eac.md) / [re-notes-be.md](re-notes-be.md)).
+
+**Fallback (no share):** `C:\Windows\System32\notepad.exe` — proves `open_binary` only until Ghidra is set.
+
+**Cursor chat prompt (guest):**
+
+> Static documentation only. Open `C:\re\artifacts\Betest.sys` (or `D:\hostdev\byovd\bin\Betest.sys`) with REA, run `binary_overview` and `inspect_pe_load_config`, list image architecture and main sections, and name the driver entry point with evidence. Do not suggest injection, mapping, or anti-cheat evasion.
+
+**Expected tools:** `open_binary` → `inspect_pe_load_config` → `binary_overview` (Ghidra backend once `GHIDRA_INSTALL_DIR` is set).
 
 ### Host partial run (no Ghidra — 2026-11-17)
 

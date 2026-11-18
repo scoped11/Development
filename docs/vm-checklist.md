@@ -46,7 +46,8 @@ npx.cmd rea-agents@latest setup   # select Cursor; approve MCP install
 
 | Item | Value |
 |------|--------|
-| Install script (guest, once) | `D:\hostdev\driver-lab\vm\install-ghidra-rea-guest.ps1` |
+| Bootstrap (guest, once) | `D:\hostdev\driver-lab\vm\bootstrap-vm-tools.ps1` |
+| Install script (guest) | `D:\hostdev\driver-lab\vm\install-ghidra-rea-guest.ps1` |
 | Expected Ghidra path | `C:\Tools\ghidra_12.1_PUBLIC` (override with `-InstallRoot`) |
 | MCP env | `GHIDRA_INSTALL_DIR` + `JAVA_HOME` in `%USERPROFILE%\.cursor\mcp.json` — see [mcp-rea-guest.example.json](mcp-rea-guest.example.json) |
 | Smoke test doc | [rea-vm-smoke-test.md](rea-vm-smoke-test.md) |
@@ -96,6 +97,8 @@ Skill reference (host path; copy into guest Cursor skills if needed):
 
 ## Related local docs
 
+- [vm-driver-inventory.md](vm-driver-inventory.md)
+- [rea-doctor-guest-expected.md](rea-doctor-guest-expected.md)
 - [eac-be-research-index.md](eac-be-research-index.md)
 - [../byovd/docs/research/16_EAC_BE_KERNEL_RESEARCH.md](../byovd/docs/research/16_EAC_BE_KERNEL_RESEARCH.md)
 - [../driver-lab/vm/README.md](../driver-lab/vm/README.md)

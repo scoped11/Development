@@ -53,9 +53,27 @@ Prioritize **owned** `EasyAntiCheat_EOS.sys` on guest local disk (`C:\re\artifac
 
 **Symbols to name first session:** `DriverEntry`, primary `IRP_MJ_DEVICE_CONTROL` handler, any `IoCreateDevice` / `IoCreateSymbolicLink` pair.
 
+## First-pass REA prompts (guest paths)
+
+**Prerequisite:** Binary on guest — see [vm-driver-inventory.md](vm-driver-inventory.md). Expected owned build SHA256: `A38FA3D4158FBD4503DC4D4BA303493B25B9DCFEEDB81D4386F2BB71888CBE7C`.
+
+```text
+Share:  D:\hostdev\ac-captures-host\2026-11-17\EasyAntiCheat_EOS.sys
+Local:  C:\re\artifacts\EasyAntiCheat_EOS.sys
+Source: C:\Program Files (x86)\EasyAntiCheat_EOS\EasyAntiCheat_EOS.sys
+```
+
+**Cursor prompt (static only):**
+
+> Scope: documentation only, owned `EasyAntiCheat_EOS.sys`, no bypass. Open `C:\re\artifacts\EasyAntiCheat_EOS.sys`. Run `open_binary`, `inspect_pe_load_config`, `binary_overview`. Find `DriverEntry` (or `GsDriverEntry`), list registered callbacks (process/image/OB if present), and map the `IRP_MJ_DEVICE_CONTROL` handler. Record PE characteristics (x64, subsystem, forced integrity flags). Promote nothing to Verified without addresses.
+
+**Tool chain:** `open_binary` → `inspect_pe_load_config` → `binary_overview` → `search_procedures` / `procedure_pseudo_code` on dispatch and init.
+
+Until the `.sys` is on the guest, use lab driver smoke test: `D:\hostdev\byovd\bin\Betest.sys` per [rea-vm-smoke-test.md](rea-vm-smoke-test.md).
+
 ## Next steps (VM + REA)
 
-1. Complete [install-ghidra-rea-guest.ps1](../driver-lab/vm/install-ghidra-rea-guest.ps1) + [rea-vm-smoke-test.md](rea-vm-smoke-test.md) on guest.
+1. Complete [bootstrap-vm-tools.ps1](../driver-lab/vm/bootstrap-vm-tools.ps1) + [rea-vm-smoke-test.md](rea-vm-smoke-test.md) on guest.
 2. Copy **one** labeled `EasyAntiCheat_EOS.sys` into `ac-captures-host\<date>\` on the share; hash with `Get-FileHash`.
 3. Guest Cursor: `open_binary` on **local copy** → `binary_overview` → imports/sections.
 4. Work P0–P2 table; promote rows to **Verified** only with REA addresses.

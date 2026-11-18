@@ -51,6 +51,25 @@
 
 **Do not promote IOCTL values from GitHub into Verified without guest REA evidence.**
 
+## First-pass REA prompts (guest paths)
+
+**Prerequisite:** `BEDaisy.sys` on guest — not on host share as of 2026-11-17 ([vm-driver-inventory.md](vm-driver-inventory.md)).
+
+```text
+Share:  D:\hostdev\ac-captures-host\2026-11-17\BEDaisy.sys
+Local:  C:\re\artifacts\BEDaisy.sys
+Sources (when installed): C:\Windows\System32\drivers\BEDaisy.sys
+                          C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys
+```
+
+**Cursor prompt (static only):**
+
+> Scope: documentation only, owned `BEDaisy.sys`, no bypass. Open `C:\re\artifacts\BEDaisy.sys`. Run `open_binary`, `inspect_pe_load_config`, `binary_overview`. Identify minifilter registration (`FltRegisterFilter` / `FltStartFiltering` if imported), `DriverEntry`, and `IRP_MJ_DEVICE_CONTROL`. Note PE characteristics (x64, version resource). IOCTL values from GitHub stay Hypothesis until REA shows them in this build.
+
+**Optional usermode (same session, no live attach):** `BEService.exe` from game install — imports and string pass only.
+
+Until `BEDaisy.sys` is staged, pipeline proof uses `D:\hostdev\byovd\bin\Betest.sys` ([rea-vm-smoke-test.md](rea-vm-smoke-test.md)).
+
 ## Next steps (VM + REA)
 
 1. Guest Ghidra pipeline: [rea-vm-smoke-test.md](rea-vm-smoke-test.md).
