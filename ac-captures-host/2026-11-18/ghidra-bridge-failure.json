@@ -1,0 +1,35 @@
+{
+  "target": "C:\\re\\artifacts\\BEDaisy.sys",
+  "sha256": "e7bcf344eefa7a4ebea9b048e376958a5ad711489249033fa480a7ec8b6c018e",
+  "guest_function": {
+    "when": "2026-11-18T12:30:47-05:00",
+    "operation": "analyze_function",
+    "exit_code": 1,
+    "failure_kind": "process",
+    "failure_message": "Ghidra exited before bridge startup"
+  },
+  "guest_analyze": {
+    "when": "2026-11-18T12:36:21-05:00",
+    "operation": "read_binary_inventory_summary",
+    "startup_timeout_ms": 1800000,
+    "exit_code": 1,
+    "failure_kind": "process",
+    "failure_message": "Ghidra exited before bridge startup",
+    "stdout_tail_observed": "CreateThunkFunctionCmd.getReferencedFunction / CreateFunctionCmd.resolveThunk recursion"
+  },
+  "host_objdump": {
+    "format": "pei-x86-64",
+    "start_address": "0x00000001425ccea8",
+    "entry": [
+      "1425ccea8: jmp 0x14261cead",
+      "14261cead: jmp 0x14261cea8",
+      "1425ccead: jmp 0x1400066bf  (not taken from PE entry)",
+      "1425cceb2+: jmp -10 cyclic E9 F6 FF FF FF"
+    ],
+    "init": [
+      "14002f000: jmp 0x1400157c8",
+      "14002f02c: security cookie / rdtsc at 0x14002a138"
+    ],
+    "evidence_id": "ev_94cb9ed414db700781100e454521efa4b41d8aff5b75042e40c8589c7d7d2dcd"
+  }
+}

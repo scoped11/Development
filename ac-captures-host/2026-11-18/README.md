@@ -1,7 +1,10 @@
 # Captures 2026-11-18
 
-Owned, Defender-clean, Authenticode-valid BattlEye **usermode** binaries copied after Sam’s Unturned BattlEye install. Kernel `BEDaisy.sys` was **not** dropped. Sam’s 12:14 path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` is still empty (`dir /a` = five UM exes only).
+Owned, Defender-clean BattlEye samples:
 
-See `hashes.json`, `docs/re-notes-be.md` (Verified kernel facts), and guest REA JSON in this folder. PE bodies (`*.exe` / `*.dll`) are gitignored.
+- **Usermode** binaries from Sam’s Unturned BattlEye install (`BEService*.exe`, client/server DLLs). Authenticode **Valid**, BattlEye Innovations e.K.
+- **Kernel** `BEDaisy.sys` from the **offline copy** at `C:\Users\bj284\Downloads\TraeTesting\cursor\Reversing\BEDaisy.sys` (not from live Program Files BattlEye; `BEService` left **Stopped**). SHA-256 `E7BCF344…`. WHQL leaf is Microsoft Hardware Compatibility Publisher; nested PKCS#7 names BattlEye Innovations e.K. Guest working copy: `C:\re\artifacts\BEDaisy.sys` (hash-matched).
 
-Guest Ghidra working copies: `C:\re\artifacts\` (same SHA-256). Share letter in the guest is `Z:\`.
+See `hashes.json` and `docs/re-notes-be.md` (Verified kernel facts). PE bodies (`*.exe` / `*.dll` / `*.sys`) are gitignored.
+
+Guest share letter is `Z:\`.

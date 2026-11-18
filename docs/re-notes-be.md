@@ -1,10 +1,10 @@
 # RE notes — BattlEye (BE)
 
-**Binary focus:** Sam installed BattlEye via Unturned on 2026-11-18. **`BEDaisy.sys` is still not on disk** (host or guest), including the path Sam named (`C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys`, re-checked 12:14). Kernel bytes stay packed inside `BEService.exe`. Usermode BE binaries were staged, hashed, and Defender-scanned.  
-**Evidence rule:** **Verified** only for files in this lab. Public BEDaisy IOCTL tables stay **Hypothesis**.  
-**Scope:** static documentation only. No live bypass, no callback interception, no cheat payloads, **drivers not loaded**. `BEService` was **not** started.
+**Binary focus:** offline `BEDaisy.sys` copied from `C:\Users\bj284\Downloads\TraeTesting\cursor\Reversing\BEDaisy.sys` (not live Program Files BattlEye). Unturned’s installer still did **not** drop a `.sys` under Common Files; `BEService` was left **Stopped**.  
+**Evidence rule:** **Verified** only for files in this lab. Public BEDaisy IOCTL tables stay **Hypothesis** unless re-proven on SHA-256 `E7BCF344…`.  
+**Scope:** static documentation only. No live bypass, no callback interception, no cheat payloads, **drivers not loaded**. `BEService` was **not** started. Live BattlEye under Program Files was **not** touched.
 
-**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + REA PE), and **2026-11-18 12:14** (Sam path re-check). Guest share **`Z:\`**. Guest copies of UM: `C:\re\artifacts\`.
+**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + UM REA), 12:14 (Sam path empty), **12:25–12:30** (offline Reversing copy + host/guest REA). Guest share **`Z:\`**. Guest kernel copy: `C:\re\artifacts\BEDaisy.sys`.
 
 ---
 
@@ -12,15 +12,15 @@
 
 Static only. Drivers **not** loaded. `BEService` left **Stopped**. Required fields: device names, IOCTL dispatch, IAT, entry.
 
-| Field | This lab (2026-11-18 Unturned install) |
-|-------|----------------------------------------|
-| **Kernel sample** | **`BEDaisy.sys` is not on disk.** 12:14 re-check of Sam’s path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys`: **file not found**. Host `dir /a` of that folder lists only five UM exes (`BEService.exe`, `_unturned`, `_eft`, `_fn`, `_wt`). `where /R C:\ BEDaisy.sys` empty. Guest `AI_workspace` (`Z:\` share up): no `BEDaisy.sys` under `C:\Windows\System32\drivers`, Program Files, `C:\re`, or `Z:\ac-captures-host`; guest has **no** `Common Files\BattlEye` directory. `E:\SteamLibrary` has **no** `BEDaisy.sys`. **No** `HKLM\…\Services\BEDaisy`. UM `BEService` Type 16 / Start 3 / **Stopped**. |
-| **IAT** | Kernel IAT **N/A** (no `.sys`). Packed `BEService.exe` `DD3D72DF…`: **no** `IMAGE_DIRECTORY_ENTRY_IMPORT`, imphash null, **no** export directory (host REA `inspect_pe_imports` `ev_009691a2…`, `inspect_native_exports` `ev_adb0f36a…`). `BEService_x64.exe` IAT: `WINTRUST!CryptCATAdminAcquireContext`, `CRYPT32!CryptQueryObject`, `WS2_32` ordinal 9, `KERNEL32!Thread32First`, `ADVAPI32!DeleteService` (guest `ev_02b913f0…`). |
-| **Entry** | Kernel DriverEntry **N/A**. `BEService.exe` PE32+ entry RVA `0x42b12dd` in `.packer1` (raw `0x1ba6600`, entropy **8.000**). Nested MZ+PE count = **0**. |
-| **Device names** | ASCII/UTF-16 `BEDaisy` / `\Device\BattlEye` hits = **0** in packed `BEService.exe`. `Unturned_BE.exe` only has installer strings (`BattlEye\BEService.exe`, `BattlEye Service`). Public `\Device\BattlEye` stays **H-BE-01**. |
-| **IOCTL / dispatch** | Kernel IOCTL table **Blocked** — no loadable `BEDaisy.sys`. Packed `.packer1` is not a PE, so there is no dispatch routine to decompile without unpacking (unpacking would require running the service — **out of static scope**). H-BE-02/03 remain Hypothesis. |
+| Field | This lab — offline `BEDaisy.sys` `E7BCF344…` |
+|-------|----------------------------------------------|
+| **Kernel sample** | **Present** as a regular PE. Source: `C:\Users\bj284\Downloads\TraeTesting\cursor\Reversing\BEDaisy.sys` (mtime 12:23, 40 060 656 bytes). Staged `ac-captures-host\2026-11-18\BEDaisy.sys` and guest `C:\re\artifacts\BEDaisy.sys` (hash match). Live path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` was **not** used. |
+| **IAT** | Single import `ntoskrnl.exe!RtlPcToFileHeader` (hint 0). No delay-load. Imphash MD5 `1e68d6eb7a47969d04bab0ee75c0eafa`. Host REA `inspect_pe_imports` `ev_ed538fa0…`; guest CLI `ev_f8a61d74…`. Packed `.rdata` name blob at file `0x25bf0` concatenates `FltRegisterFilter` / `FltUnregisterFilter` / `NtReadVirtualMemory` / other `Flt*` names **without** IAT slots (dynamic-resolve layout). |
+| **Entry** | PE32+ amd64, image base `0x140000000`, subsystem native (1), `DllCharacteristics=0x1E0`. `AddressOfEntryPoint` RVA `0x25ccea8` → VA **`0x1425ccea8`** in unnamed section 6 (~39 763 968 raw bytes @ VA `0x31000`). objdump (`ev_94cb9ed4…` headers; start `0x00000001425ccea8`): `1425ccea8: jmp 0x14261cead` then **cyclic** `E9 F6 FF FF FF` thunks (`14261cead ⇄ 14261cea8`). Adjacent unused `1425ccead: jmp 0x1400066bf` (obfuscated `.text` stub). INIT `0x14002f000: jmp 0x1400157c8` (obfuscated `.text` prolog); `0x14002f02c` is `__security_init_cookie` (cookie VA `0x14002a138`, `rdtsc`). PDB `BEDaisy.pdb` (RSDS GUID `50b7c339-248f-4066-9488-e4637a1a7de1`, age 20). **Guest Ghidra auto-analysis fails:** `CreateThunkFunctionCmd` stack overflow following those cyclic jmps (`failure_kind=process`, `Ghidra exited before bridge startup`). |
+| **Device names** | ASCII `BEDaisy` only as `BEDaisy.pdb`. UTF-16 `\Device\BattlEye` / `\DosDevices\BattlEye` / `\\.\BattlEye` hits = **0**. ASCII `\Device\` / `\DosDevices\` = **0**. UTF-16 `BattlEye` hit is publisher string `BattlEye Innovations e.K` in the cert overlay. **H-BE-01 not confirmed** on this hash. |
+| **IOCTL / dispatch** | No plaintext `MajorFunction` / `CTL_CODE` table recovered. Little-endian scan of the experienceds immediates: **11/12 absent**; `0x0022830F` at file `0x1e670` is **`0F 83` `JAE rel32`**, not `mov imm32` — **false positive**. Disk IOCTL immediates `0x2D1400` / `0x7C088` appear only inside the unnamed blob (coincidental; Ghidra xrefs blocked by thunk crash). H-BE-02/03 remain Hypothesis for *computed* codes; the published immediate table is **not** in this image as literals. |
 
-Sidecar: `ac-captures-host/2026-11-18/hashes.json`. Guest UM copies hash-matched at `C:\re\artifacts\`. Defender `MpCmdRun -ScanType 3` **no threats**. Authenticode **Valid**, BattlEye Innovations e.K.
+Sidecar: `ac-captures-host/2026-11-18/hashes.json`. Guest copy hash-matched at `C:\re\artifacts\BEDaisy.sys`. Authenticode **Valid** (WHQL leaf Microsoft Hardware Compatibility Publisher; nested PKCS#7 names **BattlEye Innovations e.K.**, Reutlingen). Defender: `MpCmdRun -ScanType 3` **skipped** the `.sys` path; identical bytes scanned as `.bin` **found no threats**; `Start-MpScan -ScanType CustomScan` completed. **Driver not loaded.**
 
 ---
 
@@ -28,25 +28,37 @@ Sidecar: `ac-captures-host/2026-11-18/hashes.json`. Guest UM copies hash-matched
 
 | Location | Result |
 |----------|--------|
+| `C:\Users\bj284\Downloads\TraeTesting\cursor\Reversing\BEDaisy.sys` | **Offline copy used** (40 060 656 bytes, SHA-256 `E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E`) |
 | GitHub `filename:BEDaisy.sys` | **0** PE hits (2026-11-17) |
 | Host `C:\Windows\System32\drivers`, DriverStore, CatRoot, inf | **no** `BEDaisy.sys` after 2026-11-18 install |
-| Guest `C:\Windows\System32\drivers`, Program Files, `C:\re` | **no** `BEDaisy.sys` |
-| `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` (Sam-stated host path, 12:14) | **Not present.** Folder exists; contents are UM `BEService*.exe` only. Folder mtime 12:14 does **not** correspond to a `.sys` file. |
+| Guest `C:\Windows\System32\drivers`, Program Files | **no** installed `BEDaisy.sys` (lab copy only at `C:\re\artifacts\`) |
+| `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` (Sam-stated host path, 12:14) | **Not present.** Folder is UM `BEService*.exe` only. **Not copied from here.** |
 | `C:\Program Files (x86)\Common Files\BattlEye\` | `BEService.exe` + `BEService_unturned.exe` (**same SHA-256**, 2026-11-18 11:29) plus older `BEService_{eft,fn,wt}.exe` |
 | `C:\Program Files (x86)\Steam\steamapps\common\Unturned\BattlEye\` | `BEClient_x64.dll`, `BEServer_x64.dll`, `BEService_x64.exe`, `Unturned_BE.exe` (installer stub), no `.sys` |
 | `HKLM\SYSTEM\CurrentControlSet\Services\BEService` | Type 16 / Start 3 / ImagePath Common Files `BEService.exe` / **Stopped** — **no** `BEDaisy` service key |
 | Rainbow Six Siege Steam tree | replay crumbs only — no `BattlEye\` kernel drop |
 
-**Conclusion (Verified hunt):** installer registered the **usermode service** and copied packed `BEService.exe`. It did **not** drop `BEDaisy.sys` onto `System32\drivers` or Common Files. Sam’s 12:14 host path is empty. Static 1-byte XOR / nested-MZ scan of `.packer1` found **no** embedded PE. Kernel IOCTL / device / IAT / DriverEntry stay **blocked** until a dropped `BEDaisy.sys` exists as a regular file. Starting `BEService` / launching Unturned to unpack it remains **out of static scope** (would load the driver).
+**Conclusion (Verified hunt):** Unturned installer registered the **usermode service** only. Kernel bytes for this pass came from Sam’s **offline Reversing folder copy**, hashed/Defender-scanned, staged to `ac-captures-host\2026-11-18\`, then guest Ghidra. Live BattlEye under Program Files was not read or started.
+
+---
+
+## Sample identity (this lab)
+
+| Artifact | Bytes | SHA-256 | Source | Guest copy |
+|----------|------:|---------|--------|------------|
+| `BEDaisy.sys` | 40 060 656 | `E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E` | `Reversing\BEDaisy.sys` (offline) | `C:\re\artifacts\BEDaisy.sys` (hash match) |
+
+PE timestamp **2026-10-12T13:11:53Z**. 10 sections; unnamed section 6 is the ~39.8 MB execute blob. No export directory (host `ev_00fed766…`; guest `ev_ee071044…`). No resource directory (`ev_0cec969a…`). TLS none. Load-config size 280; security cookie VA `0x14002a138`; GuardFlags `256` (`IMAGE_GUARD_CF_INSTRUMENTED` **linker claim only**); Guard CF function table VA `0` (`ev_6e0f9b9f…`).
 
 ---
 
 ## Verified (usermode BattlEye + kernel hunt, this lab)
 
-Windows Defender `MpCmdRun -ScanType 3` on `ac-captures-host\2026-11-18\`: **no threats** (exit 0). Authenticode **Valid**, signer **BattlEye Innovations e.K.** (Reutlingen, DE). Sidecar: `ac-captures-host/2026-11-18/hashes.json`. Guest copies (hash-matched): `C:\re\artifacts\{BEService.exe,BEService_x64.exe,BEClient_x64.dll,BEServer_x64.dll}`.
+Windows Defender `MpCmdRun -ScanType 3` on UM `ac-captures-host\2026-11-18\`: **no threats** (exit 0). Authenticode **Valid**, signer **BattlEye Innovations e.K.** (Reutlingen, DE). Sidecar: `ac-captures-host/2026-11-18/hashes.json`. Guest copies (hash-matched): `C:\re\artifacts\{BEService.exe,BEService_x64.exe,BEClient_x64.dll,BEServer_x64.dll,BEDaisy.sys}`.
 
 | File | Bytes | SHA-256 | Notes |
 |------|------:|---------|-------|
+| `BEDaisy.sys` | 40 060 656 | `E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E` | Offline Reversing copy; WHQL + nested BattlEye publisher |
 | `BEService.exe` | 29 005 032 | `DD3D72DF4E9866C2E02D64460ED86AE170334133A78C98A8574B2BD94BA1DCD0` | Common Files, 2026-11-18 install |
 | `BEService_unturned.exe` | 29 005 032 | **same as `BEService.exe`** | duplicate copy |
 | `BEService_x64.exe` | 18 663 720 | `1D325B52B55FE35997A5669ED609D1C8877B7FB1EDF599AA736A0FD86704395A` | Unturned `BattlEye\` drop |
@@ -57,7 +69,7 @@ Windows Defender `MpCmdRun -ScanType 3` on `ac-captures-host\2026-11-18\`: **no 
 | `BEService_fn.exe` | 15 044 872 | `258E18C264EBE68BAFF92EB928878A902B99A5FB4454881CCDB50EF4C7136E6C` | older (2023) |
 | `BEService_wt.exe` | 15 762 728 | `0D46298C87248794569BB3AAD62255C899D0128EA0B1218484FC8DB43911B55B` | older (2025) |
 
-**`BEService.exe` packer (kernel-payload carrier, not a loadable `.sys`):** PE32+ amd64, 14 sections, entry RVA `0x42b12dd` in `.packer1`, **no** `IMAGE_DIRECTORY_ENTRY_IMPORT`. `.packer1` raw `0x1ba6600` @ entropy **8.000**. Other sections have `PointerToRawData=0`. Resource directory RVA is **not file-backed** (REA `inspect_pe_resources` invalid_format). ASCII/UTF-16 `BEDaisy` / `\Device\BattlEye` hits = **0**. Nested MZ+PE count = **0**. Host REA `inspect_pe_imports` `ev_009691a292d2282b…` (empty IAT); `inspect_native_exports` `ev_adb0f36ad807a3c2…` (no export directory).
+**`BEService.exe` packer (kernel-payload carrier, not a loadable `.sys`):** PE32+ amd64, 14 sections, entry RVA `0x42b12dd` in `.packer1`, **no** `IMAGE_DIRECTORY_ENTRY_IMPORT`. `.packer1` raw `0x1ba6600` @ entropy **8.000**. Other sections have `PointerToRawData=0`. Resource directory RVA is **not file-backed** (REA `inspect_pe_resources` invalid_format). ASCII/UTF-16 `BEDaisy` / `\Device\BattlEye` hits = **0**. Nested MZ+PE count = **0**. Host REA `inspect_pe_imports` `ev_009691a292d2282b…` (empty IAT); `inspect_native_exports` `ev_adb0f36ad807a3c2…` (no export directory). **This packed image is a different artifact from the offline `BEDaisy.sys` PE.**
 
 **`BEService_x64.exe` IAT** (guest `ev_02b913f0…` / host `ev_43c9bf7b…`): `WINTRUST.dll!CryptCATAdminAcquireContext`, `CRYPT32.dll!CryptQueryObject`, `WS2_32.dll` ordinal 9, `KERNEL32.dll!Thread32First`, `ADVAPI32.dll!DeleteService`. Imphash MD5 `0bfd891e6c49b3ef80af8a3e1b358e8d`. Custom `.be0/.be1/.be2` sections; `.be2` entropy 7.966.
 
@@ -71,48 +83,46 @@ Older `BEService_eft.exe` IAT (`ev_4ed1d576…`) still holds: 8 descriptors / im
 
 ---
 
-## Hypothesis (kernel — public notes, **other builds**)
+## Hypothesis (kernel — public notes vs this hash)
 
-Do **not** promote to Verified without a `BEDaisy.sys` SHA-256 from this machine.
-
-| ID | Hypothesis | Confidence | Falsify with |
-|----|------------|------------|--------------|
-| H-BE-01 | Device `\Device\BattlEye` / `\DosDevices\BattlEye` / `\\.\BattlEye` | Medium (public) | `strings` + `IoCreateDevice` on **owned** `.sys` |
-| H-BE-02 | IOCTL surface uses `FILE_DEVICE_UNKNOWN (0x22)` + `METHOD_NEITHER (3)` | Medium (experienceds/battleye-re `docs/03-ioctl-dispatch.md`) | Dispatch decompile on owned hash |
-| H-BE-03 | Historical IOCTL immediates (experienceds table): `0x0022001F`, `0x0022022B`, `0x0022035B`, `0x0022408F`, `0x0022409B`, `0x00224387`, `0x0022438F`, `0x00228183`, `0x0022826B`, `0x0022830F`, `0x002283F7`, `0x0022C20F` | **Low for current BE** — aged / other image | Search little-endian immediates in owned `.sys` |
-| H-BE-04 | Minifilter registration (`FltRegisterFilter`) and/or image-load notify | Medium | IAT + xrefs on owned `.sys` |
-| H-BE-05 | Disk identity IOCTLs to `\Device\Harddisk0\DR0` (`0x2D1400`, `0x7C088`) from Aki2k traces | Low (2019–2020 GoodEye log) | Static xrefs only if sample exists |
+| ID | Hypothesis | Confidence on `E7BCF344…` | Falsify / status |
+|----|------------|---------------------------|------------------|
+| H-BE-01 | Device `\Device\BattlEye` / `\DosDevices\BattlEye` / `\\.\BattlEye` | **Low on this hash** — no plaintext | Ghidra `IoCreateDevice` / encrypted strings. Static strings = **0**. |
+| H-BE-02 | IOCTL surface uses `FILE_DEVICE_UNKNOWN (0x22)` + `METHOD_NEITHER (3)` | Medium (public) | Dispatch decompile after following entry trampolines |
+| H-BE-03 | Historical IOCTL immediates (experienceds table) | **Rejected as literals** on this hash | 11/12 LE immediates absent; `0x0022830F` is `JAE` opcode, not an IOCTL dword |
+| H-BE-04 | Minifilter registration (`FltRegisterFilter`) and/or image-load notify | Medium (name blob, not IAT) | IAT is only `RtlPcToFileHeader`; `FltRegisterFilter` lives in packed names at `0x25bf0` |
+| H-BE-05 | Disk identity IOCTLs to `\Device\Harddisk0\DR0` (`0x2D1400`, `0x7C088`) | Low — blob-only hits | Need Ghidra xrefs, not raw `find` |
 
 ### Public IOCTL table (Hypothesis — experienceds/battleye-re)
 
-Copied as a **checklist**, not as this-lab fact:
+Copied as a **checklist**. Literal immediates were **not** found in `E7BCF344…` (except the `0x0022830F` / `JAE` collision):
 
-| IOCTL | Func# | Access | Public category |
-|-------|-------|--------|-----------------|
-| `0x0022001F` | 7 | ANY | handshake / init |
-| `0x0022022B` | 138 | ANY | ping / heartbeat |
-| `0x0022035B` | 214 | ANY | query state |
-| `0x0022408F` | 35 | READ | read process info |
-| `0x0022409B` | 38 | READ | read memory range |
-| `0x00224387` | 225 | READ | read module list |
-| `0x0022438F` | 227 | READ | read callback status |
-| `0x00228183` | 96 | WRITE | write signal |
-| `0x0022826B` | 154 | WRITE | write scan target |
-| `0x0022830F` | 195 | WRITE | write memory (2 sites claimed) |
-| `0x002283F7` | 253 | WRITE | write config |
-| `0x0022C20F` | 131 | R+W | bidirectional exchange |
+| IOCTL | Func# | Access | Public category | Literal in `E7BCF344…` |
+|-------|-------|--------|-----------------|------------------------|
+| `0x0022001F` | 7 | ANY | handshake / init | **no** |
+| `0x0022022B` | 138 | ANY | ping / heartbeat | **no** |
+| `0x0022035B` | 214 | ANY | query state | **no** |
+| `0x0022408F` | 35 | READ | read process info | **no** |
+| `0x0022409B` | 38 | READ | read memory range | **no** |
+| `0x00224387` | 225 | READ | read module list | **no** |
+| `0x0022438F` | 227 | READ | read callback status | **no** |
+| `0x00228183` | 96 | WRITE | write signal | **no** |
+| `0x0022826B` | 154 | WRITE | write scan target | **no** |
+| `0x0022830F` | 195 | WRITE | write memory (2 sites claimed) | **collision only** (`0F 83` JAE at `0x1e670`) |
+| `0x002283F7` | 253 | WRITE | write config | **no** |
+| `0x0022C20F` | 131 | R+W | bidirectional exchange | **no** |
 
 ## IOCTLs / devices (this lab)
 
 | Device / symlink | IOCTL (hex) | Direction | Status | Notes |
 |------------------|------------|-----------|--------|-------|
-| *(no kernel sample)* | — | — | **Blocked** | `BEDaisy.sys` not on disk after install. H-BE-01…03 remain Hypothesis. |
+| *(no plaintext `\Device\BattlEye`)* | experienceds table | — | **Not in literals** | Dispatch after VM/jmp trampoline **not recovered** from PE tables. Follow guest `function` at `0x1425ccea8`. |
 
 ## Components
 
 | Layer | Artifact | Status here |
 |-------|----------|-------------|
-| Kernel | `BEDaisy.sys` | **Missing** (packed inside `BEService.exe` `.packer1`; not extracted statically) |
+| Kernel | `BEDaisy.sys` | **Staged** from offline Reversing copy; Defender-clean; guest hash-matched; **not loaded** |
 | Service | `BEService.exe` / `_unturned` / `_x64` | Present, packed, signed, Defender-clean, staged |
 | Client | `BEClient_x64.dll` | Staged |
 | Server | `BEServer_x64.dll` | Staged |
@@ -130,17 +140,18 @@ Research clones (docs/JSON, **no** `.sys`): `research-clones\battleye-re`.
 
 ## Next steps
 
-1. **Blocked:** Sam’s stated host path has no `BEDaisy.sys`. Copy a regular-file `.sys` into Common Files (or another path) **without** starting `BEService`, then re-run copy+hash+Defender+guest Ghidra. Do **not** start `BEService` / launch Unturned to unpack unless Sam explicitly authorizes sample acquisition (runtime, not this pass).
-2. When a `.sys` exists: Defender + Authenticode + SHA-256; stop if not BattlEye-signed / not Defender-clean.
-3. Guest: `npx.cmd rea-agents@latest inspect-pe-imports C:\re\artifacts\BEDaisy.sys` then `function` on PE entry + `search-bytes` for `\Device\BattlEye`.
-4. Re-prove or **reject** the experienceds IOCTL immediates on that hash.
-5. UM-only follow-up: `GetProcAddress` in `BEClient_x64.dll` — still no live attach.
+1. **Done:** hash + Defender + stage offline copy; guest IAT. Live Program Files BattlEye remains untouched; `BEService` remains Stopped.
+2. Ghidra headless **cannot** auto-analyze this hash: PE entry is a cyclic `jmp -10` thunk chain that overflows `CreateThunkFunctionCmd`. Next static pass should import with `-noanalysis` or disassemble `.text`/`INIT` only (objdump already did). Do **not** load the driver.
+3. Follow obfuscated `.text` at `0x1400157c8` / `0x1400066bf` with a thunk-safe disassembler if device/IOCTL recovery is still needed.
+4. UM-only follow-up: `GetProcAddress` in `BEClient_x64.dll` — still no live attach.
 
 ## Dead ends
 
 | Date | Item | Reason |
 |------|------|--------|
-| 2026-11-17 | Kernel `BEDaisy.sys` | Not on host, guest, or public GitHub as a PE |
+| 2026-11-17 | Kernel `BEDaisy.sys` on disk / GitHub | Not on host, guest, or public GitHub as a PE |
 | 2026-11-17 | R6 Siege folder | Incomplete / replay-only; no BattlEye payload |
-| 2026-11-18 | Unturned BE install | Service registered **Stopped**; no `BEDaisy.sys`; `.packer1` has no nested PE / no plaintext device strings |
-| 2026-11-18 12:14 | Sam path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` | File not found on host (`where /R C:\`), guest `AI_workspace`, or `E:\SteamLibrary`. `BEService` left Stopped. No copy/hash/Ghidra. |
+| 2026-11-18 | Unturned BE install | Service registered **Stopped**; no `.sys` dropped; `.packer1` has no nested PE |
+| 2026-11-18 12:14 | Sam path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` | File not found. Superseded by offline Reversing copy. |
+| 2026-11-18 12:30 | experienceds IOCTL immediates | Not present as LE dwords in `E7BCF344…` |
+| 2026-11-18 12:41 | Guest Ghidra `analyze` / `function` | Cyclic PE-entry thunks (`E9 F6 FF FF FF`) → `CreateThunkFunctionCmd` SOE; bridge never starts |
