@@ -81,8 +81,8 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 
 | Priority | Target | REA entry points |
 |----------|--------|------------------|
-| P0 | Guest Ghidra `rea analyze` on `C:\re\artifacts\EasyAntiCheat_EOS.sys` | `open_binary` / CLI `analyze` → procedure count, entry thunk |
-| P1 | Entry RVA `0x272978` | `decompile` / `function` — trampoline vs real DriverEntry |
+| P0 | Guest Ghidra `rea analyze` on both staged `.sys` copies | **Done** — legacy 1184 procs (`ev_33134228…`); EOS 6364 procs (`ev_f0a3461e…`) |
+| P1 | EOS entry RVA `0x272978` | `decompile` / `function` — trampoline vs real DriverEntry |
 | P1 | `FltRegisterFilter` IAT thunk `0x14030fdd8` | xrefs — minifilter callbacks |
 | P2 | `IoCreateDevice` / device name construction | strings may be decoded; start from UM `EasyAntiCheat_EOSSys` |
 | P2 | Unnamed VA `0x381000` blob | entropy / decrypt-at-init **documentation only** |
