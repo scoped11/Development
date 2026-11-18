@@ -1,0 +1,72 @@
+{
+  "when": "2026-11-18-afternoon",
+  "scope": "static only; drivers not loaded; live Program Files unused; share Z:",
+  "guest_hashes": {
+    "EasyAntiCheat_EOS.sys": "26797A1122781CAF12F1A686E33A0883FA1E2895B40C2249932E319B338841C7",
+    "EasyAntiCheat.sys": "DD60A8CD0771B4FC548FDCEA68EA0FC78FBAAC58A77099731A62E70B03EB1C2A",
+    "BEDaisy.sys": "E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E"
+  },
+  "eos": {
+    "flt_registration_va": "0x1402f6230",
+    "flt_registration_file": "0x2f5030",
+    "size": 112,
+    "version": "0x0203",
+    "context": "empty 0xFFFF at 0x1402f66e0",
+    "ops": [
+      { "mj": "0x00", "name": "IRP_MJ_CREATE", "pre": "0x14023e237" },
+      { "mj": "0x06", "name": "IRP_MJ_SET_INFORMATION", "pre": "0x14023e237" },
+      { "mj": "0xFF", "name": "IRP_MJ_ACQUIRE_FOR_SECTION_SYNCHRONIZATION", "pre": "0x14023e269" },
+      { "mj": "0x80", "name": "IRP_MJ_OPERATION_END", "pre": "0x0" }
+    ],
+    "unload": "0x14023e209",
+    "vm_stubs": {
+      "unload_jmp": "0x1403dae9e",
+      "create_jmp": "0x14041e353",
+      "section_jmp": "0x1403eeaed"
+    },
+    "pdata": { "count": 5633, "text": 1493, "section7": 4139, "section6": 1 },
+    "easyanticheat_eos_utf16": "cert-store fragment at file 0x30e1ce, not Device path"
+  },
+  "legacy": {
+    "flt_registration_va": "0x1401060f0",
+    "size": 104,
+    "version": "0x0202",
+    "instance_callbacks": "all NULL",
+    "context": "empty 0xFFFF at 0x140105d08",
+    "pre_thunk": "0x1400650ac jmp 0x140064e48",
+    "pre_checks": ["CallbackData non-null", "MJ==0xFF", "CR8==0"],
+    "unload": "0x1400650b4",
+    "registry_utf16": "\\Registry\\Machine\\Software\\Wow6432Node\\EasyAntiCheat",
+    "pdata": { "count": 650, "text": 649, "section6": 1 },
+    "section6_entry": "0x14071c246 sub rsp,0x108 VM prolog"
+  },
+  "bedaisy": {
+    "skip_auto_analyze": true,
+    "reason": "CreateThunkFunctionCmd SOE on cyclic E9 F6 FF FF FF at PE entry",
+    "ghidra_12_1": "Jython stubbed; Java DumpLimitedDisasm.java; -import -noanalysis",
+    "objdump_evidence": "ev_598c61acbd3983a410317f02743b9ccbdd6ec9020ac41634c4627d00cbfae681",
+    "pdata": { "count": 4241, "text": 553, "init": 5, "section6": 3683 },
+    "init_jmp": "0x14002f000 -> 0x1400157c8 opaque-predicate stub -> 0x1417c4ba1 SECTION.6",
+    "packed_names_file": "0x25bf0",
+    "packed_names": [
+      "FltGetRequestorProcess",
+      "FltReleaseFileNameInformation",
+      "FltRegisterFilter",
+      "FltUnregisterFilter",
+      "NtReadVirtualMemory",
+      "FltGetFileNameInformation",
+      "FltStartFiltering",
+      "FltQueryInformationFile",
+      "ZwSuspendThread",
+      "NtWriteVirtualMemory",
+      "ZwGetContextThread",
+      "ZwProtectVirtualMemory",
+      "NtDeviceIoControlFile",
+      "RtlPcToFileHeader",
+      "ntoskrnl.exe",
+      "sha512",
+      "LibTomMath"
+    ],
+    "flt_registration_header": "absent"
+  }
+}

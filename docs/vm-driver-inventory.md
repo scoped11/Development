@@ -23,7 +23,7 @@ Sam owns production anti-cheat binaries on the **guest**. This table records wha
 |-----------|--------------|----------------|------|--------|-----------|------------------|------------------|
 | `EasyAntiCheat_EOS.sys` | EAC EOS kernel driver | **Yes** (2026-11-17) | 40 474 272 | `26797A1122781CAF12F1A686E33A0883FA1E2895B40C2249932E319B338841C7` | `ac-captures-host\2026-11-17\` + `C:\Program Files (x86)\EasyAntiCheat_EOS\` | `Z:\ac-captures-host\2026-11-17\EasyAntiCheat_EOS.sys` | **Yes** — guest `C:\re\artifacts\` hash-matched. Epic-signed, Defender-clean, VT 0. |
 | `EasyAntiCheat.sys` | EAC **legacy** kernel driver | **Yes** (2026-11-17) | 16 635 000 | `DD60A8CD0771B4FC548FDCEA68EA0FC78FBAAC58A77099731A62E70B03EB1C2A` | `ac-captures-host\2026-11-17\` + `C:\Program Files (x86)\EasyAntiCheat\` | `Z:\ac-captures-host\2026-11-17\EasyAntiCheat.sys` | **Yes** — guest copy hash-matched. EasyAntiCheat Oy signed, Defender-clean, VT 0. |
-| `BEDaisy.sys` | BattlEye kernel driver | **Yes** (offline Reversing copy, 2026-11-18 12:25) | 40 060 656 | `E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E` | `ac-captures-host\2026-11-18\` from `TraeTesting\cursor\Reversing\BEDaisy.sys` | `Z:\ac-captures-host\2026-11-18\BEDaisy.sys` | **Yes** — guest `C:\re\artifacts\` hash-matched. WHQL + nested BattlEye publisher. **Not loaded.** Live Program Files path unused. |
+| `BEDaisy.sys` | BattlEye kernel driver | **Yes** (offline Reversing copy, 2026-11-18 12:25) | 40 060 656 | `E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E` | `ac-captures-host\2026-11-18\` from `TraeTesting\cursor\Reversing\BEDaisy.sys` | `Z:\ac-captures-host\2026-11-18\BEDaisy.sys` | **Skip auto-analyze** — guest hash-matched. `CreateThunkFunctionCmd` SOE on cyclic PE-entry thunks. Use `-noanalysis` + objdump / Java `DumpLimitedDisasm.java`. **Not loaded.** Live Program Files unused. |
 
 **Historical (not on disk now):** Rust dump 2026-11-13 documented EOS `A38FA3D4158FBD4503DC4D4BA303493B25B9DCFEEDB81D4386F2BB71888CBE7C` (42 884 760 bytes). Current EOS is a **different** hash/size.
 
@@ -99,7 +99,7 @@ C:\re\artifacts\Betest.sys   ← copy from D:\hostdev\byovd\bin\Betest.sys
 | `VBoxManage guestcontrol` | **OK** (`vboxuser` / `lab.credentials.json`) |
 | VM power | **Running** (GUI/Qt session) |
 | EAC `.sys` on share | **Staged** EOS + legacy — see table above |
-| `BEDaisy.sys` | **Still missing** after Unturned BE install (host + guest); see [re-notes-be.md](re-notes-be.md) Verified kernel facts |
+| `BEDaisy.sys` | **Staged** offline copy `E7BCF344…` (guest hash-matched). Auto-analyze **blocked**; `-noanalysis` + objdump. See [re-notes-be.md](re-notes-be.md). |
 
 **Remediation (Sam, in order):**
 

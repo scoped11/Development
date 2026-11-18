@@ -4,7 +4,7 @@
 **Evidence rule:** **Verified** only for files in this lab. Public BEDaisy IOCTL tables stay **Hypothesis** unless re-proven on SHA-256 `E7BCF344…`.  
 **Scope:** static documentation only. No live bypass, no callback interception, no cheat payloads, **drivers not loaded**. `BEService` was **not** started. Live BattlEye under Program Files was **not** touched.
 
-**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + UM REA), 12:14 (Sam path empty), **12:25–12:30** (offline Reversing copy + host/guest REA). Guest share **`Z:\`**. Guest kernel copy: `C:\re\artifacts\BEDaisy.sys`.
+**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + UM REA), 12:14 (Sam path empty), **12:25–12:30** (offline Reversing copy + host/guest REA), **afternoon** (skip auto-analyze: objdump + `.pdata` + packed-name blob; Ghidra `-noanalysis`). Guest share **`Z:\`**. Guest kernel copy: `C:\re\artifacts\BEDaisy.sys`. Live Program Files unused.
 
 ---
 
@@ -15,10 +15,10 @@ Static only. Drivers **not** loaded. `BEService` left **Stopped**. Required fiel
 | Field | This lab — offline `BEDaisy.sys` `E7BCF344…` |
 |-------|----------------------------------------------|
 | **Kernel sample** | **Present** as a regular PE. Source: `C:\Users\bj284\Downloads\TraeTesting\cursor\Reversing\BEDaisy.sys` (mtime 12:23, 40 060 656 bytes). Staged `ac-captures-host\2026-11-18\BEDaisy.sys` and guest `C:\re\artifacts\BEDaisy.sys` (hash match). Live path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` was **not** used. |
-| **IAT** | Single import `ntoskrnl.exe!RtlPcToFileHeader` (hint 0). No delay-load. Imphash MD5 `1e68d6eb7a47969d04bab0ee75c0eafa`. Host REA `inspect_pe_imports` `ev_ed538fa0…`; guest CLI `ev_f8a61d74…`. Packed `.rdata` name blob at file `0x25bf0` concatenates `FltRegisterFilter` / `FltUnregisterFilter` / `NtReadVirtualMemory` / other `Flt*` names **without** IAT slots (dynamic-resolve layout). |
-| **Entry** | PE32+ amd64, image base `0x140000000`, subsystem native (1), `DllCharacteristics=0x1E0`. `AddressOfEntryPoint` RVA `0x25ccea8` → VA **`0x1425ccea8`** in unnamed section 6 (~39 763 968 raw bytes @ VA `0x31000`). objdump (`ev_94cb9ed4…` headers; start `0x00000001425ccea8`): `1425ccea8: jmp 0x14261cead` then **cyclic** `E9 F6 FF FF FF` thunks (`14261cead ⇄ 14261cea8`). Adjacent unused `1425ccead: jmp 0x1400066bf` (obfuscated `.text` stub). INIT `0x14002f000: jmp 0x1400157c8` (obfuscated `.text` prolog); `0x14002f02c` is `__security_init_cookie` (cookie VA `0x14002a138`, `rdtsc`). PDB `BEDaisy.pdb` (RSDS GUID `50b7c339-248f-4066-9488-e4637a1a7de1`, age 20). **Guest Ghidra auto-analysis fails:** `CreateThunkFunctionCmd` stack overflow following those cyclic jmps (`failure_kind=process`, `Ghidra exited before bridge startup`). |
+| **IAT** | Single import `ntoskrnl.exe!RtlPcToFileHeader` (hint 0). No delay-load. Imphash MD5 `1e68d6eb7a47969d04bab0ee75c0eafa`. Host REA `inspect_pe_imports` `ev_ed538fa0…`; guest CLI `ev_f8a61d74…`. Packed `.rdata` name blob at file `0x25bf0` concatenates Filter Manager + `Nt*`/`Zw*` names **without NULs or IAT slots** (dynamic-resolve layout). Also ASCII `ntoskrnl.exe` at `0x270c8`, `sha512` / `LibTomMath`. |
+| **Entry** | PE32+ amd64, image base `0x140000000`, subsystem native (1), `DllCharacteristics=0x1E0`. `AddressOfEntryPoint` RVA `0x25ccea8` → VA **`0x1425ccea8`** in unnamed section 6 (~39 763 968 raw bytes @ VA `0x31000`). REA `inspect_with_objdump` `ev_598c61ac…`: `pei-x86-64`, start `0x00000001425ccea8`. `1425ccea8: jmp 0x14261cead` then **cyclic** `E9 F6 FF FF FF` thunks (`14261cead ⇄ 14261cea8`). Adjacent unused `1425ccead: jmp 0x1400066bf`. INIT `0x14002f000: jmp 0x1400157c8` (obfuscated `.text`: opaque-predicate `call`/`jmp r8/r11/rcx/rdi` landing in SECTION.6 at `0x1417c4ba1`). `0x14002f02c` is `__security_init_cookie` (cookie VA `0x14002a138`, `rdtsc`). `.pdata` **4241** RUNTIME_FUNCTION rows (`.text` **553**, INIT **5**, SECTION.6 **3683**). PDB `BEDaisy.pdb` (RSDS GUID `50b7c339-248f-4066-9488-e4637a1a7de1`, age 20). **Do not auto-analyze:** `CreateThunkFunctionCmd` SOE. Guest Ghidra 12.1 **`-import -overwrite -noanalysis` + Java `DumpLimitedDisasm.java` succeeded** (project `C:\re\ghidra-projects\BEDaisyNoA`, program `/BEDaisy.sys`, save OK, EXIT 0). Jython `.py` post-scripts are stubbed on this Ghidra. AddressSet-restricted disasm of PE entry / INIT / `.text` **did not** recurse the cyclic thunks. Ghidra blocks: `.text` `0x140001000–0x1400257ff`; second `.text` `0x14002e000`; INIT `0x14002f000`; unnamed **SECTION.6** `0x140031000–0x14261cfff` (exec); SECTION.7 `0x14261d000` **non-exec** 4 KiB; `.pdata` `0x14262a000`. Limited dump: `ac-captures-host/2026-11-18/bedaisy-limited-disasm.txt`. |
 | **Device names** | ASCII `BEDaisy` only as `BEDaisy.pdb`. UTF-16 `\Device\BattlEye` / `\DosDevices\BattlEye` / `\\.\BattlEye` hits = **0**. ASCII `\Device\` / `\DosDevices\` = **0**. UTF-16 `BattlEye` hit is publisher string `BattlEye Innovations e.K` in the cert overlay. **H-BE-01 not confirmed** on this hash. |
-| **IOCTL / dispatch** | No plaintext `MajorFunction` / `CTL_CODE` table recovered. Little-endian scan of the experienceds immediates: **11/12 absent**; `0x0022830F` at file `0x1e670` is **`0F 83` `JAE rel32`**, not `mov imm32` — **false positive**. Disk IOCTL immediates `0x2D1400` / `0x7C088` appear only inside the unnamed blob (coincidental; Ghidra xrefs blocked by thunk crash). H-BE-02/03 remain Hypothesis for *computed* codes; the published immediate table is **not** in this image as literals. |
+| **IOCTL / dispatch** | No plaintext `MajorFunction` / `CTL_CODE` / `FLT_REGISTRATION` header (`68 00 02 02` / `70 00 03 02` **absent**). Little-endian scan of the experienceds immediates: **11/12 absent**; `0x0022830F` at file `0x1e670` is **`0F 83` `JAE rel32`**, not `mov imm32` — **false positive**. Disk IOCTL immediates `0x2D1400` / `0x7C088` appear only inside the unnamed blob (coincidental). INIT/`.text` path is an obfuscated trampoline into SECTION.6, not a recovered IRP dispatch table. H-BE-02/03 remain Hypothesis for *computed* codes. |
 
 Sidecar: `ac-captures-host/2026-11-18/hashes.json`. Guest copy hash-matched at `C:\re\artifacts\BEDaisy.sys`. Authenticode **Valid** (WHQL leaf Microsoft Hardware Compatibility Publisher; nested PKCS#7 names **BattlEye Innovations e.K.**, Reutlingen). Defender: `MpCmdRun -ScanType 3` **skipped** the `.sys` path; identical bytes scanned as `.bin` **found no threats**; `Start-MpScan -ScanType CustomScan` completed. **Driver not loaded.**
 
@@ -49,6 +49,8 @@ Sidecar: `ac-captures-host/2026-11-18/hashes.json`. Guest copy hash-matched at `
 | `BEDaisy.sys` | 40 060 656 | `E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E` | `Reversing\BEDaisy.sys` (offline) | `C:\re\artifacts\BEDaisy.sys` (hash match) |
 
 PE timestamp **2026-10-12T13:11:53Z**. 10 sections; unnamed section 6 is the ~39.8 MB execute blob. No export directory (host `ev_00fed766…`; guest `ev_ee071044…`). No resource directory (`ev_0cec969a…`). TLS none. Load-config size 280; security cookie VA `0x14002a138`; GuardFlags `256` (`IMAGE_GUARD_CF_INSTRUMENTED` **linker claim only**); Guard CF function table VA `0` (`ev_6e0f9b9f…`).
+
+**Packed `.rdata` API blob (file `0x25bf0`, concatenated, no NULs) — Verified names present as substrings:** `FltGetRequestorProcess`, `FltReleaseFileNameInformation`, `FltRegisterFilter`, `FltUnregisterFilter`, `NtReadVirtualMemory`, `FltGetFileNameInformation`, `FltStartFiltering`, `FltQueryInformationFile`, `ZwSuspendThread`, `NtWriteVirtualMemory`, `ZwGetContextThread`, `ZwProtectVirtualMemory`, `NtDeviceIoControlFile`. Plus NUL-terminated `RtlPcToFileHeader`, `ntoskrnl.exe`, `sha512`, `LibTomMath`, `BEDaisy.pdb`. **Not IAT.** Supports H-BE-04 (minifilter + memory APIs resolved at runtime). `ObRegisterCallbacks` / `PsSetLoadImageNotifyRoutine` strings were **not** in `.rdata`.
 
 ---
 
@@ -90,7 +92,7 @@ Older `BEService_eft.exe` IAT (`ev_4ed1d576…`) still holds: 8 descriptors / im
 | H-BE-01 | Device `\Device\BattlEye` / `\DosDevices\BattlEye` / `\\.\BattlEye` | **Low on this hash** — no plaintext | Ghidra `IoCreateDevice` / encrypted strings. Static strings = **0**. |
 | H-BE-02 | IOCTL surface uses `FILE_DEVICE_UNKNOWN (0x22)` + `METHOD_NEITHER (3)` | Medium (public) | Dispatch decompile after following entry trampolines |
 | H-BE-03 | Historical IOCTL immediates (experienceds table) | **Rejected as literals** on this hash | 11/12 LE immediates absent; `0x0022830F` is `JAE` opcode, not an IOCTL dword |
-| H-BE-04 | Minifilter registration (`FltRegisterFilter`) and/or image-load notify | Medium (name blob, not IAT) | IAT is only `RtlPcToFileHeader`; `FltRegisterFilter` lives in packed names at `0x25bf0` |
+| H-BE-04 | Minifilter registration (`FltRegisterFilter`) and/or image-load notify | Medium-high for Flt* (name blob); **low** for image-notify (no `PsSetLoadImage*` in `.rdata`) | IAT is only `RtlPcToFileHeader`; Flt* + `NtRead/WriteVirtualMemory` live in packed names at `0x25bf0`. No plaintext `FLT_REGISTRATION` header. |
 | H-BE-05 | Disk identity IOCTLs to `\Device\Harddisk0\DR0` (`0x2D1400`, `0x7C088`) | Low — blob-only hits | Need Ghidra xrefs, not raw `find` |
 
 ### Public IOCTL table (Hypothesis — experienceds/battleye-re)
@@ -140,9 +142,9 @@ Research clones (docs/JSON, **no** `.sys`): `research-clones\battleye-re`.
 
 ## Next steps
 
-1. **Done:** hash + Defender + stage offline copy; guest IAT. Live Program Files BattlEye remains untouched; `BEService` remains Stopped.
-2. Ghidra headless **cannot** auto-analyze this hash: PE entry is a cyclic `jmp -10` thunk chain that overflows `CreateThunkFunctionCmd`. Next static pass should import with `-noanalysis` or disassemble `.text`/`INIT` only (objdump already did). Do **not** load the driver.
-3. Follow obfuscated `.text` at `0x1400157c8` / `0x1400066bf` with a thunk-safe disassembler if device/IOCTL recovery is still needed.
+1. **Done:** hash + Defender + stage offline copy; guest IAT; `.pdata`; packed-name inventory; INIT/`.text` objdump. Live Program Files BattlEye remains untouched; `BEService` remains Stopped.
+2. **Done (workaround):** Ghidra headless **cannot** auto-analyze this hash (`CreateThunkFunctionCmd` SOE on cyclic `E9 F6 FF FF FF`). Import with **`-noanalysis`**. Ghidra 12.1 on the guest has **no Jython** — post-scripts must be **Java** (`DumpLimitedDisasm.java`) or PyGhidra. Host MinGW `objdump --start-address/--stop-address` is the reliable limited disasm path. Do **not** load the driver.
+3. Follow obfuscated `.text` at `0x1400157c8` (`jmp 0x1417c4ba1` in SECTION.6 via `jmp rdi`) if device/IOCTL recovery is still needed — still a VM/opaque-predicate stub.
 4. UM-only follow-up: `GetProcAddress` in `BEClient_x64.dll` — still no live attach.
 
 ## Dead ends
@@ -155,3 +157,4 @@ Research clones (docs/JSON, **no** `.sys`): `research-clones\battleye-re`.
 | 2026-11-18 12:14 | Sam path `C:\Program Files (x86)\Common Files\BattlEye\BEDaisy.sys` | File not found. Superseded by offline Reversing copy. |
 | 2026-11-18 12:30 | experienceds IOCTL immediates | Not present as LE dwords in `E7BCF344…` |
 | 2026-11-18 12:41 | Guest Ghidra `analyze` / `function` | Cyclic PE-entry thunks (`E9 F6 FF FF FF`) → `CreateThunkFunctionCmd` SOE; bridge never starts |
+| 2026-11-18 afternoon | Guest Ghidra `DumpLimitedDisasm.py` | Ghidra 12.1 Jython stub: “install Jython or port to Java/PyGhidra”. `-noanalysis` **import itself succeeded**. Java `DumpLimitedDisasm.java` is the follow-up. |
