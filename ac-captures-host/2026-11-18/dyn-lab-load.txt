@@ -1,0 +1,213 @@
+﻿
+=== PFAB-20 dyn lab load (elevated, no DSE change) ===
+UTC=2026-11-18T19:51:59.0814404Z
+COMPUTERNAME=AIWORKSPACE
+USER=vboxuser
+WHOAMI=aiworkspace\vboxuser
+IS_ADMIN=True
+--- whoami /groups (filtered) ---
+NT AUTHORITY\Local account and member of Administrators group Well-known group S-1-5-114    Mandatory group, Enabled by default, Enabled group             
+BUILTIN\Administrators                                        Alias            S-1-5-32-544 Mandatory group, Enabled by default, Enabled group, Group owner
+Mandatory Label\High Mandatory Level                          Label            S-1-16-12288                                                                
+--- whoami /priv ---
+SeLoadDriverPrivilege                     Load and unload device drivers                                     Disabled
+SeDebugPrivilege                          Debug programs                                                     Enabled 
+--- bcdedit {current} ---
+
+Windows Boot Loader
+-------------------
+identifier              {current}
+device                  partition=C:
+path                    \WINDOWS\system32\winload.efi
+description             Windows 11
+locale                  en-US
+inherit                 {bootloadersettings}
+recoverysequence        {8df54b90-e308-11f1-abec-c3f27a374c4b}
+displaymessageoverride  Recovery
+recoveryenabled         Yes
+isolatedcontext         Yes
+allowedinmemorysettings 0x15000075
+osdevice                partition=C:
+systemroot              \WINDOWS
+resumeobject            {8df54b8e-e308-11f1-abec-c3f27a374c4b}
+nx                      OptIn
+bootmenupolicy          Standard
+TESTSIGNING=
+NOINTEGRITYCHECKS=
+KERNEL_DEBUG=
+DSE_POLICY: will not set testsigning/nointegritychecks; documenting CI outcome only.
+DG.VBS=0
+DG.CI_ENFORCE=2
+DG.UMCI=1
+VulnerableDriverBlocklistEnable=1
+DEV[before] \\.\EasyAntiCheat opened=False win32=2
+DEV[before] \\.\EasyAntiCheatSys opened=False win32=2
+DEV[before] \\.\EasyAntiCheat_EOS opened=False win32=2
+DEV[before] \\.\EasyAntiCheat_EOSSys opened=False win32=2
+DEV[before] \\.\EasyAntiCheatEOS opened=False win32=2
+DEV[before] \\.\BattlEye opened=False win32=2
+DEV[before] \\.\BEDaisy opened=False win32=2
+DEV[before] \\.\BEDaisySys opened=False win32=2
+==== LOAD LabDynEACEOS C:\re\artifacts\EasyAntiCheat_EOS.sys ====
+HASH=26797A1122781CAF12F1A686E33A0883FA1E2895B40C2249932E319B338841C7 MATCH=True SIG=Valid
+CREATE_EXIT=0
+[SC] CreateService SUCCESS
+START_EXIT=
+[SC] StartService FAILED 2:
+
+The system cannot find the file specified.
+SERVICE_NAME: LabDynEACEOS 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 2  (0x2)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+--- System/CI events since start ---
+SYSEVT t=11/18/2026 14:52:06 id=5 src=Microsoft-Windows-FilterManager File System Filter 'LabDynEACEOS' (Version 10.0, ‎2026‎-‎10‎-‎14T11:06:08.000000000Z) failed to register with Filter Manager. The final status for this operation was 0xC0000034.
+SYSEVT t=11/18/2026 14:52:02 id=7045 src=Service Control Manager A service was installed in the system. Service Name: LabDynEACEOS Service File Name: \??\C:\re\artifacts\EasyAntiCheat_EOS.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+--- fltmc after this start ---
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+--- driverquery match ---
+DRV  state=Stopped path=\??\C:\re\artifacts\EasyAntiCheat_EOS.sys
+DEV[LabDynEACEOS] \\.\EasyAntiCheat opened=False win32=2
+DEV[LabDynEACEOS] \\.\EasyAntiCheatSys opened=False win32=2
+DEV[LabDynEACEOS] \\.\EasyAntiCheat_EOS opened=False win32=2
+DEV[LabDynEACEOS] \\.\EasyAntiCheat_EOSSys opened=False win32=2
+DEV[LabDynEACEOS] \\.\EasyAntiCheatEOS opened=False win32=2
+DEV[LabDynEACEOS] \\.\BattlEye opened=False win32=2
+DEV[LabDynEACEOS] \\.\BEDaisy opened=False win32=2
+DEV[LabDynEACEOS] \\.\BEDaisySys opened=False win32=2
+[SC] ControlService FAILED 1062:
+
+The service has not been started.
+[SC] DeleteService SUCCESS
+==== LOAD LabDynEAC C:\re\artifacts\EasyAntiCheat.sys ====
+HASH=DD60A8CD0771B4FC548FDCEA68EA0FC78FBAAC58A77099731A62E70B03EB1C2A MATCH=True SIG=Valid
+CREATE_EXIT=0
+[SC] CreateService SUCCESS
+START_EXIT=
+[SC] StartService FAILED 2:
+
+The system cannot find the file specified.
+SERVICE_NAME: LabDynEAC 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 2  (0x2)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+--- System/CI events since start ---
+SYSEVT t=11/18/2026 14:52:43 id=5 src=Microsoft-Windows-FilterManager File System Filter 'LabDynEAC' (Version 6.1, ‎2023‎-‎09‎-‎21T08:05:04.000000000Z) failed to register with Filter Manager. The final status for this operation was 0xC0000034.
+SYSEVT t=11/18/2026 14:52:39 id=7045 src=Service Control Manager A service was installed in the system. Service Name: LabDynEAC Service File Name: \??\C:\re\artifacts\EasyAntiCheat.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+--- fltmc after this start ---
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+--- driverquery match ---
+DRV  state=Stopped path=\??\C:\re\artifacts\EasyAntiCheat.sys
+DEV[LabDynEAC] \\.\EasyAntiCheat opened=False win32=2
+DEV[LabDynEAC] \\.\EasyAntiCheatSys opened=False win32=2
+DEV[LabDynEAC] \\.\EasyAntiCheat_EOS opened=False win32=2
+DEV[LabDynEAC] \\.\EasyAntiCheat_EOSSys opened=False win32=2
+DEV[LabDynEAC] \\.\EasyAntiCheatEOS opened=False win32=2
+DEV[LabDynEAC] \\.\BattlEye opened=False win32=2
+DEV[LabDynEAC] \\.\BEDaisy opened=False win32=2
+DEV[LabDynEAC] \\.\BEDaisySys opened=False win32=2
+[SC] ControlService FAILED 1062:
+
+The service has not been started.
+[SC] DeleteService SUCCESS
+==== LOAD LabDynBEDaisy C:\re\artifacts\BEDaisy.sys ====
+HASH=E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E MATCH=True SIG=Valid
+CREATE_EXIT=0
+[SC] CreateService SUCCESS
+START_EXIT=
+[SC] StartService FAILED 2:
+
+The system cannot find the file specified.
+SERVICE_NAME: LabDynBEDaisy 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 2  (0x2)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+--- System/CI events since start ---
+SYSEVT t=11/18/2026 14:53:08 id=7045 src=Service Control Manager A service was installed in the system. Service Name: LabDynBEDaisy Service File Name: \??\C:\re\artifacts\BEDaisy.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+--- fltmc after this start ---
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+--- driverquery match ---
+DRV  state=Stopped path=\??\C:\re\artifacts\BEDaisy.sys
+DEV[LabDynBEDaisy] \\.\EasyAntiCheat opened=False win32=2
+DEV[LabDynBEDaisy] \\.\EasyAntiCheatSys opened=False win32=2
+DEV[LabDynBEDaisy] \\.\EasyAntiCheat_EOS opened=False win32=2
+DEV[LabDynBEDaisy] \\.\EasyAntiCheat_EOSSys opened=False win32=2
+DEV[LabDynBEDaisy] \\.\EasyAntiCheatEOS opened=False win32=2
+DEV[LabDynBEDaisy] \\.\BattlEye opened=False win32=2
+DEV[LabDynBEDaisy] \\.\BEDaisy opened=False win32=2
+DEV[LabDynBEDaisy] \\.\BEDaisySys opened=False win32=2
+[SC] ControlService FAILED 1062:
+
+The service has not been started.
+[SC] DeleteService SUCCESS
+DEV[after] \\.\EasyAntiCheat opened=False win32=2
+DEV[after] \\.\EasyAntiCheatSys opened=False win32=2
+DEV[after] \\.\EasyAntiCheat_EOS opened=False win32=2
+DEV[after] \\.\EasyAntiCheat_EOSSys opened=False win32=2
+DEV[after] \\.\EasyAntiCheatEOS opened=False win32=2
+DEV[after] \\.\BattlEye opened=False win32=2
+DEV[after] \\.\BEDaisy opened=False win32=2
+DEV[after] \\.\BEDaisySys opened=False win32=2
+--- leftover LabDyn services ---
+LEFT LabDynEACEOS [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+LEFT LabDynEAC [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+LEFT LabDynBEDaisy [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+WROTE=Z:\ac-captures-host\2026-11-18\dyn-lab-load.json
+LOAD_SCRIPT_OK

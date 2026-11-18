@@ -1,0 +1,142 @@
+﻿{
+    "utc":  "2026-11-18T19:45:56.7660462Z",
+    "computer":  "AIWORKSPACE",
+    "user":  "vboxuser",
+    "is_admin":  false,
+    "artifacts":  [
+                      {
+                          "name":  "EasyAntiCheat_EOS.sys",
+                          "path":  "C:\\re\\artifacts\\EasyAntiCheat_EOS.sys",
+                          "exists":  true,
+                          "length":  40474272,
+                          "sha256":  "26797A1122781CAF12F1A686E33A0883FA1E2895B40C2249932E319B338841C7",
+                          "hash_match":  true,
+                          "authenticode_status":  "Valid",
+                          "authenticode_signer":  "CN=Epic Games Inc., O=Epic Games Inc., L=Cary, S=North Carolina, C=US, SERIALNUMBER=D03752763, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.2=Maryland, OID.1.3.6.1.4.1.311.60.2.1.3=US"
+                      },
+                      {
+                          "name":  "EasyAntiCheat.sys",
+                          "path":  "C:\\re\\artifacts\\EasyAntiCheat.sys",
+                          "exists":  true,
+                          "length":  16635000,
+                          "sha256":  "DD60A8CD0771B4FC548FDCEA68EA0FC78FBAAC58A77099731A62E70B03EB1C2A",
+                          "hash_match":  true,
+                          "authenticode_status":  "Valid",
+                          "authenticode_signer":  "CN=EasyAntiCheat Oy, O=EasyAntiCheat Oy, STREET=Tammasaarenkatu 3, L=Helsinki, S=Uusimaa, C=FI, OID.1.3.6.1.4.1.311.60.2.1.3=FI, SERIALNUMBER=2585063-4, OID.2.5.4.15=Private Organization"
+                      },
+                      {
+                          "name":  "BEDaisy.sys",
+                          "path":  "C:\\re\\artifacts\\BEDaisy.sys",
+                          "exists":  true,
+                          "length":  40060656,
+                          "sha256":  "E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E",
+                          "hash_match":  true,
+                          "authenticode_status":  "Valid",
+                          "authenticode_signer":  "CN=Microsoft Windows Hardware Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+                      }
+                  ],
+    "live_program_files":  [
+                               {
+                                   "path":  "C:\\Program Files (x86)\\EasyAntiCheat_EOS\\EasyAntiCheat_EOS.sys",
+                                   "exists":  false
+                               },
+                               {
+                                   "path":  "C:\\Program Files (x86)\\EasyAntiCheat\\EasyAntiCheat.sys",
+                                   "exists":  false
+                               },
+                               {
+                                   "path":  "C:\\Program Files (x86)\\Common Files\\BattlEye\\BEDaisy.sys",
+                                   "exists":  false
+                               },
+                               {
+                                   "path":  "C:\\Windows\\System32\\drivers\\BEDaisy.sys",
+                                   "exists":  false
+                               },
+                               {
+                                   "path":  "C:\\Windows\\System32\\drivers\\EasyAntiCheat.sys",
+                                   "exists":  false
+                               },
+                               {
+                                   "path":  "C:\\Windows\\System32\\drivers\\EasyAntiCheat_EOS.sys",
+                                   "exists":  false
+                               }
+                           ],
+    "testsigning":  null,
+    "nointegritychecks":  null,
+    "hvci_enabled":  null,
+    "device_guard":  {
+                         "ci_enforcement":  2,
+                         "services_running":  [
+                                                  0
+                                              ],
+                         "umci":  1,
+                         "vbs":  0
+                     },
+    "devices":  [
+                    {
+                        "name":  "\\\\.\\EasyAntiCheat",
+                        "opened":  true,
+                        "win32":  0
+                    },
+                    {
+                        "name":  "\\\\.\\EasyAntiCheatSys",
+                        "opened":  true,
+                        "win32":  0
+                    },
+                    {
+                        "name":  "\\\\.\\EasyAntiCheat_EOS",
+                        "opened":  true,
+                        "win32":  0
+                    },
+                    {
+                        "name":  "\\\\.\\EasyAntiCheat_EOSSys",
+                        "opened":  true,
+                        "win32":  0
+                    },
+                    {
+                        "name":  "\\\\.\\EasyAntiCheatEOS",
+                        "opened":  true,
+                        "win32":  0
+                    },
+                    {
+                        "name":  "\\\\.\\BattlEye",
+                        "opened":  true,
+                        "win32":  0
+                    },
+                    {
+                        "name":  "\\\\.\\BEDaisy",
+                        "opened":  true,
+                        "win32":  0
+                    },
+                    {
+                        "name":  "\\\\.\\BEDaisySys",
+                        "opened":  true,
+                        "win32":  0
+                    }
+                ],
+    "dbg":  [
+                {
+                    "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\windbg.exe",
+                    "exists":  false
+                },
+                {
+                    "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\kd.exe",
+                    "exists":  false
+                },
+                {
+                    "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\x64\\windbg.exe",
+                    "exists":  false
+                },
+                {
+                    "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\x64\\kd.exe",
+                    "exists":  false
+                },
+                {
+                    "path":  "C:\\Users\\vboxuser\\AppData\\Local\\Microsoft\\WindowsApps\\WinDbgX.exe",
+                    "exists":  false
+                }
+            ],
+    "load_attempted":  false,
+    "dse_changed":  false,
+    "scope":  "lab copies under C:\\re\\artifacts only; no live game; no DSE disable"
+}

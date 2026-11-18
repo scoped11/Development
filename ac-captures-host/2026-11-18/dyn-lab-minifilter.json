@@ -1,0 +1,152 @@
+﻿[
+    {
+        "service":  "EasyAntiCheat_EOS",
+        "start_exit":  null,
+        "start_out":  "SERVICE_NAME: EasyAntiCheat_EOS \n        TYPE               : 1  KERNEL_DRIVER  \n        STATE              : 4  RUNNING \n                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)\n        WIN32_EXIT_CODE    : 0  (0x0)\n        SERVICE_EXIT_CODE  : 0  (0x0)\n        CHECKPOINT         : 0x0\n        WAIT_HINT          : 0x0\n        PID                : 0\n        FLAGS              :",
+        "query":  "SERVICE_NAME: EasyAntiCheat_EOS \r\n        TYPE               : 1  KERNEL_DRIVER  \r\n        STATE              : 4  RUNNING \r\n                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)\r\n        WIN32_EXIT_CODE    : 0  (0x0)\r\n        SERVICE_EXIT_CODE  : 0  (0x0)\r\n        CHECKPOINT         : 0x0\r\n        WAIT_HINT          : 0x0",
+        "devices":  [
+                        "DEV[EasyAntiCheat_EOS] \\\\.\\EasyAntiCheat opened=False win32=2",
+                        "DEV[EasyAntiCheat_EOS] \\\\.\\EasyAntiCheatSys opened=False win32=2",
+                        "DEV[EasyAntiCheat_EOS] \\\\.\\EasyAntiCheat_EOS opened=True win32=0",
+                        "DEV[EasyAntiCheat_EOS] \\\\.\\EasyAntiCheat_EOSSys opened=False win32=2",
+                        "DEV[EasyAntiCheat_EOS] \\\\.\\BattlEye opened=False win32=2",
+                        "DEV[EasyAntiCheat_EOS] \\\\.\\BEDaisy opened=False win32=2",
+                        {
+                            "tag":  "EasyAntiCheat_EOS",
+                            "name":  "\\\\.\\EasyAntiCheat",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "EasyAntiCheat_EOS",
+                            "name":  "\\\\.\\EasyAntiCheatSys",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "EasyAntiCheat_EOS",
+                            "name":  "\\\\.\\EasyAntiCheat_EOS",
+                            "opened":  true,
+                            "win32":  0
+                        },
+                        {
+                            "tag":  "EasyAntiCheat_EOS",
+                            "name":  "\\\\.\\EasyAntiCheat_EOSSys",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "EasyAntiCheat_EOS",
+                            "name":  "\\\\.\\BattlEye",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "EasyAntiCheat_EOS",
+                            "name":  "\\\\.\\BEDaisy",
+                            "opened":  false,
+                            "win32":  2
+                        }
+                    ]
+    },
+    {
+        "service":  "EasyAntiCheat",
+        "start_exit":  null,
+        "start_out":  "SERVICE_NAME: EasyAntiCheat \n        TYPE               : 1  KERNEL_DRIVER  \n        STATE              : 4  RUNNING \n                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)\n        WIN32_EXIT_CODE    : 0  (0x0)\n        SERVICE_EXIT_CODE  : 0  (0x0)\n        CHECKPOINT         : 0x0\n        WAIT_HINT          : 0x0\n        PID                : 0\n        FLAGS              :",
+        "query":  "SERVICE_NAME: EasyAntiCheat \r\n        TYPE               : 1  KERNEL_DRIVER  \r\n        STATE              : 4  RUNNING \r\n                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)\r\n        WIN32_EXIT_CODE    : 0  (0x0)\r\n        SERVICE_EXIT_CODE  : 0  (0x0)\r\n        CHECKPOINT         : 0x0\r\n        WAIT_HINT          : 0x0",
+        "devices":  [
+                        "DEV[EasyAntiCheat] \\\\.\\EasyAntiCheat opened=True win32=0",
+                        "DEV[EasyAntiCheat] \\\\.\\EasyAntiCheatSys opened=False win32=2",
+                        "DEV[EasyAntiCheat] \\\\.\\EasyAntiCheat_EOS opened=False win32=2",
+                        "DEV[EasyAntiCheat] \\\\.\\EasyAntiCheat_EOSSys opened=False win32=2",
+                        "DEV[EasyAntiCheat] \\\\.\\BattlEye opened=False win32=2",
+                        "DEV[EasyAntiCheat] \\\\.\\BEDaisy opened=False win32=2",
+                        {
+                            "tag":  "EasyAntiCheat",
+                            "name":  "\\\\.\\EasyAntiCheat",
+                            "opened":  true,
+                            "win32":  0
+                        },
+                        {
+                            "tag":  "EasyAntiCheat",
+                            "name":  "\\\\.\\EasyAntiCheatSys",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "EasyAntiCheat",
+                            "name":  "\\\\.\\EasyAntiCheat_EOS",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "EasyAntiCheat",
+                            "name":  "\\\\.\\EasyAntiCheat_EOSSys",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "EasyAntiCheat",
+                            "name":  "\\\\.\\BattlEye",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "EasyAntiCheat",
+                            "name":  "\\\\.\\BEDaisy",
+                            "opened":  false,
+                            "win32":  2
+                        }
+                    ]
+    },
+    {
+        "service":  "BEDaisy",
+        "start_exit":  null,
+        "start_out":  "[SC] StartService FAILED 577:\n\nWindows cannot verify the digital signature for this file. A recent hardware or software change might have installed a file that is signed incorrectly or damaged, or that might be malicious software from an unknown source.",
+        "query":  "SERVICE_NAME: BEDaisy \r\n        TYPE               : 1  KERNEL_DRIVER  \r\n        STATE              : 1  STOPPED \r\n        WIN32_EXIT_CODE    : 577  (0x241)\r\n        SERVICE_EXIT_CODE  : 0  (0x0)\r\n        CHECKPOINT         : 0x0\r\n        WAIT_HINT          : 0x0",
+        "devices":  [
+                        "DEV[BEDaisy] \\\\.\\EasyAntiCheat opened=False win32=2",
+                        "DEV[BEDaisy] \\\\.\\EasyAntiCheatSys opened=False win32=2",
+                        "DEV[BEDaisy] \\\\.\\EasyAntiCheat_EOS opened=False win32=2",
+                        "DEV[BEDaisy] \\\\.\\EasyAntiCheat_EOSSys opened=False win32=2",
+                        "DEV[BEDaisy] \\\\.\\BattlEye opened=False win32=2",
+                        "DEV[BEDaisy] \\\\.\\BEDaisy opened=False win32=2",
+                        {
+                            "tag":  "BEDaisy",
+                            "name":  "\\\\.\\EasyAntiCheat",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "BEDaisy",
+                            "name":  "\\\\.\\EasyAntiCheatSys",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "BEDaisy",
+                            "name":  "\\\\.\\EasyAntiCheat_EOS",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "BEDaisy",
+                            "name":  "\\\\.\\EasyAntiCheat_EOSSys",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "BEDaisy",
+                            "name":  "\\\\.\\BattlEye",
+                            "opened":  false,
+                            "win32":  2
+                        },
+                        {
+                            "tag":  "BEDaisy",
+                            "name":  "\\\\.\\BEDaisy",
+                            "opened":  false,
+                            "win32":  2
+                        }
+                    ]
+    }
+]

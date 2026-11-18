@@ -1,0 +1,180 @@
+﻿{
+    "utc":  "2026-11-18T19:53:28.6783630Z",
+    "computer":  "AIWORKSPACE",
+    "is_admin":  true,
+    "testsigning":  null,
+    "nointegritychecks":  null,
+    "kernel_debug":  null,
+    "ci_enforcement":  2,
+    "vbs":  0,
+    "vulnerable_driver_blocklist":  1,
+    "dse_changed":  false,
+    "live_game":  false,
+    "image_root":  "C:\\re\\artifacts",
+    "results":  [
+                    {
+                        "service":  "LabDynEACEOS",
+                        "image":  "C:\\re\\artifacts\\EasyAntiCheat_EOS.sys",
+                        "sha256":  "26797A1122781CAF12F1A686E33A0883FA1E2895B40C2249932E319B338841C7",
+                        "hash_match":  true,
+                        "authenticode":  "Valid",
+                        "create_exit":  0,
+                        "create_out":  "[SC] CreateService SUCCESS",
+                        "start_exit":  null,
+                        "start_out":  "[SC] StartService FAILED 2:\n\nThe system cannot find the file specified.",
+                        "query_out":  "SERVICE_NAME: LabDynEACEOS \r\n        TYPE               : 1  KERNEL_DRIVER  \r\n        STATE              : 1  STOPPED \r\n        WIN32_EXIT_CODE    : 2  (0x2)\r\n        SERVICE_EXIT_CODE  : 0  (0x0)\r\n        CHECKPOINT         : 0x0\r\n        WAIT_HINT          : 0x0",
+                        "stop_out":  "[SC] ControlService FAILED 1062:\r\n\r\nThe service has not been started.",
+                        "delete_out":  "[SC] DeleteService SUCCESS",
+                        "dse_or_ci_blocker":  false,
+                        "win32_guess":  null
+                    },
+                    {
+                        "service":  "LabDynEAC",
+                        "image":  "C:\\re\\artifacts\\EasyAntiCheat.sys",
+                        "sha256":  "DD60A8CD0771B4FC548FDCEA68EA0FC78FBAAC58A77099731A62E70B03EB1C2A",
+                        "hash_match":  true,
+                        "authenticode":  "Valid",
+                        "create_exit":  0,
+                        "create_out":  "[SC] CreateService SUCCESS",
+                        "start_exit":  null,
+                        "start_out":  "[SC] StartService FAILED 2:\n\nThe system cannot find the file specified.",
+                        "query_out":  "SERVICE_NAME: LabDynEAC \r\n        TYPE               : 1  KERNEL_DRIVER  \r\n        STATE              : 1  STOPPED \r\n        WIN32_EXIT_CODE    : 2  (0x2)\r\n        SERVICE_EXIT_CODE  : 0  (0x0)\r\n        CHECKPOINT         : 0x0\r\n        WAIT_HINT          : 0x0",
+                        "stop_out":  "[SC] ControlService FAILED 1062:\r\n\r\nThe service has not been started.",
+                        "delete_out":  "[SC] DeleteService SUCCESS",
+                        "dse_or_ci_blocker":  false,
+                        "win32_guess":  null
+                    },
+                    {
+                        "service":  "LabDynBEDaisy",
+                        "image":  "C:\\re\\artifacts\\BEDaisy.sys",
+                        "sha256":  "E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E",
+                        "hash_match":  true,
+                        "authenticode":  "Valid",
+                        "create_exit":  0,
+                        "create_out":  "[SC] CreateService SUCCESS",
+                        "start_exit":  null,
+                        "start_out":  "[SC] StartService FAILED 2:\n\nThe system cannot find the file specified.",
+                        "query_out":  "SERVICE_NAME: LabDynBEDaisy \r\n        TYPE               : 1  KERNEL_DRIVER  \r\n        STATE              : 1  STOPPED \r\n        WIN32_EXIT_CODE    : 2  (0x2)\r\n        SERVICE_EXIT_CODE  : 0  (0x0)\r\n        CHECKPOINT         : 0x0\r\n        WAIT_HINT          : 0x0",
+                        "stop_out":  "[SC] ControlService FAILED 1062:\r\n\r\nThe service has not been started.",
+                        "delete_out":  "[SC] DeleteService SUCCESS",
+                        "dse_or_ci_blocker":  false,
+                        "win32_guess":  null
+                    }
+                ],
+    "devices_before":  [
+                           "DEV[before] \\\\.\\EasyAntiCheat opened=False win32=2",
+                           "DEV[before] \\\\.\\EasyAntiCheatSys opened=False win32=2",
+                           "DEV[before] \\\\.\\EasyAntiCheat_EOS opened=False win32=2",
+                           "DEV[before] \\\\.\\EasyAntiCheat_EOSSys opened=False win32=2",
+                           "DEV[before] \\\\.\\EasyAntiCheatEOS opened=False win32=2",
+                           "DEV[before] \\\\.\\BattlEye opened=False win32=2",
+                           "DEV[before] \\\\.\\BEDaisy opened=False win32=2",
+                           "DEV[before] \\\\.\\BEDaisySys opened=False win32=2",
+                           {
+                               "tag":  "before",
+                               "name":  "\\\\.\\EasyAntiCheat",
+                               "opened":  false,
+                               "win32":  2
+                           },
+                           {
+                               "tag":  "before",
+                               "name":  "\\\\.\\EasyAntiCheatSys",
+                               "opened":  false,
+                               "win32":  2
+                           },
+                           {
+                               "tag":  "before",
+                               "name":  "\\\\.\\EasyAntiCheat_EOS",
+                               "opened":  false,
+                               "win32":  2
+                           },
+                           {
+                               "tag":  "before",
+                               "name":  "\\\\.\\EasyAntiCheat_EOSSys",
+                               "opened":  false,
+                               "win32":  2
+                           },
+                           {
+                               "tag":  "before",
+                               "name":  "\\\\.\\EasyAntiCheatEOS",
+                               "opened":  false,
+                               "win32":  2
+                           },
+                           {
+                               "tag":  "before",
+                               "name":  "\\\\.\\BattlEye",
+                               "opened":  false,
+                               "win32":  2
+                           },
+                           {
+                               "tag":  "before",
+                               "name":  "\\\\.\\BEDaisy",
+                               "opened":  false,
+                               "win32":  2
+                           },
+                           {
+                               "tag":  "before",
+                               "name":  "\\\\.\\BEDaisySys",
+                               "opened":  false,
+                               "win32":  2
+                           }
+                       ],
+    "devices_after":  [
+                          "DEV[after] \\\\.\\EasyAntiCheat opened=False win32=2",
+                          "DEV[after] \\\\.\\EasyAntiCheatSys opened=False win32=2",
+                          "DEV[after] \\\\.\\EasyAntiCheat_EOS opened=False win32=2",
+                          "DEV[after] \\\\.\\EasyAntiCheat_EOSSys opened=False win32=2",
+                          "DEV[after] \\\\.\\EasyAntiCheatEOS opened=False win32=2",
+                          "DEV[after] \\\\.\\BattlEye opened=False win32=2",
+                          "DEV[after] \\\\.\\BEDaisy opened=False win32=2",
+                          "DEV[after] \\\\.\\BEDaisySys opened=False win32=2",
+                          {
+                              "tag":  "after",
+                              "name":  "\\\\.\\EasyAntiCheat",
+                              "opened":  false,
+                              "win32":  2
+                          },
+                          {
+                              "tag":  "after",
+                              "name":  "\\\\.\\EasyAntiCheatSys",
+                              "opened":  false,
+                              "win32":  2
+                          },
+                          {
+                              "tag":  "after",
+                              "name":  "\\\\.\\EasyAntiCheat_EOS",
+                              "opened":  false,
+                              "win32":  2
+                          },
+                          {
+                              "tag":  "after",
+                              "name":  "\\\\.\\EasyAntiCheat_EOSSys",
+                              "opened":  false,
+                              "win32":  2
+                          },
+                          {
+                              "tag":  "after",
+                              "name":  "\\\\.\\EasyAntiCheatEOS",
+                              "opened":  false,
+                              "win32":  2
+                          },
+                          {
+                              "tag":  "after",
+                              "name":  "\\\\.\\BattlEye",
+                              "opened":  false,
+                              "win32":  2
+                          },
+                          {
+                              "tag":  "after",
+                              "name":  "\\\\.\\BEDaisy",
+                              "opened":  false,
+                              "win32":  2
+                          },
+                          {
+                              "tag":  "after",
+                              "name":  "\\\\.\\BEDaisySys",
+                              "opened":  false,
+                              "win32":  2
+                          }
+                      ]
+}

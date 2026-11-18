@@ -1,25 +1,42 @@
-# RE notes — Easy Anti-Cheat (EAC)
+﻿# RE notes — Easy Anti-Cheat (EAC)
 
 **Binary focus:** owned `EasyAntiCheat_EOS.sys` (current EOS) and `EasyAntiCheat.sys` (legacy).  
 **Evidence rule:** **Verified** = REA PE tools, Authenticode, Defender/VirusTotal, guest `rea inspect-*` / Ghidra, host objdump, or PE header parse of the staged SHA-256. **Hypothesis** = public GitHub notes not re-proven on this SHA-256.  
-**Scope:** static documentation only. No live bypass, hypervisor patches, or cheat payloads. Driver images were **not** loaded. Live Program Files was **not** re-copied this pass.
+**Scope:** static documentation plus a **lab-only** load of `C:\re\artifacts\` copies on guest `AI_workspace`. No live game, no host Program Files, no DSE disable, no bypass product. Lab services were stopped and deleted after the probe.
 
-**Session:** 2026-11-17 (sample + `analyze`), **2026-11-18** (DriverEntry / minifilter dispatch), **2026-11-18 afternoon** (`.pdata` + plaintext EOS `FLT_REGISTRATION` + objdump of VM stubs), **2026-11-18 evening** (SECTION.6/7 VM interpreter map: handler addends, cookie/`r12` stub, opcode dispatch), **2026-11-18 night** (static lift of cookie-handler bodies after xor/cmp; guest hashes re-checked). Guest `AI_workspace` via `VBoxManage guestcontrol` (share **`Z:\`**, not `D:`). Guest copies: `C:\re\artifacts\` (hash-matched). Drivers **not** loaded.
+**Session:** 2026-11-17 (sample + `analyze`), **2026-11-18** (DriverEntry / minifilter dispatch), **2026-11-18 afternoon** (`.pdata` + plaintext EOS `FLT_REGISTRATION` + objdump of VM stubs), **2026-11-18 evening** (SECTION.6/7 VM interpreter map: handler addends, cookie/`r12` stub, opcode dispatch), **2026-11-18 night** (static lift of cookie-handler bodies after xor/cmp; guest hashes re-checked), **2026-11-18 dynamic** (guest `sc start` of hash-matched artifacts; runtime DOS devices). Guest `AI_workspace` via `VBoxManage guestcontrol` (share **`Z:\`**, not `D:`).
 
 ---
 
 ## Verified kernel facts
 
-Static REA + Ghidra on guest copies under `C:\re\artifacts\` (drivers **not** loaded). Required fields: device names, IOCTL dispatch, IAT, entry.
+Static REA + Ghidra on guest copies under `C:\re\artifacts\`, then a **lab-only** `sc start` on `AI_workspace` (same hashes). Required fields: device names, IOCTL dispatch, IAT, entry.
 
 | Field | EOS `EasyAntiCheat_EOS.sys` `26797A11…` | Legacy `EasyAntiCheat.sys` `DD60A8CD…` |
 |-------|-----------------------------------------|----------------------------------------|
 | **IAT** | Single import `FLTMGR.SYS!FltRegisterFilter`. Imphash `272647242dc096a27c50c9e914b7a808`. Compiler thunk `FF 25` at `0x140272940`; **zero** `E8` callers. | `FLTMGR.SYS!FltRegisterFilter` + `ntoskrnl.exe` `{__C_specific_handler, __chkstk, PsLookupProcessByProcessId, RtlDeleteRegistryValue, RtlPcToFileHeader, RtlWriteRegistryValue, ZwClose, ZwFlushKey, ZwOpenKey}`. Imphash `015b27e9d0715a67c574c45c768227b4`. Call site `FUN_1400650f8` @ `0x1400658d4`. |
 | **Entry** | PE `AddressOfEntryPoint` RVA `0x272978` → `entry` `0x140272978` (43-byte MSVC wrapper) → `FUN_140272948` (**GS cookie** at `0x140319220`; `int 0x29` on fail) → `thunk_FUN_1403a572e` → `FUN_1403a572e` → `FUN_140381041` (R12=`RSP+8`) → `FUN_14038114f` (relocates caller ret by `0xffffffffffc8547d` into the `[r12+0x108]` stack gap) → `FUN_140123b1e` `jmp [r12+0x108]+0x41dcaa` → trampoline `0x140424211` → handler **`0x141b1df86`**. `.pdata` **5633** RUNTIME_FUNCTION rows (`.text` 1493 / `SECTION.7` 4139 / `SECTION.6` 1). | PE entry RVA `0xAFDE8` → `entry` `0x1400afde8` (23-byte trampoline) → `0x14071c246` in unnamed `SECTION.6`: `sub rsp,0x108` then XMM/GPR save frame (VM prolog, **not** a Ghidra procedure). **0** EOS-style cookie stubs. `.pdata` **650** rows (`.text` 649 / `SECTION.6` 1). |
-| **Device names** | No plaintext `\Device\…`. UTF-16 `\\EasyAntiCheat_EOS\\` at file `0x30e1ce` sits in an **Authenticode cert-store** string blob (`%s\SOFTWARE\Microsoft\SystemCertificates\%s\Certificates\`, GUIDs `F750E6C3-…` / `00AAC56B-…`) — **not** a `\Device\` path. UM stem `EasyAntiCheat_EOSSys` remains **H-EAC-02**. | Unicode `\Device\EasyAntiCheat` + `\DosDevices\EasyAntiCheat` (file `0xaecc0` / `0xaec70`). Also UTF-16 `\Registry\Machine\Software\Wow6432Node\EasyAntiCheat` at file `0x11db6e`. |
+| **Device names** | **Runtime (2026-11-18):** `\\.\EasyAntiCheat_EOS` **opened** (CreateFile access 0, win32=0) while minifilter `EasyAntiCheat_EOS` was RUNNING (`fltmc` altitude **370010**, 6 instances). `\\.\EasyAntiCheat_EOSSys` still win32=2. Static image still has **no** plaintext `\Device\…`; UTF-16 `\\EasyAntiCheat_EOS\\` at file `0x30e1ce` remains a cert-store fragment. | **Runtime:** `\\.\EasyAntiCheat` **opened** (win32=0) while minifilter `EasyAntiCheat` was RUNNING (`fltmc` altitude **370020**, 6 instances). Matches static Unicode `\Device\EasyAntiCheat` + `\DosDevices\EasyAntiCheat` (file `0xaecc0` / `0xaec70`). |
 | **IOCTL / dispatch** | **Plaintext minifilter table found** (not IRP `DEVICE_CONTROL`). `FLT_REGISTRATION` at VA **`0x1402f6230`** (file `0x2f5030`, `.rdata`): Size **112** (`0x70`), Version **`0x0203`**, Flags 0, empty `FLT_CONTEXT_REGISTRATION` (`ContextType=0xFFFF` at `0x1402f66e0`). Ops at `0x1402f6720`: `{MJ 0x00 CREATE, Pre 0x14023e237}`, `{MJ 0x06 SET_INFORMATION, Pre 0x14023e237}`, `{MJ 0xFF ACQUIRE_FOR_SECTION_SYNCHRONIZATION, Pre 0x14023e269}`, `{MJ 0x80 END}`. Unload `0x14023e209`. Each `.text` callback is a **5-byte `jmp` into SECTION.7** then the same VM stub as DriverEntry (`mov [r12+0x190], imm64; add eax,[r12+0x108]; jmp rax`). Naive `0x0022xxxx` scan is coincidental. | Minifilter: `FLT_REGISTRATION` `DAT_1401060f0` Size 104 Version `0x0202`; **all instance/name/tx callbacks NULL**; context table is terminator-only (`0xFFFF` at `0x140105d08`). Ops `{MJ 0xFF, Pre FUN_1400650ac → jmp 0x140064e48}` then `{MJ 0x80}`. Real pre-op at `0x140064e48` checks CallbackData, `MajorFunction==0xFF`, `CR8==0` (PASSIVE), then `FUN_1400855d0` dynamic resolve. Unload `0x1400650b4` resolves a second hash (`0x402778e3d078ecd2`) and zeros cookie `DAT_140186fc0`. IRP `DEVICE_CONTROL` body remains the `SECTION.6` blob. |
 
-Evidence IDs: EOS entry `ev_37c1df25…` / real-entry `ev_8177f93e…` / `FUN_140381041` `ev_ce486a5b…` / `FUN_140123b1e` `ev_8ce58779…`; legacy entry `ev_6d24798e…`; `FltRegisterFilter` `ev_1a862564…`. JSON: `ac-captures-host/2026-11-18/` (`vm-interpreter-summary.json`, `vm-interpreter-map.json`, `vm-interpreter-follow.json`, `handler-lift-summary.json`, `handler-lift.json`, `handler-lift-follow.json`).
+Evidence IDs: EOS entry `ev_37c1df25…` / real-entry `ev_8177f93e…` / `FUN_140381041` `ev_ce486a5b…` / `FUN_140123b1e` `ev_8ce58779…`; legacy entry `ev_6d24798e…`; `FltRegisterFilter` `ev_1a862564…`. JSON: `ac-captures-host/2026-11-18/` (`vm-interpreter-summary.json`, `vm-interpreter-map.json`, `vm-interpreter-follow.json`, `handler-lift-summary.json`, `handler-lift.json`, `handler-lift-follow.json`, `dyn-lab-load.json`, `dyn-lab-minifilter.json`).
+
+---
+
+## Dynamic lab load (AI_workspace, 2026-11-18)
+
+Guest `AIWORKSPACE` only. Images: `C:\re\artifacts\{EasyAntiCheat_EOS,EasyAntiCheat,BEDaisy}.sys` hash-matched. Live Program Files paths **absent** on the guest. `bcdedit` showed **no** `testsigning` / `nointegritychecks` / `debug`. Device Guard CI enforcement **2** (enforced), VBS **0**, HVCI unset, Vulnerable Driver Blocklist **1**. DSE was **not** turned off. WinDbg/kd **not** installed; REA native runtime tools are Linux-only — no kernel IOCTL dump.
+
+| Step | EOS `26797A11…` | Legacy `DD60A8CD…` |
+|------|-----------------|-------------------|
+| Bare `sc create` + `sc start` as `LabDynEAC*` | Create SUCCESS. Start **ERROR 2**. Filter Manager event 5: `FltRegisterFilter` **0xC0000034** (`STATUS_OBJECT_NAME_NOT_FOUND`). CI did **not** reject the image. | Same: ERROR 2 + FltMgr **0xC0000034**. |
+| Retry with `Services\<name>\Instances` + unused altitude | Service **RUNNING**. FltMgr event 6: loaded. `fltmc`: `EasyAntiCheat_EOS` altitude **370010**, **6** instances. | Service **RUNNING**. `fltmc`: `EasyAntiCheat` altitude **370020**, **6** instances. |
+| DOS device probe (CreateFile access 0, **no** `DeviceIoControl`) | `\\.\EasyAntiCheat_EOS` **opened** win32=0. `\\.\EasyAntiCheat_EOSSys` win32=2. | `\\.\EasyAntiCheat` **opened** win32=0. |
+| Cleanup | `sc stop` + `sc delete` SUCCESS. No leftover services. | Same. |
+
+**IOCTL codes:** not captured. Drivers stayed loaded only long enough for the existence probe; no WinDbg `!devobj` / dispatch dump; no IOCTL payloads sent.
+
+Logs: `ac-captures-host/2026-11-18/dyn-lab-probe.txt`, `dyn-lab-load.txt`, `dyn-lab-minifilter.txt`, `dyn-lab-ci-events.txt`.
 
 ---
 
@@ -124,7 +141,7 @@ Cookie `xor` immediates are MBA keys, not recovered function pointers. `cmp`/`se
 
 `0x1403d4566` sits in a trampoline cluster: leave (`mov rsp,r12; call EOS_vm_restore_frame; lea rsp,[rsp+0x1c0]; call [rsp+8]`) and re-enter (`call EOS_vm_save_frame`) are **adjacent** bytes, not the taken edge. The taken edge is `jmp 0x140f1bd25` (chained handler).
 
-**Static limit:** after the cookie check, bodies are more MBA + VM frame shift / chained handlers. No plaintext `IoCreateDevice`, `FltRegisterFilter` call, or `CTL_CODE` table appears in the lifted suffix. Device name remains H-EAC-02.
+**Static limit:** after the cookie check, bodies are more MBA + VM frame shift / chained handlers. No plaintext `IoCreateDevice`, `FltRegisterFilter` call, or `CTL_CODE` table appears in the lifted suffix. Runtime lab load later opened `\\.\EasyAntiCheat_EOS` (H-EAC-02 DOS name). IRP codes still unknown.
 
 **Inference (not runtime):** addend ≈ virtualized basic-block / handler id; cookie ≈ per-call-site MBA key. Handler “work” is expressed as chained VM blocks, not a recovered C function.
 
@@ -195,7 +212,7 @@ Sidecar: `ac-captures-host/2026-11-17/hashes.json`. `.sys` bodies are gitignored
 | ID | Hypothesis | Confidence | Falsify with |
 |----|------------|------------|--------------|
 | H-EAC-01 | Remaining kernel APIs (`ObRegisterCallbacks`, process/image notify, etc.) are **dynamically resolved**, which is why the EOS IAT is only `FltRegisterFilter`. Static `FLT_REGISTRATION` exists but is not `.text`-called. | High (layout) | Ghidra xrefs from unnamed section / import decrypt; **not** done on this hash yet |
-| H-EAC-02 | IOCTL / **device object** names for **this** EOS build are not in plaintext (unlike legacy `\Device\EasyAntiCheat`). UTF-16 `\\EasyAntiCheat_EOS\\` is a **cert-store** fragment, not a device. UM `EasyAntiCheat_EOSSys` may still be a service/device stem. | Medium | Ghidra `IoCreateDevice` / `IoCreateSymbolicLink` on this SHA |
+| H-EAC-02 | IOCTL / **device object** names for **this** EOS build are not in plaintext (unlike legacy `\Device\EasyAntiCheat`). UTF-16 `\\EasyAntiCheat_EOS\\` is a **cert-store** fragment, not a device. UM stem `EasyAntiCheat_EOSSys` is **not** the DOS name. | **DOS name resolved** — runtime `\\.\EasyAntiCheat_EOS` opened; `\\.\EasyAntiCheat_EOSSys` does **not** exist. IRP `DEVICE_CONTROL` codes still unknown. | Lab CreateFile (done). WinDbg `!devobj` blocked: no kd on guest. |
 | H-EAC-03 | Integrity verifier tables described by `experienceds/eac-eos-research` (hash `7102C734…`, 22 MB) **do not apply** to `26797A11…` without a new pass. | High | Compare section map + RVA `0xDB338` trampoline — expected miss |
 | H-EAC-04 | `adamvalves` `eac_internals.h` (TPM / stack-walk / import descriptor structs) is a useful **naming hint**, not a sizeof-accurate layout for this build. | Low | REA `procedure_pseudo_code` on DriverEntry path |
 | H-EAC-05 | Public note that EOS `ObRegisterCallbacks` returns `OB_PREOP_SUCCESS` while AND-masking handle access is **policy inference from another build**. Do not treat as verified here. | Low | Callback body on **this** image |
@@ -206,9 +223,10 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 
 | Device / symlink | IOCTL (hex) | Direction | Status | Notes |
 |------------------|------------|-----------|--------|-------|
-| `\Device\EasyAntiCheat` + `\DosDevices\EasyAntiCheat` | *(no CTL_CODE immediates)* | UM↔KM device objects | **Verified strings on legacy** | Unicode at file `0xaecc0` / `0xaec70`. IRP `DEVICE_CONTROL` handler lives in unnamed `SECTION.6` (`0x14071c246`); not a Ghidra procedure. |
-| Legacy minifilter | IRP_MJ `0xFF` then `0x80` | FilterMgr | **Verified `FLT_OPERATION_REGISTRATION`** | Pre `FUN_1400650ac` → `0x140064e48` (section-sync + IRQL check). Not a `FILE_DEVICE_UNKNOWN` IOCTL catalog. |
-| EOS kernel device | — | — | **Device name still unverified on `26797A11…`** | UTF-16 `\\EasyAntiCheat_EOS\\` is a cert-store fragment. No `\Device\…` Unicode. Public `\Device\EasyAntiCheat_EOS` stays **H-EAC-02**. |
+| `\Device\EasyAntiCheat` + `\DosDevices\EasyAntiCheat` | *(no CTL_CODE captured)* | UM↔KM device objects | **Verified strings + runtime `\\.\EasyAntiCheat`** | Unicode at file `0xaecc0` / `0xaec70`. Lab CreateFile opened `\\.\EasyAntiCheat` (win32=0) while the minifilter was RUNNING. No `DeviceIoControl` sent. |
+| Legacy minifilter | IRP_MJ `0xFF` then `0x80` | FilterMgr | **Verified `FLT_OPERATION_REGISTRATION` + runtime `fltmc`** | Pre `FUN_1400650ac` → `0x140064e48`. Lab: `EasyAntiCheat` altitude 370020, 6 instances. |
+| EOS kernel device | — | UM↔KM | **Runtime `\\.\EasyAntiCheat_EOS`** | Lab CreateFile opened `\\.\EasyAntiCheat_EOS` (win32=0). `\\.\EasyAntiCheat_EOSSys` win32=2. Static UTF-16 `\\EasyAntiCheat_EOS\\` is still a cert-store fragment. |
+| EOS minifilter (runtime) | MJ `0x00`, `0x06`, `0xFF`, `0x80` | FilterMgr | **Verified load** | `fltmc`: `EasyAntiCheat_EOS` altitude 370010, 6 instances. FltMgr event 6. |
 | EOS minifilter | MJ `0x00`, `0x06`, `0xFF`, `0x80` | FilterMgr | **Verified `FLT_REGISTRATION` `0x1402f6230` v0x0203** | Pre stubs VM-jump into `SECTION.7`. Not a CTL_CODE catalog. |
 | EOS IOCTL / IRP MJ table | — | — | **Verified absent as plaintext at DriverEntry** | Entry chain ends in computed `jmp rax` (`FUN_140123b1e`). Naive `0x0022xxxx` immediates are **not** a CTL_CODE table (900+ coincidental hits). |
 | *(experienceds / adamvalves tables)* | build-specific | — | Hypothesis / other hash | Do not copy into Verified |
@@ -232,7 +250,7 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 | P2 | `FUN_14038114f` / VM context at `[r12+0x108]` | **Done (static)** — vm_base `0x140006567`; 8144 stubs; 3903 handlers followed through trampoline to `push rbp` bodies; DriverEntry body `0x141b1df86` |
 | P2 | EOS cookie-handler bodies after xor/cmp | **Done (static limit)** — census 3220 xor / 3551 cmp; DriverEntry → `EOS_vm_shift_frame`; section-sync chains to `0x140f1bd25`; no plaintext device/IOCTL in the lifted suffix |
 | P2 | EOS `FLT_REGISTRATION` `0x1402f6230` | **Done** — Size 112 / v0x0203 / MJ 0,6,FF + VM stubs |
-| P2 | EOS `IoCreateDevice` name construction | still encoded; UM stem `EasyAntiCheat_EOSSys` remains H-EAC-02. Static handler lift did **not** surface a name. Needs a non-static context (or a later chained block not reached by file-byte emu). |
+| P2 | EOS `IoCreateDevice` name construction | **Done (runtime DOS name)** — `\\.\EasyAntiCheat_EOS`. `EasyAntiCheat_EOSSys` is **not** the device. IRP IOCTL codes still need WinDbg/`!devobj` (kd not on guest). |
 | P3 | Re-check adamvalves / experienceds RVAs | expected mismatch vs 22 MB public hash |
 
 **Out of scope:** live attach, callback unhooking, rollback-to-old-driver PoCs (`itsunderscores/EAC-Rollback` not cloned).
@@ -249,3 +267,4 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 | 2026-11-18 | Treat EOS `\\EasyAntiCheat_EOS\\` as `\Device\` | UTF-16 lives in the Authenticode cert-store string blob (`SystemCertificates\%s\Certificates\`) |
 | 2026-11-18 evening | 256-entry VM opcode pointer table in EOS | 0 `jmp [rax*8+abs]`; no 32+ image-VA QWORD runs. Dispatch is stub addends. |
 | 2026-11-18 night | Treat cookie `xor` immediates as recovered pointers | **11289** decrypted values, **0** in-image. They are MBA keys; DriverEntry continues to `EOS_vm_shift_frame`, not `IoCreateDevice`. |
+| 2026-11-18 dynamic | Treat `\\.\EasyAntiCheat_EOSSys` as the EOS device | Lab CreateFile win32=2. Real DOS name is `\\.\EasyAntiCheat_EOS`. |

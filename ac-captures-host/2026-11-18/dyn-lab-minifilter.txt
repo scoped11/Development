@@ -1,0 +1,169 @@
+﻿
+=== PFAB-20 minifilter instance retry ===
+UTC=2026-11-18T19:55:36.7661079Z
+IS_ADMIN=True
+==== MF EasyAntiCheat_EOS ====
+CREATE=[SC] CreateService SUCCESS
+INST DefaultInstance=EasyAntiCheat_EOS Instance Altitude=370010
+START_EXIT=
+
+SERVICE_NAME: EasyAntiCheat_EOS 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+        PID                : 0
+        FLAGS              : 
+SERVICE_NAME: EasyAntiCheat_EOS 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+--- events ---
+SYSEVT id=6 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat_EOS' (10.0, ‎2026‎-‎10‎-‎14T11:06:08.000000000Z) has successfully loaded and registered with Filter Manager.
+SYSEVT id=7045 src=Service Control Manager A service was installed in the system. Service Name: EasyAntiCheat_EOS Service File Name: \??\C:\re\artifacts\EasyAntiCheat_EOS.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+EasyAntiCheat_EOS                       6       370010         0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+DEV[EasyAntiCheat_EOS] \\.\EasyAntiCheat opened=False win32=2
+DEV[EasyAntiCheat_EOS] \\.\EasyAntiCheatSys opened=False win32=2
+DEV[EasyAntiCheat_EOS] \\.\EasyAntiCheat_EOS opened=True win32=0
+DEV[EasyAntiCheat_EOS] \\.\EasyAntiCheat_EOSSys opened=False win32=2
+DEV[EasyAntiCheat_EOS] \\.\BattlEye opened=False win32=2
+DEV[EasyAntiCheat_EOS] \\.\BEDaisy opened=False win32=2
+SERVICE_NAME: EasyAntiCheat_EOS 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+[SC] DeleteService SUCCESS
+==== MF EasyAntiCheat ====
+CREATE=[SC] CreateService SUCCESS
+INST DefaultInstance=EasyAntiCheat Instance Altitude=370020
+START_EXIT=
+
+SERVICE_NAME: EasyAntiCheat 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+        PID                : 0
+        FLAGS              : 
+SERVICE_NAME: EasyAntiCheat 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+--- events ---
+SYSEVT id=7045 src=Service Control Manager A service was installed in the system. Service Name: EasyAntiCheat Service File Name: \??\C:\re\artifacts\EasyAntiCheat.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+SYSEVT id=1 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat_EOS' (Version 10.0, ‎2026‎-‎10‎-‎14T11:06:08.000000000Z) unloaded successfully.
+SYSEVT id=6 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat_EOS' (10.0, ‎2026‎-‎10‎-‎14T11:06:08.000000000Z) has successfully loaded and registered with Filter Manager.
+SYSEVT id=7045 src=Service Control Manager A service was installed in the system. Service Name: EasyAntiCheat_EOS Service File Name: \??\C:\re\artifacts\EasyAntiCheat_EOS.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+EasyAntiCheat                           6       370020         0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+DEV[EasyAntiCheat] \\.\EasyAntiCheat opened=True win32=0
+DEV[EasyAntiCheat] \\.\EasyAntiCheatSys opened=False win32=2
+DEV[EasyAntiCheat] \\.\EasyAntiCheat_EOS opened=False win32=2
+DEV[EasyAntiCheat] \\.\EasyAntiCheat_EOSSys opened=False win32=2
+DEV[EasyAntiCheat] \\.\BattlEye opened=False win32=2
+DEV[EasyAntiCheat] \\.\BEDaisy opened=False win32=2
+SERVICE_NAME: EasyAntiCheat 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+[SC] DeleteService SUCCESS
+==== MF BEDaisy ====
+CREATE=[SC] CreateService SUCCESS
+INST DefaultInstance=BEDaisy Instance Altitude=370030
+START_EXIT=
+[SC] StartService FAILED 577:
+
+Windows cannot verify the digital signature for this file. A recent hardware or software change might have installed a file that is signed incorrectly or damaged, or that might be malicious software from an unknown source.
+
+SERVICE_NAME: BEDaisy 
+        TYPE               : 1  KERNEL_DRIVER  
+        STATE              : 1  STOPPED 
+        WIN32_EXIT_CODE    : 577  (0x241)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+--- events ---
+SYSEVT id=1 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat' (Version 6.1, ‎2023‎-‎09‎-‎21T08:05:04.000000000Z) unloaded successfully.
+SYSEVT id=6 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat' (6.1, ‎2023‎-‎09‎-‎21T08:05:04.000000000Z) has successfully loaded and registered with Filter Manager.
+
+Filter Name                     Num Instances    Altitude    Frame
+------------------------------  -------------  ------------  -----
+bindflt                                 1       409800         0
+UCPD                                    6       385250.5       0
+WdFilter                                6       328010         0
+applockerfltr                           5       265000         0
+storqosflt                              0       244000         0
+wcifs                                   0       189900         0
+CldFlt                                  0       180451         0
+bfs                                     8       150000         0
+FileCrypt                               0       141100         0
+luafv                                   1       135000         0
+UnionFS                                 0       130850         0
+npsvctrig                               1        46000         0
+Wof                                     3        40700         0
+FileInfo                                6        40500         0
+DEV[BEDaisy] \\.\EasyAntiCheat opened=False win32=2
+DEV[BEDaisy] \\.\EasyAntiCheatSys opened=False win32=2
+DEV[BEDaisy] \\.\EasyAntiCheat_EOS opened=False win32=2
+DEV[BEDaisy] \\.\EasyAntiCheat_EOSSys opened=False win32=2
+DEV[BEDaisy] \\.\BattlEye opened=False win32=2
+DEV[BEDaisy] \\.\BEDaisy opened=False win32=2
+[SC] ControlService FAILED 1062:
+
+The service has not been started.
+[SC] DeleteService SUCCESS
+MF_SCRIPT_OK
+WROTE=Z:\ac-captures-host\2026-11-18\dyn-lab-minifilter.json

@@ -1,0 +1,30 @@
+﻿UTC=2026-11-18T19:58:20.1568917Z
+--- leftover services ---
+SVC LabDynEACEOS [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+SVC LabDynEAC [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+SVC LabDynBEDaisy [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+SVC EasyAntiCheat_EOS [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+SVC EasyAntiCheat [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+SVC BEDaisy [SC] EnumQueryServicesStatus:OpenService FAILED 1060: The specified service does not exist as an installed service.
+--- CodeIntegrity Operational since 14:50 ---
+CIEVT t=11/18/2026 14:55:52 id=3089 Signature information for another event. Match using the Correlation Id.
+CIEVT t=11/18/2026 14:55:52 id=3089 Signature information for another event. Match using the Correlation Id.
+CIEVT t=11/18/2026 14:55:52 id=3004 Windows is unable to verify the image integrity of the file \Device\HarddiskVolume4\re\artifacts\BEDaisy.sys because file hash could not be found on the system. A recent hardware or software change might have installed a file that is signed incorrectly or damaged, or that might be malicious software from an unknown source.
+--- System FilterManager/SCM/CI since 14:50 ---
+SYSEVT t=11/18/2026 14:55:52 id=7000 src=Service Control Manager The BEDaisy service failed to start due to the following error: Windows cannot verify the digital signature for this file. A recent hardware or software change might have installed a file that is signed incorrectly or damaged, or that might be malicious software from an unknown source.
+SYSEVT t=11/18/2026 14:55:52 id=7045 src=Service Control Manager A service was installed in the system. Service Name: BEDaisy Service File Name: \??\C:\re\artifacts\BEDaisy.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+SYSEVT t=11/18/2026 14:55:47 id=1 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat' (Version 6.1, ‎2023‎-‎09‎-‎21T08:05:04.000000000Z) unloaded successfully.
+SYSEVT t=11/18/2026 14:55:46 id=6 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat' (6.1, ‎2023‎-‎09‎-‎21T08:05:04.000000000Z) has successfully loaded and registered with Filter Manager.
+SYSEVT t=11/18/2026 14:55:43 id=7045 src=Service Control Manager A service was installed in the system. Service Name: EasyAntiCheat Service File Name: \??\C:\re\artifacts\EasyAntiCheat.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+SYSEVT t=11/18/2026 14:55:39 id=1 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat_EOS' (Version 10.0, ‎2026‎-‎10‎-‎14T11:06:08.000000000Z) unloaded successfully.
+SYSEVT t=11/18/2026 14:55:38 id=6 src=Microsoft-Windows-FilterManager File System Filter 'EasyAntiCheat_EOS' (10.0, ‎2026‎-‎10‎-‎14T11:06:08.000000000Z) has successfully loaded and registered with Filter Manager.
+SYSEVT t=11/18/2026 14:55:37 id=7045 src=Service Control Manager A service was installed in the system. Service Name: EasyAntiCheat_EOS Service File Name: \??\C:\re\artifacts\EasyAntiCheat_EOS.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+SYSEVT t=11/18/2026 14:53:11 id=7000 src=Service Control Manager The LabDynBEDaisy service failed to start due to the following error: The system cannot find the file specified.
+SYSEVT t=11/18/2026 14:53:11 id=5 src=Microsoft-Windows-FilterManager File System Filter 'LabDynBEDaisy' (Version 10.0, ‎2026‎-‎10‎-‎12T08:11:53.000000000Z) failed to register with Filter Manager. The final status for this operation was 0xC0000034.
+SYSEVT t=11/18/2026 14:53:08 id=7045 src=Service Control Manager A service was installed in the system. Service Name: LabDynBEDaisy Service File Name: \??\C:\re\artifacts\BEDaisy.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+SYSEVT t=11/18/2026 14:52:45 id=7000 src=Service Control Manager The LabDynEAC service failed to start due to the following error: The system cannot find the file specified.
+SYSEVT t=11/18/2026 14:52:43 id=5 src=Microsoft-Windows-FilterManager File System Filter 'LabDynEAC' (Version 6.1, ‎2023‎-‎09‎-‎21T08:05:04.000000000Z) failed to register with Filter Manager. The final status for this operation was 0xC0000034.
+SYSEVT t=11/18/2026 14:52:39 id=7045 src=Service Control Manager A service was installed in the system. Service Name: LabDynEAC Service File Name: \??\C:\re\artifacts\EasyAntiCheat.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 
+SYSEVT t=11/18/2026 14:52:09 id=7000 src=Service Control Manager The LabDynEACEOS service failed to start due to the following error: The system cannot find the file specified.
+SYSEVT t=11/18/2026 14:52:06 id=5 src=Microsoft-Windows-FilterManager File System Filter 'LabDynEACEOS' (Version 10.0, ‎2026‎-‎10‎-‎14T11:06:08.000000000Z) failed to register with Filter Manager. The final status for this operation was 0xC0000034.
+SYSEVT t=11/18/2026 14:52:02 id=7045 src=Service Control Manager A service was installed in the system. Service Name: LabDynEACEOS Service File Name: \??\C:\re\artifacts\EasyAntiCheat_EOS.sys Service Type: kernel mode driver Service Start Type: demand start Service Account: 

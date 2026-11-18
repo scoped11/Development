@@ -14,3 +14,5 @@ Evening static VM-interpreter map (drivers **not** loaded): `vm-interpreter-summ
 Night static handler lift (still **not** loaded): `handler-lift-summary.json`, `handler-lift.json`, `handler-lift-follow.json`. EOS cookie xor/cmp census + Unicorn to `EOS_vm_shift_frame` `0x140381325`. BEDaisy taken `jmp rdx` `0x1417c4d07` / alt `0x1417c4d0c`. Guest hashes re-checked: EOS `26797A11…`, legacy `DD60A8CD…`, BEDaisy `E7BCF344…`.
 
 Guest share letter is `Z:\`.
+
+**Dynamic lab load (2026-11-18, `AI_workspace` only):** hash-matched `C:\re\artifacts\` copies. No live game, no Program Files, no DSE disable. Logs: `dyn-lab-probe.txt`, `dyn-lab-load.txt`, `dyn-lab-minifilter.txt`, `dyn-lab-ci-events.txt` (+ JSON). Runtime DOS devices: `\\.\EasyAntiCheat_EOS`, `\\.\EasyAntiCheat`. BEDaisy product-named start: CI **3004** / SCM **577**. Lab services deleted after the probe.

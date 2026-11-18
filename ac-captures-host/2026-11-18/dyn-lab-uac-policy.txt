@@ -1,0 +1,8 @@
+﻿UTC=2026-11-18T19:48:41.8953577Z
+EnableLUA=1
+ConsentPromptBehaviorAdmin=5
+ConsentPromptBehaviorUser=3
+FilterAdministratorToken=
+EnableInstallerDetection=1
+PromptOnSecureDesktop=1
+whoami=aiworkspace\vboxuser
