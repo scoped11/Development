@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "rea": {
+      "command": "npx.cmd",
+      "args": ["-y", "rea-agents@latest", "mcp"],
+      "env": {
+        "JAVA_HOME": "C:\\Program Files\\Microsoft\\jdk-21.0.13.21-hotspot",
+        "GHIDRA_INSTALL_DIR": "C:\\Tools\\ghidra_12.1_PUBLIC"
+      }
+    }
+  }
+}

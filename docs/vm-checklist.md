@@ -42,6 +42,26 @@ npx.cmd rea-agents@latest doctor
 npx.cmd rea-agents@latest setup   # select Cursor; approve MCP install
 ```
 
+## Ghidra + REA (guest)
+
+| Item | Value |
+|------|--------|
+| Install script (guest, once) | `D:\hostdev\driver-lab\vm\install-ghidra-rea-guest.ps1` |
+| Expected Ghidra path | `C:\Tools\ghidra_12.1_PUBLIC` (override with `-InstallRoot`) |
+| MCP env | `GHIDRA_INSTALL_DIR` + `JAVA_HOME` in `%USERPROFILE%\.cursor\mcp.json` — see [mcp-rea-guest.example.json](mcp-rea-guest.example.json) |
+| Smoke test doc | [rea-vm-smoke-test.md](rea-vm-smoke-test.md) |
+
+**Host vs guest paths**
+
+```
+Host:  C:\Users\bj284\Downloads\TraeTesting\cursor\Development
+Guest: D:\hostdev          (wired by driver-lab\vm\wire-ai-workspace-lab.ps1)
+       Z:\                  (some reboots; Invoke-GuestScript probes Z/D/Y/E/X)
+       \\vboxsvr\hostdev     (UNC; always works when GA is up)
+```
+
+**VBoxManage Guest Control** needs an **interactive guest login**. If host automation fails with `VBOX_E_GSTCTL_GUEST_ERROR`, sign in to the VM once, then re-run `host-guest-exec.ps1`.
+
 Checklist:
 
 - [ ] Ghidra (or IDA) installed on **guest**, same machine as Cursor

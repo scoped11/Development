@@ -36,13 +36,28 @@
 | Service | `BEService.exe` | Session broker, comms to kernel |
 | Client | `BEClient.dll` | In-process integration |
 
+## Next RE targets (concrete — from [eac-be-research-index.md](eac-be-research-index.md))
+
+| Priority | Target | REA entry points | Public xref (hypothesis only) |
+|----------|--------|------------------|-------------------------------|
+| P0 | `BEDaisy.sys` | `open_binary` → `inspect_pe_load_config` → `binary_overview` | experienceds/battleye-re |
+| P1 | Filter stack | xrefs `FltRegisterFilter`, `FltStartFiltering` | H-BE-01; Aki2k/BEDaisy (aged) |
+| P1 | Driver init | `DriverEntry` / unload (`DriverUnload`) — stability only | brandenbailey23 unload fault study |
+| P2 | IOCTL dispatch | `IRP_MJ_DEVICE_CONTROL` handler; device object names via `search_strings` | experienceds + Aki2k — **build-specific** |
+| P2 | Callbacks | notify routines, handle stripping patterns | ObRegisterCallbacks / process notify xrefs |
+| P3 | `BEService.exe` | static imports + RPC/ALPC surfaces; **no live attach** | gmh5225/battleye-decryption (wire format hints) |
+| P3 | `BEClient.dll` | export table, thin shim vs service split | H-BE-03; tym32167/arma3beclient (UM only) |
+| P4 | Version matrix | file versions beside game season | H-BE-04 — lab manifest on share |
+
+**Do not promote IOCTL values from GitHub into Verified without guest REA evidence.**
+
 ## Next steps (VM + REA)
 
-1. Stage `BEDaisy.sys` (+ optional `BEService.exe`) from an **offline** capture on the shared folder.
-2. REA: PE load config, driver init, major function table.
-3. Map minifilter registration if present (`FltRegisterFilter` xrefs).
-4. Document unload / lifecycle in notes — tie to [bedaisy-unload-fault-0x7e](https://github.com/brandenbailey23/bedaisy-unload-fault-0x7e) only as **stability** research.
-5. For protocol shape, read-only review of `battleye-decryption` — do not attach to live games.
+1. Guest Ghidra pipeline: [rea-vm-smoke-test.md](rea-vm-smoke-test.md).
+2. Stage `BEDaisy.sys` (+ optional `BEService.exe`) under `ac-captures-host\<date>\`; local copy for Ghidra.
+3. REA P0–P2 table; name minifilter callbacks if imports present.
+4. Document unload / lifecycle — [bedaisy-unload-fault-0x7e](https://github.com/brandenbailey23/bedaisy-unload-fault-0x7e) as **stability** research only.
+5. Protocol: read-only notes from `battleye-decryption` — no live game traffic.
 
 ## Dead ends
 
