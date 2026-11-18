@@ -1,0 +1,66 @@
+﻿
+C:\Users\bj284\Downloads\TraeTesting\cursor\Development\ac-captures-host\2026-11-17\EasyAntiCheat_EOS.sys:     file format pei-x86-64
+
+
+Disassembly of section :
+
+0000000141b1df86 <+0x179cf86>:
+   141b1df86:	55                   	push   rbp
+   141b1df87:	48 89 e5             	mov    rbp,rsp
+   141b1df8a:	48 81 ec e0 00 00 00 	sub    rsp,0xe0
+   141b1df91:	4d 8b 74 24 58       	mov    r14,QWORD PTR [r12+0x58]
+   141b1df96:	49 8b 84 24 80 00 00 	mov    rax,QWORD PTR [r12+0x80]
+   141b1df9d:	00 
+   141b1df9e:	48 89 45 c8          	mov    QWORD PTR [rbp-0x38],rax
+   141b1dfa2:	49 8b bc 24 88 00 00 	mov    rdi,QWORD PTR [r12+0x88]
+   141b1dfa9:	00 
+   141b1dfaa:	49 8b 84 24 90 00 00 	mov    rax,QWORD PTR [r12+0x90]
+   141b1dfb1:	00 
+   141b1dfb2:	48 89 45 90          	mov    QWORD PTR [rbp-0x70],rax
+   141b1dfb6:	49 8b 84 24 98 00 00 	mov    rax,QWORD PTR [r12+0x98]
+   141b1dfbd:	00 
+   141b1dfbe:	48 89 45 b0          	mov    QWORD PTR [rbp-0x50],rax
+   141b1dfc2:	49 8b 84 24 b8 00 00 	mov    rax,QWORD PTR [r12+0xb8]
+   141b1dfc9:	00 
+   141b1dfca:	48 89 85 30 ff ff ff 	mov    QWORD PTR [rbp-0xd0],rax
+   141b1dfd1:	49 8b 84 24 f0 00 00 	mov    rax,QWORD PTR [r12+0xf0]
+   141b1dfd8:	00 
+   141b1dfd9:	48 89 85 28 ff ff ff 	mov    QWORD PTR [rbp-0xd8],rax
+   141b1dfe0:	4d 8b 84 24 08 01 00 	mov    r8,QWORD PTR [r12+0x108]
+   141b1dfe7:	00 
+   141b1dfe8:	41 8b 84 24 10 01 00 	mov    eax,DWORD PTR [r12+0x110]
+   141b1dfef:	00 
+   141b1dff0:	48 89 85 68 ff ff ff 	mov    QWORD PTR [rbp-0x98],rax
+   141b1dff7:	41 8b 84 24 88 01 00 	mov    eax,DWORD PTR [r12+0x188]
+   141b1dffe:	00 
+   141b1dfff:	89 85 78 ff ff ff    	mov    DWORD PTR [rbp-0x88],eax
+   141b1e005:	49 8b 9c 24 90 01 00 	mov    rbx,QWORD PTR [r12+0x190]
+   141b1e00c:	00 
+   141b1e00d:	48 b9 ec a4 b0 4c 48 	movabs rcx,0x2ac6e6484cb0a4ec
+   141b1e014:	e6 c6 2a 
+   141b1e017:	48 31 d9             	xor    rcx,rbx
+   141b1e01a:	49 03 8c 24 a0 00 00 	add    rcx,QWORD PTR [r12+0xa0]
+   141b1e021:	00 
+   141b1e022:	48 89 e0             	mov    rax,rsp
+   141b1e025:	48 89 85 58 ff ff ff 	mov    QWORD PTR [rbp-0xa8],rax
+   141b1e02c:	48 83 c0 f0          	add    rax,0xfffffffffffffff0
+   141b1e030:	48 89 c4             	mov    rsp,rax
+   141b1e033:	48 ba 53 7e d4 c1 e4 	movabs rdx,0xe81fb3e4c1d47e53
+   141b1e03a:	b3 1f e8 
+   141b1e03d:	48 31 da             	xor    rdx,rbx
+   141b1e040:	48 be 6e b9 44 d8 36 	movabs rsi,0xd1b5f036d844b96e
+   141b1e047:	f0 b5 d1 
+   141b1e04a:	48 39 f3             	cmp    rbx,rsi
+   141b1e04d:	0f 92 45 ff          	setb   BYTE PTR [rbp-0x1]
+   141b1e051:	48 be 6d b9 44 d8 36 	movabs rsi,0xd1b5f036d844b96d
+   141b1e058:	f0 b5 d1 
+   141b1e05b:	45 31 c9             	xor    r9d,r9d
+   141b1e05e:	48 39 f3             	cmp    rbx,rsi
+   141b1e061:	41 0f 97 c1          	seta   r9b
+   141b1e065:	4d 89 cb             	mov    r11,r9
+   141b1e068:	4c 89 4d 88          	mov    QWORD PTR [rbp-0x78],r9
+   141b1e06c:	48 be 63 22 c8 a2 4a 	movabs rsi,0x98a9e84aa2c82263
+   141b1e073:	e8 a9 98 
+   141b1e076:	45 31 d2             	xor    r10d,r10d
+   141b1e079:	48 39 f3             	cmp    rbx,rsi
+   141b1e07c:	41 0f 97 c2          	seta   r10b

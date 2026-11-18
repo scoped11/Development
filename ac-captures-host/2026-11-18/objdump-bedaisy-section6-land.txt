@@ -1,0 +1,103 @@
+﻿
+C:\Users\bj284\Downloads\TraeTesting\cursor\Development\ac-captures-host\2026-11-18\BEDaisy.sys:     file format pei-x86-64
+
+
+Disassembly of section :
+
+00000001417c4ba1 <+0x1793ba1>:
+   1417c4ba1:	56                   	push   rsi
+   1417c4ba2:	55                   	push   rbp
+   1417c4ba3:	41 54                	push   r12
+   1417c4ba5:	41 55                	push   r13
+   1417c4ba7:	48 8d 64 24 a8       	lea    rsp,[rsp-0x58]
+   1417c4bac:	f3 0f 7f 74 24 40    	movdqu XMMWORD PTR [rsp+0x40],xmm6
+   1417c4bb2:	f3 0f 7f 7c 24 30    	movdqu XMMWORD PTR [rsp+0x30],xmm7
+   1417c4bb8:	e9 37 01 00 00       	jmp    0x1417c4cf4
+   1417c4bbd:	48 0f 01 e2          	smsw   rdx
+   1417c4bc1:	48 c1 ea 1f          	shr    rdx,0x1f
+   1417c4bc5:	66 0f f9 f6          	psubw  xmm6,xmm6
+   1417c4bc9:	66 48 0f 7e f5       	movq   rbp,xmm6
+   1417c4bce:	48 8b fd             	mov    rdi,rbp
+   1417c4bd1:	40 d0 e7             	shl    dil,1
+   1417c4bd4:	40 8a ef             	mov    bpl,dil
+   1417c4bd7:	48 1b ea             	sbb    rbp,rdx
+   1417c4bda:	48 0b ea             	or     rbp,rdx
+   1417c4bdd:	66 48 0f 6e f2       	movq   xmm6,rdx
+   1417c4be2:	f3 0f 70 f6 08       	pshufhw xmm6,xmm6,0x8
+   1417c4be7:	f3 0f 70 f6 20       	pshufhw xmm6,xmm6,0x20
+   1417c4bec:	66 48 0f 7e f7       	movq   rdi,xmm6
+   1417c4bf1:	4c 8b e7             	mov    r12,rdi
+   1417c4bf4:	66 44 2b e2          	sub    r12w,dx
+   1417c4bf8:	66 41 8b fc          	mov    di,r12w
+   1417c4bfc:	48 0f 4a fd          	cmovp  rdi,rbp
+   1417c4c00:	48 c1 ef 3f          	shr    rdi,0x3f
+   1417c4c04:	66 0f 73 de 09       	psrldq xmm6,0x9
+   1417c4c09:	f3 0f 70 fe 10       	pshufhw xmm7,xmm6,0x10
+   1417c4c0e:	66 0f fa fe          	psubd  xmm7,xmm6
+   1417c4c12:	f2 0f 70 f7 c0       	pshuflw xmm6,xmm7,0xc0
+   1417c4c17:	48 0f 50 d6          	movmskps rdx,xmm6
+   1417c4c1b:	48 2b d7             	sub    rdx,rdi
+   1417c4c1e:	66 0f 64 fe          	pcmpgtb xmm7,xmm6
+   1417c4c22:	66 0f 64 fe          	pcmpgtb xmm7,xmm6
+   1417c4c26:	0f 55 f7             	andnps xmm6,xmm7
+   1417c4c29:	66 0f 50 fe          	movmskpd edi,xmm6
+   1417c4c2d:	8b ff                	mov    edi,edi
+   1417c4c2f:	48 83 e5 08          	and    rbp,0x8
+   1417c4c33:	83 dd 40             	sbb    ebp,0x40
+   1417c4c36:	48 1b fa             	sbb    rdi,rdx
+   1417c4c39:	4c 8d 25 39 07 00 00 	lea    r12,[rip+0x739]        # 0x1417c5379
+   1417c4c40:	49 8b ec             	mov    rbp,r12
+   1417c4c43:	48 81 ed 72 06 00 00 	sub    rbp,0x672
+   1417c4c4a:	66 49 0f 6e f4       	movq   xmm6,r12
+   1417c4c4f:	f2 0f 70 fe 40       	pshuflw xmm7,xmm6,0x40
+   1417c4c54:	0f 12 f7             	movhlps xmm6,xmm7
+   1417c4c57:	66 44 0f 50 e6       	movmskpd r12d,xmm6
+   1417c4c5c:	45 8b e4             	mov    r12d,r12d
+   1417c4c5f:	66 41 bd 40 00       	mov    r13w,0x40
+   1417c4c64:	4c 03 e5             	add    r12,rbp
+   1417c4c67:	66 41 81 d5 8e f9    	adc    r13w,0xf98e
+   1417c4c6d:	4c 0f 4b e5          	cmovnp r12,rbp
+   1417c4c71:	49 23 fc             	and    rdi,r12
+   1417c4c74:	66 0f f8 f6          	psubb  xmm6,xmm6
+   1417c4c78:	66 48 0f 50 ee       	movmskpd rbp,xmm6
+   1417c4c7d:	66 44 0f b6 e5       	movzx  r12w,bpl
+   1417c4c82:	66 41 83 fc 20       	cmp    r12w,0x20
+   1417c4c87:	48 0f 4b ef          	cmovnp rbp,rdi
+   1417c4c8b:	48 8d 3d 96 57 02 00 	lea    rdi,[rip+0x25796]        # 0x1417ea428
+   1417c4c92:	48 81 ef 1c 57 02 00 	sub    rdi,0x2571c
+   1417c4c99:	66 0f 73 f6 40       	psllq  xmm6,0x40
+   1417c4c9e:	66 4c 0f d7 e6       	pmovmskb r12,xmm6
+   1417c4ca3:	4c 33 e7             	xor    r12,rdi
+   1417c4ca6:	66 49 0f 6e f4       	movq   xmm6,r12
+   1417c4cab:	66 0f 62 f7          	punpckldq xmm6,xmm7
+   1417c4caf:	66 0f 70 f6 08       	pshufd xmm6,xmm6,0x8
+   1417c4cb4:	66 48 0f 7e f7       	movq   rdi,xmm6
+   1417c4cb9:	48 23 fa             	and    rdi,rdx
+   1417c4cbc:	66 48 0f 6e f5       	movq   xmm6,rbp
+   1417c4cc1:	f3 0f 70 fe 20       	pshufhw xmm7,xmm6,0x20
+   1417c4cc6:	66 0f 66 f7          	pcmpgtd xmm6,xmm7
+   1417c4cca:	66 48 0f d7 d6       	pmovmskb rdx,xmm6
+   1417c4ccf:	48 0b fd             	or     rdi,rbp
+   1417c4cd2:	48 83 da 10          	sbb    rdx,0x10
+   1417c4cd6:	48 0f 42 d7          	cmovb  rdx,rdi
+   1417c4cda:	ff e2                	jmp    rdx
+   1417c4cdc:	f3 0f 6f 7c 24 30    	movdqu xmm7,XMMWORD PTR [rsp+0x30]
+   1417c4ce2:	f3 0f 6f 74 24 40    	movdqu xmm6,XMMWORD PTR [rsp+0x40]
+   1417c4ce8:	48 8d 64 24 58       	lea    rsp,[rsp+0x58]
+   1417c4ced:	41 5d                	pop    r13
+   1417c4cef:	41 5c                	pop    r12
+   1417c4cf1:	5d                   	pop    rbp
+   1417c4cf2:	5e                   	pop    rsi
+   1417c4cf3:	c3                   	ret    
+   1417c4cf4:	48 8b da             	mov    rbx,rdx
+   1417c4cf7:	48 8b f1             	mov    rsi,rcx
+   1417c4cfa:	48 8d 8c 24 80 00 00 	lea    rcx,[rsp+0x80]
+   1417c4d01:	00 
+   1417c4d02:	e9 b6 fe ff ff       	jmp    0x1417c4bbd
+   1417c4d07:	e9 b1 fe ff ff       	jmp    0x1417c4bbd
+   1417c4d0c:	66 0f 73 f6 f2       	psllq  xmm6,0xf2
+   1417c4d11:	66 48 0f d7 d6       	pmovmskb rdx,xmm6
+   1417c4d16:	48 8d 52 30          	lea    rdx,[rdx+0x30]
+   1417c4d1a:	48 8d 0c 0a          	lea    rcx,[rdx+rcx*1]
+   1417c4d1e:	66                   	data16
+   1417c4d1f:	48                   	rex.W

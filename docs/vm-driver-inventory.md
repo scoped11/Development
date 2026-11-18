@@ -81,6 +81,8 @@ C:\re\artifacts\Betest.sys   ← copy from D:\hostdev\byovd\bin\Betest.sys
 
 **2026-11-18:** Unturned BattlEye install staged UM under `ac-captures-host\2026-11-18\` (gitignored bodies; `hashes.json` committed): `BEService.exe` / `BEService_unturned.exe` SHA-256 `DD3D72DF…`, `BEService_x64.exe` `1D325B52…`, `BEClient_x64.dll` `1241EE26…`, `BEServer_x64.dll` `F22EF1FB…`, `Unturned_BE.exe` `D960107C…`. Later the same day: offline `BEDaisy.sys` `E7BCF344…` from `TraeTesting\cursor\Reversing\` staged into the same folder and guest `C:\re\artifacts\` (hash-matched). Defender-clean; **not loaded**. Live Program Files BattlEye unused; `BEService` left **Stopped**.
 
+**2026-11-18 evening:** static SECTION.6/7 VM-interpreter map (no driver load). EOS: 8144 cookie/`r12` stubs, 3903 handlers, dispatch `[r12+0x108]+addend`. BEDaisy: no EOS ISA; SECTION.6 entry `0x1417c4ba1` MBA `jmp rdx`. Notes: [re-notes-eac.md](re-notes-eac.md) · [re-notes-be.md](re-notes-be.md). JSON: `ac-captures-host/2026-11-18/vm-interpreter-summary.json`.
+
 ## Tools bootstrap (guest)
 
 | Script | Purpose |

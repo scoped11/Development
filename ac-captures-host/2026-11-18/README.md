@@ -9,4 +9,6 @@ See `hashes.json` and `docs/re-notes-be.md` / `docs/re-notes-eac.md` (Verified k
 
 Afternoon static pass (no auto-analyze on BEDaisy): `kernel-facts-pm.json`, host objdump of INIT/`.text`/EOS FLT stubs, packed-name inventory. Guest Ghidra 12.1: `-import -noanalysis` works; Jython post-scripts do not (use Java).
 
+Evening static VM-interpreter map (drivers **not** loaded): `vm-interpreter-summary.json`, `vm-interpreter-map.json`, `vm-interpreter-follow.json`, plus objdump of EOS handler bodies / BEDaisy SECTION.6 `0x1417c4ba1`. Guest artifact hashes re-checked on `AI_workspace` via `Z:\`.
+
 Guest share letter is `Z:\`.

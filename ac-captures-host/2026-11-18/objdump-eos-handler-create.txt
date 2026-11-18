@@ -1,0 +1,101 @@
+﻿
+C:\Users\bj284\Downloads\TraeTesting\cursor\Development\ac-captures-host\2026-11-17\EasyAntiCheat_EOS.sys:     file format pei-x86-64
+
+
+Disassembly of section :
+
+0000000140e85f02 <+0xb04f02>:
+   140e85f02:	55                   	push   rbp
+   140e85f03:	48 89 e5             	mov    rbp,rsp
+   140e85f06:	48 81 ec 00 01 00 00 	sub    rsp,0x100
+   140e85f0d:	49 8b 44 24 20       	mov    rax,QWORD PTR [r12+0x20]
+   140e85f12:	48 89 45 c0          	mov    QWORD PTR [rbp-0x40],rax
+   140e85f16:	49 8b 44 24 58       	mov    rax,QWORD PTR [r12+0x58]
+   140e85f1b:	48 89 45 f0          	mov    QWORD PTR [rbp-0x10],rax
+   140e85f1f:	49 8b 84 24 80 00 00 	mov    rax,QWORD PTR [r12+0x80]
+   140e85f26:	00 
+   140e85f27:	48 89 45 a0          	mov    QWORD PTR [rbp-0x60],rax
+   140e85f2b:	49 8b 84 24 88 00 00 	mov    rax,QWORD PTR [r12+0x88]
+   140e85f32:	00 
+   140e85f33:	48 89 45 c8          	mov    QWORD PTR [rbp-0x38],rax
+   140e85f37:	4d 8b 8c 24 90 00 00 	mov    r9,QWORD PTR [r12+0x90]
+   140e85f3e:	00 
+   140e85f3f:	4c 89 8d 78 ff ff ff 	mov    QWORD PTR [rbp-0x88],r9
+   140e85f46:	49 8b 84 24 98 00 00 	mov    rax,QWORD PTR [r12+0x98]
+   140e85f4d:	00 
+   140e85f4e:	48 89 45 98          	mov    QWORD PTR [rbp-0x68],rax
+   140e85f52:	4d 8b 94 24 a0 00 00 	mov    r10,QWORD PTR [r12+0xa0]
+   140e85f59:	00 
+   140e85f5a:	4c 89 55 d0          	mov    QWORD PTR [rbp-0x30],r10
+   140e85f5e:	49 8b 84 24 b8 00 00 	mov    rax,QWORD PTR [r12+0xb8]
+   140e85f65:	00 
+   140e85f66:	48 89 85 28 ff ff ff 	mov    QWORD PTR [rbp-0xd8],rax
+   140e85f6d:	49 8b 84 24 c0 00 00 	mov    rax,QWORD PTR [r12+0xc0]
+   140e85f74:	00 
+   140e85f75:	48 89 85 20 ff ff ff 	mov    QWORD PTR [rbp-0xe0],rax
+   140e85f7c:	49 8b 8c 24 f0 00 00 	mov    rcx,QWORD PTR [r12+0xf0]
+   140e85f83:	00 
+   140e85f84:	48 89 8d 18 ff ff ff 	mov    QWORD PTR [rbp-0xe8],rcx
+   140e85f8b:	4d 8b ac 24 08 01 00 	mov    r13,QWORD PTR [r12+0x108]
+   140e85f92:	00 
+   140e85f93:	49 8b 8c 24 50 01 00 	mov    rcx,QWORD PTR [r12+0x150]
+   140e85f9a:	00 
+   140e85f9b:	48 89 8d 10 ff ff ff 	mov    QWORD PTR [rbp-0xf0],rcx
+   140e85fa2:	41 0f 10 84 24 58 01 	movups xmm0,XMMWORD PTR [r12+0x158]
+   140e85fa9:	00 00 
+   140e85fab:	49 8b 8c 24 18 01 00 	mov    rcx,QWORD PTR [r12+0x118]
+   140e85fb2:	00 
+   140e85fb3:	48 31 c1             	xor    rcx,rax
+   140e85fb6:	48 89 8d 68 ff ff ff 	mov    QWORD PTR [rbp-0x98],rcx
+   140e85fbd:	49 8b 8c 24 88 01 00 	mov    rcx,QWORD PTR [r12+0x188]
+   140e85fc4:	00 
+   140e85fc5:	48 89 8d 08 ff ff ff 	mov    QWORD PTR [rbp-0xf8],rcx
+   140e85fcc:	49 8b bc 24 90 01 00 	mov    rdi,QWORD PTR [r12+0x190]
+   140e85fd3:	00 
+   140e85fd4:	48 89 e2             	mov    rdx,rsp
+   140e85fd7:	48 83 c2 f0          	add    rdx,0xfffffffffffffff0
+   140e85fdb:	48 89 d4             	mov    rsp,rdx
+   140e85fde:	48 b9 29 ab e7 94 2c 	movabs rcx,0x77fcf92c94e7ab29
+   140e85fe5:	f9 fc 77 
+   140e85fe8:	48 31 f9             	xor    rcx,rdi
+   140e85feb:	48 be 68 c9 bd 07 a9 	movabs rsi,0x716f68a907bdc968
+   140e85ff2:	68 6f 71 
+   140e85ff5:	31 c0                	xor    eax,eax
+   140e85ff7:	48 39 f7             	cmp    rdi,rsi
+   140e85ffa:	0f 92 c0             	setb   al
+   140e85ffd:	48 89 45 b8          	mov    QWORD PTR [rbp-0x48],rax
+   140e86001:	48 be 67 c9 bd 07 a9 	movabs rsi,0x716f68a907bdc967
+   140e86008:	68 6f 71 
+   140e8600b:	31 c0                	xor    eax,eax
+   140e8600d:	48 39 f7             	cmp    rdi,rsi
+   140e86010:	0f 97 c0             	seta   al
+   140e86013:	48 89 45 e0          	mov    QWORD PTR [rbp-0x20],rax
+   140e86017:	48 89 d6             	mov    rsi,rdx
+   140e8601a:	4c 29 d6             	sub    rsi,r10
+   140e8601d:	48 89 75 f8          	mov    QWORD PTR [rbp-0x8],rsi
+   140e86021:	48 29 ce             	sub    rsi,rcx
+   140e86024:	49 b8 96 a8 b5 49 bc 	movabs r8,0x1cd608bc49b5a896
+   140e8602b:	08 d6 1c 
+   140e8602e:	49 01 f0             	add    r8,rsi
+   140e86031:	4c 0f af c0          	imul   r8,rax
+   140e86035:	4c 01 d1             	add    rcx,r10
+   140e86038:	4c 01 c1             	add    rcx,r8
+   140e8603b:	48 be 6a 57 4a b6 43 	movabs rsi,0xe329f743b64a576a
+   140e86042:	f7 29 e3 
+   140e86045:	0f 11 04 0e          	movups XMMWORD PTR [rsi+rcx*1],xmm0
+   140e86049:	49 89 e2             	mov    r10,rsp
+   140e8604c:	49 83 c2 f0          	add    r10,0xfffffffffffffff0
+   140e86050:	4c 89 d4             	mov    rsp,r10
+   140e86053:	45 0f b6 f9          	movzx  r15d,r9b
+   140e86057:	48 be 9f c1 e0 2f c2 	movabs rsi,0xe72d4fc22fe0c19f
+   140e8605e:	4f 2d e7 
+   140e86061:	4d 89 f9             	mov    r9,r15
+   140e86064:	49 31 f1             	xor    r9,rsi
+   140e86067:	4c 0f af ce          	imul   r9,rsi
+   140e8606b:	4c 89 c9             	mov    rcx,r9
+   140e8606e:	48 c1 e9 3c          	shr    rcx,0x3c
+   140e86072:	4d 89 c8             	mov    r8,r9
+   140e86075:	49 c1 e8 20          	shr    r8,0x20
+   140e86079:	49 d3 e8             	shr    r8,cl
+   140e8607c:	4d 31 c8             	xor    r8,r9
+   140e8607f:	4c                   	rex.WR

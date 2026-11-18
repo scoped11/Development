@@ -1,0 +1,56 @@
+{
+  "when": "2026-11-18-evening",
+  "scope": "static only; drivers not loaded; guest AI_workspace share Z:; no bypass",
+  "guest_hashes": {
+    "EasyAntiCheat_EOS.sys": "26797A1122781CAF12F1A686E33A0883FA1E2895B40C2249932E319B338841C7",
+    "EasyAntiCheat.sys": "DD60A8CD0771B4FC548FDCEA68EA0FC78FBAAC58A77099731A62E70B03EB1C2A",
+    "BEDaisy.sys": "E7BCF344EEFA7A4EBEA9B048E376958A5AD711489249033FA480A7EC8B6C018E"
+  },
+  "eos": {
+    "vm_section": "SECTION.7 (37 MiB RX); SECTION.6 is a small 33 KiB exec blob with 1 pdata row",
+    "context_ptr": "r12 = rsp+8 after FUN_140381041",
+    "cookie_slot": "[r12+0x190]",
+    "dispatch_base_slot": "[r12+0x108]",
+    "reloc_stub": "FUN_14038114f writes retaddr+0xffffffffffc8547d into the [r12+0x108] gap",
+    "vm_base": "0x140006567",
+    "dispatch_stub_shape": "movabs rax,cookie; mov [r12+0x190],rax; mov eax,addend; add rax,[r12+0x108]; jmp rax",
+    "complete_stubs": 8144,
+    "unique_cookies": 8144,
+    "unique_addends": 3903,
+    "stub_sections": {".text": 2324, "SECTION.7": 5820},
+    "cookie_stores_0x190": 14809,
+    "add_r12_108": 14761,
+    "lea_r12_rsp8": ["0x140381149", "0x140381b12"],
+    "second_reloc_const": "0xffffffffffc84ab4",
+    "handler_table": "no 256-entry pointer table (0 jmp [rax*8+abs]; no 32+ QWORD VA runs). Stubs are the table: addend selects handler.",
+    "landing": "every unique addend -> jmp rel32 -> push rbp handler",
+    "handler_final_kinds": {"push_rbp": 3899, "rex.wb": 4},
+    "handler_final_sections": {"SECTION.7": 3768, ".text": 135},
+    "known_handlers": {
+      "DriverEntry": {"addend": "0x41dcaa", "jmp": "0x140424211", "body": "0x141b1df86", "reads": ["[r12+0x58]=RCX", "[r12+0x80]=RDX", "[r12+0x108]", "[r12+0x190] cookie xor/cmp"]},
+      "FilterUnload": {"addend": "0x448d15", "body": "0x1421c00e0"},
+      "PreCreate_SetInfo": {"addend": "0x3c903b", "body": "0x140e85f02"},
+      "PreSectionSync": {"addend": "0x464925", "body": "0x142618c9e"}
+    },
+    "cookie_loads": {"mov_rax_[r12+0x190]": 4676, "mov_rbx_[r12+0x190]": 415, "mov_rcx_[r12+0x190]": 635},
+    "continuation_stub": "0x140381bca mov rbp,[r12+0x198]; rax=[*[r12+0x190]]; jmp rbp",
+    "opcode_dispatch": "computed jump (base+addend), not a switch table. Addend is the handler selector; cookie is per-site key checked inside handlers."
+  },
+  "legacy": {
+    "eos_style_cookie_stubs": 0,
+    "section6_entry": "0x14071c246 sub rsp,0x108 XMM/GPR save (VM prolog, not a Ghidra procedure)",
+    "jmp_abs_rax8": "2 hits inside SECTION.6 blob; abs32 operands are not image VAs — coincidental/data"
+  },
+  "bedaisy": {
+    "vm_section": "SECTION.6 (~39.8 MiB exec); SECTION.7 4 KiB non-exec",
+    "eos_style_cookie_stubs": 0,
+    "lea_r12_rsp8": 0,
+    "pe_entry": "0x1425ccea8 jmp 0x14261cead then 65536x E9 F6 FF FF FF cyclic thunks (Ghidra CreateThunkFunctionCmd SOE)",
+    "real_path": "INIT 0x14002f000 jmp 0x1400157c8 opaque .text -> call 0x1417c4ba1 SECTION.6",
+    "section6_interpreter_entry": "0x1417c4ba1 push rsi/rbp/r12/r13; MBA/SSE opaque predicates; lea r12,[rip+0x739]; jmp rdx at 0x1417c4cda",
+    "handler_table": "no EOS-style r12 cookie table. .rdata 50 QWORDs at 0x140027490 -> .text 0x140019814.. are native CRT/helpers (lfence, bounds), not VM opcodes.",
+    "jmp_rax_count": 4763,
+    "jmp_rdx_count": 2454,
+    "note": "BattlEye SECTION.6 dispatcher is MBA-computed jmp rdx, not the EAC cookie/addend stub ISA"
+  }
+}

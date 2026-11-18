@@ -1,0 +1,332 @@
+﻿
+C:\Users\bj284\Downloads\TraeTesting\cursor\Development\ac-captures-host\2026-11-18\BEDaisy.sys:     file format pei-x86-64
+
+
+Disassembly of section .text:
+
+0000000140019814 <.text+0x18814>:
+   140019814:	48 89 5c 24 08       	mov    QWORD PTR [rsp+0x8],rbx
+   140019819:	57                   	push   rdi
+   14001981a:	48 83 ec 20          	sub    rsp,0x20
+   14001981e:	ba 18 00 00 00       	mov    edx,0x18
+   140019823:	48 8b f9             	mov    rdi,rcx
+   140019826:	8d 4a e9             	lea    ecx,[rdx-0x17]
+   140019829:	e8 de 71 ff ff       	call   0x140010a0c
+   14001982e:	48 89 07             	mov    QWORD PTR [rdi],rax
+   140019831:	48 85 c0             	test   rax,rax
+   140019834:	75 07                	jne    0x14001983d
+   140019836:	b8 0d 00 00 00       	mov    eax,0xd
+   14001983b:	eb 1f                	jmp    0x14001985c
+   14001983d:	48 8b c8             	mov    rcx,rax
+   140019840:	e8 67 58 00 00       	call   0x14001f0ac
+   140019845:	8b c8                	mov    ecx,eax
+   140019847:	e8 f4 03 00 00       	call   0x140019c40
+   14001984c:	8b d8                	mov    ebx,eax
+   14001984e:	85 c0                	test   eax,eax
+   140019850:	74 08                	je     0x14001985a
+   140019852:	48 8b 0f             	mov    rcx,QWORD PTR [rdi]
+   140019855:	e8 fa 71 ff ff       	call   0x140010a54
+   14001985a:	8b c3                	mov    eax,ebx
+   14001985c:	48 8b 5c 24 30       	mov    rbx,QWORD PTR [rsp+0x30]
+   140019861:	48 83 c4 20          	add    rsp,0x20
+   140019865:	5f                   	pop    rdi
+   140019866:	c3                   	ret    
+   140019867:	cc                   	int3   
+   140019868:	40 53                	rex push rbx
+   14001986a:	48 83 ec 20          	sub    rsp,0x20
+   14001986e:	48 8b d9             	mov    rbx,rcx
+   140019871:	e8 ba 58 00 00       	call   0x14001f130
+   140019876:	48 8b cb             	mov    rcx,rbx
+   140019879:	48 83 c4 20          	add    rsp,0x20
+   14001987d:	5b                   	pop    rbx
+   14001987e:	e9 d1 71 ff ff       	jmp    0x140010a54
+   140019883:	cc                   	int3   
+   140019884:	48 83 ec 28          	sub    rsp,0x28
+   140019888:	e8 07 5c 00 00       	call   0x14001f494
+   14001988d:	8b c8                	mov    ecx,eax
+   14001988f:	48 83 c4 28          	add    rsp,0x28
+   140019893:	e9 a8 03 00 00       	jmp    0x140019c40
+   140019898:	48 83 ec 28          	sub    rsp,0x28
+   14001989c:	e8 7f 59 00 00       	call   0x14001f220
+   1400198a1:	8b c8                	mov    ecx,eax
+   1400198a3:	48 83 c4 28          	add    rsp,0x28
+   1400198a7:	e9 94 03 00 00       	jmp    0x140019c40
+   1400198ac:	48 89 5c 24 08       	mov    QWORD PTR [rsp+0x8],rbx
+   1400198b1:	57                   	push   rdi
+   1400198b2:	48 83 ec 20          	sub    rsp,0x20
+   1400198b6:	48 8b fa             	mov    rdi,rdx
+   1400198b9:	48 8b d9             	mov    rbx,rcx
+   1400198bc:	e8 53 ff ff ff       	call   0x140019814
+   1400198c1:	85 c0                	test   eax,eax
+   1400198c3:	74 07                	je     0x1400198cc
+   1400198c5:	b8 0d 00 00 00       	mov    eax,0xd
+   1400198ca:	eb 0b                	jmp    0x1400198d7
+   1400198cc:	48 8b 13             	mov    rdx,QWORD PTR [rbx]
+   1400198cf:	48 8b cf             	mov    rcx,rdi
+   1400198d2:	e8 c1 ff ff ff       	call   0x140019898
+   1400198d7:	48 8b 5c 24 30       	mov    rbx,QWORD PTR [rsp+0x30]
+   1400198dc:	48 83 c4 20          	add    rsp,0x20
+   1400198e0:	5f                   	pop    rdi
+   1400198e1:	c3                   	ret    
+   1400198e2:	cc                   	int3   
+   1400198e3:	cc                   	int3   
+   1400198e4:	48 83 ec 28          	sub    rsp,0x28
+   1400198e8:	e8 d3 58 00 00       	call   0x14001f1c0
+   1400198ed:	8b c8                	mov    ecx,eax
+   1400198ef:	48 83 c4 28          	add    rsp,0x28
+   1400198f3:	e9 48 03 00 00       	jmp    0x140019c40
+   1400198f8:	e9 7f 58 00 00       	jmp    0x14001f17c
+   1400198fd:	cc                   	int3   
+   1400198fe:	cc                   	int3   
+   1400198ff:	cc                   	int3   
+   140019900:	33 c0                	xor    eax,eax
+   140019902:	3b 11                	cmp    edx,DWORD PTR [rcx]
+   140019904:	7d 11                	jge    0x140019917
+   140019906:	85 d2                	test   edx,edx
+   140019908:	78 0d                	js     0x140019917
+   14001990a:	0f ae e8             	lfence 
+   14001990d:	48 8b 41 10          	mov    rax,QWORD PTR [rcx+0x10]
+   140019911:	48 63 d2             	movsxd rdx,edx
+   140019914:	8b 04 90             	mov    eax,DWORD PTR [rax+rdx*4]
+   140019917:	c3                   	ret    
+   140019918:	8b 01                	mov    eax,DWORD PTR [rcx]
+   14001991a:	c3                   	ret    
+   14001991b:	cc                   	int3   
+   14001991c:	48 83 ec 28          	sub    rsp,0x28
+   140019920:	e8 b3 5b 00 00       	call   0x14001f4d8
+   140019925:	8b c8                	mov    ecx,eax
+   140019927:	83 c8 ff             	or     eax,0xffffffff
+   14001992a:	3b c8                	cmp    ecx,eax
+   14001992c:	74 0c                	je     0x14001993a
+   14001992e:	33 c0                	xor    eax,eax
+   140019930:	85 c9                	test   ecx,ecx
+   140019932:	74 06                	je     0x14001993a
+   140019934:	83 f9 01             	cmp    ecx,0x1
+   140019937:	0f 94 c0             	sete   al
+   14001993a:	48 83 c4 28          	add    rsp,0x28
+   14001993e:	c3                   	ret    
+   14001993f:	cc                   	int3   
+   140019940:	48 83 ec 28          	sub    rsp,0x28
+   140019944:	e8 ab 62 00 00       	call   0x14001fbf4
+   140019949:	8b c8                	mov    ecx,eax
+   14001994b:	83 c8 ff             	or     eax,0xffffffff
+   14001994e:	3b c8                	cmp    ecx,eax
+   140019950:	74 0c                	je     0x14001995e
+   140019952:	33 c0                	xor    eax,eax
+   140019954:	85 c9                	test   ecx,ecx
+   140019956:	74 06                	je     0x14001995e
+   140019958:	83 f9 01             	cmp    ecx,0x1
+   14001995b:	0f 94 c0             	sete   al
+   14001995e:	48 83 c4 28          	add    rsp,0x28
+   140019962:	c3                   	ret    
+   140019963:	cc                   	int3   
+   140019964:	e9 cf 6e 00 00       	jmp    0x140020838
+   140019969:	cc                   	int3   
+   14001996a:	cc                   	int3   
+   14001996b:	cc                   	int3   
+   14001996c:	e9 5b 5a 00 00       	jmp    0x14001f3cc
+   140019971:	cc                   	int3   
+   140019972:	cc                   	int3   
+   140019973:	cc                   	int3   
+   140019974:	48 83 ec 28          	sub    rsp,0x28
+   140019978:	e8 d7 59 00 00       	call   0x14001f354
+   14001997d:	8b c8                	mov    ecx,eax
+   14001997f:	48 83 c4 28          	add    rsp,0x28
+   140019983:	e9 b8 02 00 00       	jmp    0x140019c40
+   140019988:	48 83 ec 28          	sub    rsp,0x28
+   14001998c:	e8 fb 6f 00 00       	call   0x14002098c
+   140019991:	8b c8                	mov    ecx,eax
+   140019993:	48 83 c4 28          	add    rsp,0x28
+   140019997:	e9 a4 02 00 00       	jmp    0x140019c40
+   14001999c:	48 83 ec 28          	sub    rsp,0x28
+   1400199a0:	e8 cb 70 00 00       	call   0x140020a70
+   1400199a5:	8b c8                	mov    ecx,eax
+   1400199a7:	48 83 c4 28          	add    rsp,0x28
+   1400199ab:	e9 90 02 00 00       	jmp    0x140019c40
+   1400199b0:	e9 ab 6e 00 00       	jmp    0x140020860
+   1400199b5:	cc                   	int3   
+   1400199b6:	cc                   	int3   
+   1400199b7:	cc                   	int3   
+   1400199b8:	48 83 ec 28          	sub    rsp,0x28
+   1400199bc:	e8 37 6f 00 00       	call   0x1400208f8
+   1400199c1:	8b c8                	mov    ecx,eax
+   1400199c3:	48 83 c4 28          	add    rsp,0x28
+   1400199c7:	e9 74 02 00 00       	jmp    0x140019c40
+   1400199cc:	48 83 ec 28          	sub    rsp,0x28
+   1400199d0:	e8 af 6e 00 00       	call   0x140020884
+   1400199d5:	8b c8                	mov    ecx,eax
+   1400199d7:	48 83 c4 28          	add    rsp,0x28
+   1400199db:	e9 60 02 00 00       	jmp    0x140019c40
+   1400199e0:	48 83 ec 28          	sub    rsp,0x28
+   1400199e4:	e8 1b 5b 00 00       	call   0x14001f504
+   1400199e9:	8b c8                	mov    ecx,eax
+   1400199eb:	48 83 c4 28          	add    rsp,0x28
+   1400199ef:	e9 4c 02 00 00       	jmp    0x140019c40
+   1400199f4:	48 83 ec 28          	sub    rsp,0x28
+   1400199f8:	e8 1b 62 00 00       	call   0x14001fc18
+   1400199fd:	8b c8                	mov    ecx,eax
+   1400199ff:	48 83 c4 28          	add    rsp,0x28
+   140019a03:	e9 38 02 00 00       	jmp    0x140019c40
+   140019a08:	48 83 ec 28          	sub    rsp,0x28
+   140019a0c:	e8 6f 5b 00 00       	call   0x14001f580
+   140019a11:	8b c8                	mov    ecx,eax
+   140019a13:	48 83 c4 28          	add    rsp,0x28
+   140019a17:	e9 24 02 00 00       	jmp    0x140019c40
+   140019a1c:	48 83 ec 28          	sub    rsp,0x28
+   140019a20:	e8 13 63 00 00       	call   0x14001fd38
+   140019a25:	8b c8                	mov    ecx,eax
+   140019a27:	48 83 c4 28          	add    rsp,0x28
+   140019a2b:	e9 10 02 00 00       	jmp    0x140019c40
+   140019a30:	48 83 ec 28          	sub    rsp,0x28
+   140019a34:	e8 bb 5b 00 00       	call   0x14001f5f4
+   140019a39:	8b c8                	mov    ecx,eax
+   140019a3b:	48 83 c4 28          	add    rsp,0x28
+   140019a3f:	e9 fc 01 00 00       	jmp    0x140019c40
+   140019a44:	48 83 ec 28          	sub    rsp,0x28
+   140019a48:	e8 ff 63 00 00       	call   0x14001fe4c
+   140019a4d:	8b c8                	mov    ecx,eax
+   140019a4f:	48 83 c4 28          	add    rsp,0x28
+   140019a53:	e9 e8 01 00 00       	jmp    0x140019c40
+   140019a58:	48 83 ec 28          	sub    rsp,0x28
+   140019a5c:	e8 43 5c 00 00       	call   0x14001f6a4
+   140019a61:	8b c8                	mov    ecx,eax
+   140019a63:	48 83 c4 28          	add    rsp,0x28
+   140019a67:	e9 d4 01 00 00       	jmp    0x140019c40
+   140019a6c:	48 83 ec 28          	sub    rsp,0x28
+   140019a70:	e8 87 5c 00 00       	call   0x14001f6fc
+   140019a75:	8b c8                	mov    ecx,eax
+   140019a77:	48 83 c4 28          	add    rsp,0x28
+   140019a7b:	e9 c0 01 00 00       	jmp    0x140019c40
+   140019a80:	48 83 ec 28          	sub    rsp,0x28
+   140019a84:	e8 0f 58 00 00       	call   0x14001f298
+   140019a89:	8b c8                	mov    ecx,eax
+   140019a8b:	48 83 c4 28          	add    rsp,0x28
+   140019a8f:	e9 ac 01 00 00       	jmp    0x140019c40
+   140019a94:	40 53                	rex push rbx
+   140019a96:	48 83 ec 20          	sub    rsp,0x20
+   140019a9a:	49 8b d8             	mov    rbx,r8
+   140019a9d:	4c 8d 44 24 48       	lea    r8,[rsp+0x48]
+   140019aa2:	e8 65 64 00 00       	call   0x14001ff0c
+   140019aa7:	8b c8                	mov    ecx,eax
+   140019aa9:	e8 92 01 00 00       	call   0x140019c40
+   140019aae:	85 c0                	test   eax,eax
+   140019ab0:	75 08                	jne    0x140019aba
+   140019ab2:	8b 44 24 48          	mov    eax,DWORD PTR [rsp+0x48]
+   140019ab6:	89 03                	mov    DWORD PTR [rbx],eax
+   140019ab8:	33 c0                	xor    eax,eax
+   140019aba:	48 83 c4 20          	add    rsp,0x20
+   140019abe:	5b                   	pop    rbx
+   140019abf:	c3                   	ret    
+   140019ac0:	48 83 ec 28          	sub    rsp,0x28
+   140019ac4:	e8 53 66 00 00       	call   0x14002011c
+   140019ac9:	8b c8                	mov    ecx,eax
+   140019acb:	48 83 c4 28          	add    rsp,0x28
+   140019acf:	e9 6c 01 00 00       	jmp    0x140019c40
+   140019ad4:	48 83 ec 28          	sub    rsp,0x28
+   140019ad8:	e8 d7 67 00 00       	call   0x1400202b4
+   140019add:	8b c8                	mov    ecx,eax
+   140019adf:	48 83 c4 28          	add    rsp,0x28
+   140019ae3:	e9 58 01 00 00       	jmp    0x140019c40
+   140019ae8:	48 83 ec 28          	sub    rsp,0x28
+   140019aec:	e8 27 64 00 00       	call   0x14001ff18
+   140019af1:	8b c8                	mov    ecx,eax
+   140019af3:	48 83 c4 28          	add    rsp,0x28
+   140019af7:	e9 44 01 00 00       	jmp    0x140019c40
+   140019afc:	48 83 ec 28          	sub    rsp,0x28
+   140019b00:	e8 8b 64 00 00       	call   0x14001ff90
+   140019b05:	8b c8                	mov    ecx,eax
+   140019b07:	48 83 c4 28          	add    rsp,0x28
+   140019b0b:	e9 30 01 00 00       	jmp    0x140019c40
+   140019b10:	48 83 ec 28          	sub    rsp,0x28
+   140019b14:	e8 ef 64 00 00       	call   0x140020008
+   140019b19:	8b c8                	mov    ecx,eax
+   140019b1b:	48 83 c4 28          	add    rsp,0x28
+   140019b1f:	e9 1c 01 00 00       	jmp    0x140019c40
+   140019b24:	48 83 ec 28          	sub    rsp,0x28
+   140019b28:	e8 53 65 00 00       	call   0x140020080
+   140019b2d:	8b c8                	mov    ecx,eax
+   140019b2f:	48 83 c4 28          	add    rsp,0x28
+   140019b33:	e9 08 01 00 00       	jmp    0x140019c40
+   140019b38:	48 83 ec 28          	sub    rsp,0x28
+   140019b3c:	e8 a7 65 00 00       	call   0x1400200e8
+   140019b41:	8b c8                	mov    ecx,eax
+   140019b43:	48 83 c4 28          	add    rsp,0x28
+   140019b47:	e9 f4 00 00 00       	jmp    0x140019c40
+   140019b4c:	48 89 5c 24 08       	mov    QWORD PTR [rsp+0x8],rbx
+   140019b51:	57                   	push   rdi
+   140019b52:	48 83 ec 20          	sub    rsp,0x20
+   140019b56:	48 8b fa             	mov    rdi,rdx
+   140019b59:	48 8b d9             	mov    rbx,rcx
+   140019b5c:	ba 04 00 00 00       	mov    edx,0x4
+   140019b61:	8d 4a fd             	lea    ecx,[rdx-0x3]
+   140019b64:	e8 a3 6e ff ff       	call   0x140010a0c
+   140019b69:	48 89 07             	mov    QWORD PTR [rdi],rax
+   140019b6c:	48 85 c0             	test   rax,rax
+   140019b6f:	75 07                	jne    0x140019b78
+   140019b71:	b8 0d 00 00 00       	mov    eax,0xd
+   140019b76:	eb 22                	jmp    0x140019b9a
+   140019b78:	48 8b d0             	mov    rdx,rax
+   140019b7b:	48 8b cb             	mov    rcx,rbx
+   140019b7e:	e8 f5 67 00 00       	call   0x140020378
+   140019b83:	8b c8                	mov    ecx,eax
+   140019b85:	e8 b6 00 00 00       	call   0x140019c40
+   140019b8a:	8b d8                	mov    ebx,eax
+   140019b8c:	85 c0                	test   eax,eax
+   140019b8e:	74 08                	je     0x140019b98
+   140019b90:	48 8b 0f             	mov    rcx,QWORD PTR [rdi]
+   140019b93:	e8 bc 6e ff ff       	call   0x140010a54
+   140019b98:	8b c3                	mov    eax,ebx
+   140019b9a:	48 8b 5c 24 30       	mov    rbx,QWORD PTR [rsp+0x30]
+   140019b9f:	48 83 c4 20          	add    rsp,0x20
+   140019ba3:	5f                   	pop    rdi
+   140019ba4:	c3                   	ret    
+   140019ba5:	cc                   	int3   
+   140019ba6:	cc                   	int3   
+   140019ba7:	cc                   	int3   
+   140019ba8:	48 83 ec 28          	sub    rsp,0x28
+   140019bac:	e8 27 68 00 00       	call   0x1400203d8
+   140019bb1:	8b c8                	mov    ecx,eax
+   140019bb3:	48 83 c4 28          	add    rsp,0x28
+   140019bb7:	e9 84 00 00 00       	jmp    0x140019c40
+   140019bbc:	48 83 ec 28          	sub    rsp,0x28
+   140019bc0:	45 8b 00             	mov    r8d,DWORD PTR [r8]
+   140019bc3:	e8 cc 68 00 00       	call   0x140020494
+   140019bc8:	8b c8                	mov    ecx,eax
+   140019bca:	48 83 c4 28          	add    rsp,0x28
+   140019bce:	e9 6d 00 00 00       	jmp    0x140019c40
+   140019bd3:	cc                   	int3   
+   140019bd4:	e9 7b 6e ff ff       	jmp    0x140010a54
+   140019bd9:	cc                   	int3   
+   140019bda:	cc                   	int3   
+   140019bdb:	cc                   	int3   
+   140019bdc:	48 83 ec 28          	sub    rsp,0x28
+   140019be0:	e8 ff 69 00 00       	call   0x1400205e4
+   140019be5:	8b c8                	mov    ecx,eax
+   140019be7:	48 83 c4 28          	add    rsp,0x28
+   140019beb:	e9 50 00 00 00       	jmp    0x140019c40
+   140019bf0:	48 89 5c 24 08       	mov    QWORD PTR [rsp+0x8],rbx
+   140019bf5:	57                   	push   rdi
+   140019bf6:	48 83 ec 20          	sub    rsp,0x20
+   140019bfa:	8b c2                	mov    eax,edx
+   140019bfc:	33 db                	xor    ebx,ebx
+   140019bfe:	85 c0                	test   eax,eax
+   140019c00:	ba 28 00 00 00       	mov    edx,0x28
+   140019c05:	49 8b f8             	mov    rdi,r8
+   140019c08:	0f 45 d0             	cmovne edx,eax
+   140019c0b:	e8 28 6b 00 00       	call   0x140020738
+   140019c10:	8b c8                	mov    ecx,eax
+   140019c12:	e8 29 00 00 00       	call   0x140019c40
+   140019c17:	83 3f 01             	cmp    DWORD PTR [rdi],0x1
+   140019c1a:	0f 94 c3             	sete   bl
+   140019c1d:	89 1f                	mov    DWORD PTR [rdi],ebx
+   140019c1f:	48 8b 5c 24 30       	mov    rbx,QWORD PTR [rsp+0x30]
+   140019c24:	48 83 c4 20          	add    rsp,0x20
+   140019c28:	5f                   	pop    rdi
+   140019c29:	c3                   	ret    
+   140019c2a:	cc                   	int3   
+   140019c2b:	cc                   	int3   
+   140019c2c:	48 83 ec 28          	sub    rsp,0x28
+   140019c30:	e8 f3 57 00 00       	call   0x14001f428
+   140019c35:	8b c8                	mov    ecx,eax
+   140019c37:	48 83 c4 28          	add    rsp,0x28
+   140019c3b:	e9 00 00 00 00       	jmp    0x140019c40
