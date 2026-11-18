@@ -1,0 +1,11 @@
+﻿$ErrorActionPreference = "Continue"
+$env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.1_PUBLIC"
+$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.13.21-hotspot"
+$out = "Z:\ac-captures-host\2026-11-17"
+New-Item -ItemType Directory -Force -Path $out | Out-Null
+Write-Output "START $(Get-Date -Format o) analyze legacy EasyAntiCheat.sys"
+npx.cmd -y rea-agents@latest analyze "C:\re\artifacts\EasyAntiCheat.sys" --format json --filter-output "normalized_result,subject,limitations,confidence,evidence_id" 2>&1 | Tee-Object "$out\rea-analyze-legacy.json"
+Write-Output "LEGACY_ANALYZE_EXIT $LASTEXITCODE $(Get-Date -Format o)"
+Write-Output "START EOS analyze"
+npx.cmd -y rea-agents@latest analyze "C:\re\artifacts\EasyAntiCheat_EOS.sys" --format json --filter-output "normalized_result,subject,limitations,confidence,evidence_id" 2>&1 | Tee-Object "$out\rea-analyze-eos.json"
+Write-Output "EOS_ANALYZE_EXIT $LASTEXITCODE $(Get-Date -Format o)"
