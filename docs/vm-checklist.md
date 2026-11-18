@@ -2,6 +2,24 @@
 
 Sam runs **REA, Ghidra, and Cursor MCP on the guest Windows VM**. The host (this cloud agent / your daily OS) may only see the VirtualBox shared folder copy.
 
+**Live lab VM (2026-11-18):** VirtualBox name **`AI_workspace`** (running). Docs still say `AI-Workspace` for the parity target; use the registered name in `VBoxManage` / `lab.credentials.json` until renamed.
+
+### Hot-add session (no host shutdown — 2026-11-18)
+
+| Step | Result |
+|------|--------|
+| `VBoxManage list runningvms` | **`AI_workspace`** `{ff1ce5c5-9717-45f7-9cbd-88a2e123816d}` |
+| Guest Additions (host-reported) | **7.2.10 r174163**, run level **3** |
+| GA ISO attach (SATA port 1) | **VBoxGuestAdditions.iso** attached |
+| Transient shared folder | **`hostdev`** → `C:\Users\bj284\Downloads\TraeTesting\cursor\Development`, auto-mount **`D:\hostdev`** (added by VM UUID while GUI session held lock) |
+| `sharedfolder add` on VM name alone | Failed: machine locked for GUI session |
+| `controlvm … sharedfolder` (VBox 7.2.10) | Not available (invalid parameter) |
+| NAT forwards (`enable-vm-access.ps1`) | **guest-ssh** `127.0.0.1:2222`, **guest-winrm** `127.0.0.1:55985` |
+| `guestcontrol` (bootstrap / `rea doctor`) | Blocked: guest **execution service not ready** (VBoxTray up, **VBoxService** guest-control path not healthy) |
+| Guest desktop | Logged in (**vboxuser** per unattended install + VBox log) |
+
+**Still open on guest (VM stays on):** complete Guest Additions install from the mounted ISO so **VBoxService** starts, then confirm `\\vboxsvr\hostdev` or `D:\hostdev`, run `bootstrap-vm-tools.ps1`, then `npx rea-agents doctor`. Placeholder: [rea-doctor-guest-snapshot.txt](rea-doctor-guest-snapshot.txt).
+
 ## Paths
 
 | Side | Path | Purpose |

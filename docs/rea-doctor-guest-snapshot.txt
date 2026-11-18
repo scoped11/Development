@@ -1,0 +1,8 @@
+# rea doctor — guest capture blocked (2026-11-18T01:49Z host)
+# VM: AI_workspace {ff1ce5c5-9717-45f7-9cbd-88a2e123816d}
+# Guest Additions reported: 7.2.10 r174163 (run level 3); VBoxTray running; VBoxService/guest-exec NOT ready.
+# VBoxManage guestcontrol run fails: "guest execution service is not ready (yet)" (all attempts, user vboxuser from lab.credentials.json).
+#
+# After guest VBoxService is healthy, run on guest:
+#   npx.cmd rea-agents@latest doctor
+# and replace this file with full output (expect Ghidra/JDK lines per docs/rea-doctor-guest-expected.md).
