@@ -4,7 +4,7 @@
 **Evidence rule:** **Verified** only for files in this lab. Public BEDaisy IOCTL tables stay **Hypothesis** unless re-proven on SHA-256 `E7BCF344…`.  
 **Scope:** static documentation only. No live bypass, no callback interception, no cheat payloads, **drivers not loaded**. `BEService` was **not** started. Live BattlEye under Program Files was **not** touched.
 
-**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + UM REA), 12:14 (Sam path empty), **12:25–12:30** (offline Reversing copy + host/guest REA), **afternoon** (skip auto-analyze: objdump + `.pdata` + packed-name blob; Ghidra `-noanalysis`), **evening** (SECTION.6 interpreter entry `0x1417c4ba1`, no EOS-style cookie/`r12` VM). Guest share **`Z:\`**. Guest kernel copy: `C:\re\artifacts\BEDaisy.sys`. Live Program Files unused.
+**Session:** 2026-11-17 (hunt), **2026-11-18** (Unturned BE install + UM REA), 12:14 (Sam path empty), **12:25–12:30** (offline Reversing copy + host/guest REA), **afternoon** (skip auto-analyze: objdump + `.pdata` + packed-name blob; Ghidra `-noanalysis`), **evening** (SECTION.6 interpreter entry `0x1417c4ba1`, no EOS-style cookie/`r12` VM), **night** (name MBA `jmp rdx` targets; guest hashes re-checked). Guest share **`Z:\`**. Guest kernel copy: `C:\re\artifacts\BEDaisy.sys`. Live Program Files unused.
 
 ---
 
@@ -18,7 +18,7 @@ Static only. Drivers **not** loaded. `BEService` left **Stopped**. Required fiel
 | **IAT** | Single import `ntoskrnl.exe!RtlPcToFileHeader` (hint 0). No delay-load. Imphash MD5 `1e68d6eb7a47969d04bab0ee75c0eafa`. Host REA `inspect_pe_imports` `ev_ed538fa0…`; guest CLI `ev_f8a61d74…`. Packed `.rdata` name blob at file `0x25bf0` concatenates Filter Manager + `Nt*`/`Zw*` names **without NULs or IAT slots** (dynamic-resolve layout). Also ASCII `ntoskrnl.exe` at `0x270c8`, `sha512` / `LibTomMath`. |
 | **Entry** | PE32+ amd64, image base `0x140000000`, subsystem native (1), `DllCharacteristics=0x1E0`. `AddressOfEntryPoint` RVA `0x25ccea8` → VA **`0x1425ccea8`** in unnamed section 6 (~39 763 968 raw bytes @ VA `0x31000`). REA `inspect_with_objdump` `ev_598c61ac…`: `pei-x86-64`, start `0x00000001425ccea8`. `1425ccea8: jmp 0x14261cead` then **cyclic** `E9 F6 FF FF FF` thunks (`14261cead ⇄ 14261cea8`). Adjacent unused `1425ccead: jmp 0x1400066bf`. INIT `0x14002f000: jmp 0x1400157c8` (obfuscated `.text`: opaque-predicate `call`/`jmp r8/r11/rcx/rdi` landing in SECTION.6 at `0x1417c4ba1`). `0x14002f02c` is `__security_init_cookie` (cookie VA `0x14002a138`, `rdtsc`). `.pdata` **4241** RUNTIME_FUNCTION rows (`.text` **553**, INIT **5**, SECTION.6 **3683**). PDB `BEDaisy.pdb` (RSDS GUID `50b7c339-248f-4066-9488-e4637a1a7de1`, age 20). **Do not auto-analyze:** `CreateThunkFunctionCmd` SOE. Guest Ghidra 12.1 **`-import -overwrite -noanalysis` + Java `DumpLimitedDisasm.java` succeeded** (project `C:\re\ghidra-projects\BEDaisyNoA`, program `/BEDaisy.sys`, save OK, EXIT 0). Jython `.py` post-scripts are stubbed on this Ghidra. AddressSet-restricted disasm of PE entry / INIT / `.text` **did not** recurse the cyclic thunks. Ghidra blocks: `.text` `0x140001000–0x1400257ff`; second `.text` `0x14002e000`; INIT `0x14002f000`; unnamed **SECTION.6** `0x140031000–0x14261cfff` (exec); SECTION.7 `0x14261d000` **non-exec** 4 KiB; `.pdata` `0x14262a000`. Limited dump: `ac-captures-host/2026-11-18/bedaisy-limited-disasm.txt`. |
 | **Device names** | ASCII `BEDaisy` only as `BEDaisy.pdb`. UTF-16 `\Device\BattlEye` / `\DosDevices\BattlEye` / `\\.\BattlEye` hits = **0**. ASCII `\Device\` / `\DosDevices\` = **0**. UTF-16 `BattlEye` hit is publisher string `BattlEye Innovations e.K` in the cert overlay. **H-BE-01 not confirmed** on this hash. |
-| **IOCTL / dispatch** | No plaintext `MajorFunction` / `CTL_CODE` / `FLT_REGISTRATION` header (`68 00 02 02` / `70 00 03 02` **absent**). Little-endian scan of the experienceds immediates: **11/12 absent**; `0x0022830F` at file `0x1e670` is **`0F 83` `JAE rel32`**, not `mov imm32` — **false positive**. Disk IOCTL immediates `0x2D1400` / `0x7C088` appear only inside the unnamed blob (coincidental). INIT/`.text` path is an obfuscated trampoline into SECTION.6 (`0x1417c4ba1` MBA `jmp rdx`), not a recovered IRP dispatch table. H-BE-02/03 remain Hypothesis for *computed* codes. |
+| **IOCTL / dispatch** | No plaintext `MajorFunction` / `CTL_CODE` / `FLT_REGISTRATION` header (`68 00 02 02` / `70 00 03 02` **absent**). Little-endian scan of the experienceds immediates: **11/12 absent**; `0x0022830F` at file `0x1e670` is **`0F 83` `JAE rel32`**, not `mov imm32` — **false positive**. Disk IOCTL immediates `0x2D1400` / `0x7C088` appear only inside the unnamed blob (coincidental). INIT/`.text` path is an obfuscated trampoline into SECTION.6 (`BEDaisy_MBA_entry` `0x1417c4ba1`). Taken `jmp rdx` is **`BEDaisy_MBA_reenter` `0x1417c4d07`**, not an IRP table. H-BE-02/03 remain Hypothesis for *computed* codes. |
 
 ---
 
@@ -48,15 +48,39 @@ BattlEye does **not** share EasyAntiCheat’s cookie/addend/`r12` dispatch ISA.
 
 - Prolog: `push rsi; push rbp; push r12; push r13` then MBA/SSE (`pshufhw` / `pcmpgtb` / `movmskps`).
 - `lea r12,[rip+0x739]` (`0x1417c5379`) is a **RIP-relative constant**, not `lea r12,[rsp+8]`.
-- Dispatcher: compute `rdx`, **`jmp rdx` at `0x1417c4cda`**.
-- Epilogue at `0x1417c4cdc` restores XMM/r13/r12/rbp/rsi and `ret`. Tail `jmp 0x1417c4bbd` re-enters the MBA block.
+- Dispatcher: compute `rdx`, **`jmp rdx` at `0x1417c4cda`** (`BEDaisy_MBA_jmp_rdx`).
+- Epilogue at `0x1417c4cdc` (`BEDaisy_MBA_epilogue`) restores XMM/r13/r12/rbp/rsi and `ret`. Tail `jmp 0x1417c4bbd` re-enters the MBA block.
 - Image-wide: **4763** `jmp rax`, **2454** `jmp rdx` (many inside the packed blob; not a recovered opcode map).
 
 ### Handler table
 
 No EOS-style stub table. The only dense pointer run is **50 QWORDs** at `.rdata` `0x140027490` → `.text` `0x140019814`–`0x140019c2c`. Objdump of that range is native CRT/helpers (`lfence`, bounds checks, small `sub rsp,0x28` wrappers) — **not** VM opcodes. JSON: `vm-interpreter-follow.json` → `handler_table_0x140027490`.
 
-**Still unknown:** the concrete targets of the MBA `jmp rdx` (device/IOCTL bodies). Following them needs more static MBA simplification or a `-noanalysis` Ghidra comment pass — not a driver load.
+### Named `jmp rdx` targets (static file-byte emu)
+
+Unicorn maps PE sections only (driver **not** loaded). `smsw rdx` at `0x1417c4bbd` is modeled as `push 1; pop rdx; nop` **and** as `xor edx,edx` — **both** take the same edge. Guest `C:\re\artifacts\BEDaisy.sys` hash-matched.
+
+| Analyst name | VA | How named | Role |
+|--------------|----|-----------|------|
+| `BEDaisy_MBA_entry` | `0x1417c4ba1` | INIT/`.text` `call` | save XMM, `jmp` save-args |
+| `BEDaisy_MBA_save_args` | `0x1417c4cf4` | first fall-through | `rbx=rdx`, `rsi=rcx`, `lea rcx,[rsp+0x80]`, `jmp BEDaisy_MBA_reenter_body` |
+| `BEDaisy_MBA_reenter_body` | `0x1417c4bbd` | `smsw`/MBA block | compute `rdx` |
+| `BEDaisy_MBA_jmp_rdx` | `0x1417c4cda` | `ff e2` | dispatcher |
+| `BEDaisy_MBA_reenter` | **`0x1417c4d07`** | **taken `rdx`** (emu, both SMSW models) | `jmp 0x1417c4bbd` — flattening reenter |
+| `BEDaisy_MBA_alt` | **`0x1417c4d0c`** | **`r12` at dispatch** (not taken `rdx`) | SSE/MBA then `call BEDaisy_rep_movsb_0x28` |
+| `BEDaisy_MBA_epilogue` | `0x1417c4cdc` | fall-through after `jmp rdx` | restore XMM + `ret` |
+| `BEDaisy_rep_movsb_0x28` | `0x1425c3457` | `call` from alt path | `rep movsb` 0x28 bytes, `ret` |
+| `BEDaisy_sec_init_cookie` | `0x14002f02c` | `r13` after forced alt | existing `__security_init_cookie` |
+| `BEDaisy_opaque_text_epilogue` | `0x140015802` | `rdi` after forced alt | `add rsp,0x20; pop rdi; ret` — sibling of opaque `.text` that **`call`s `0x1417c4ba1`** |
+| `BEDaisy_section6_native_frame` | `0x140040767` | `rcx`/`r12` after forced alt | MSVC-style frame (`sub rsp` via `0x1b30`, GS xor, `jmp 0x140045454`) in **early SECTION.6** |
+
+At `BEDaisy_MBA_jmp_rdx` (insn 82): `rdx=rdi=rbp=0x1417c4d07`, **`r12=0x1417c4d0c`**, `rbx`=saved original RDX, `rsi`=saved original RCX, `rcx=lea [rsp+0x80]`. The taken jump is the reenter stub. The alt VA is live in `r12` but is not the `jmp rdx` destination under this file-byte flag state.
+
+Forced emu from `BEDaisy_MBA_alt` **returns** in 74 insns after `BEDaisy_rep_movsb_0x28` (`rip=0x1425c3473`) with those `.text`/SECTION.6 names in GPRs. Forced emu from `BEDaisy_MBA_reenter` loops on `jmp rdx` → `0x1417c4d07`.
+
+JSON: `handler-lift-summary.json`, `handler-lift-follow.json`. Objdump: `objdump-bedaisy-jmp-rdx-targets.txt`, `objdump-bedaisy-helper-1425c3457.txt`, `objdump-bedaisy-140040767.txt`.
+
+**Static limit:** the taken `jmp rdx` edge is a flattening reenter, not a device/IOCTL body. The alt edge returns into opaque `.text` / early SECTION.6 native frames (`BEDaisy_section6_native_frame`), still not a plaintext `\Device\` / `CTL_CODE` table. H-BE-01/02/03 unchanged.
 
 ---
 
@@ -184,9 +208,9 @@ Research clones (docs/JSON, **no** `.sys`): `research-clones\battleye-re`.
 
 1. **Done:** hash + Defender + stage offline copy; guest IAT; `.pdata`; packed-name inventory; INIT/`.text` objdump. Live Program Files BattlEye remains untouched; `BEService` remains Stopped.
 2. **Done (workaround):** Ghidra headless **cannot** auto-analyze this hash (`CreateThunkFunctionCmd` SOE on cyclic `E9 F6 FF FF FF`). Import with **`-noanalysis`**. Ghidra 12.1 on the guest has **no Jython** — post-scripts must be **Java** (`DumpLimitedDisasm.java`) or PyGhidra. Host MinGW `objdump --start-address/--stop-address` is the reliable limited disasm path. Do **not** load the driver.
-3. **Done (static map):** SECTION.6 interpreter entry is `0x1417c4ba1` (MBA `jmp rdx`). EOS cookie/`r12` ISA is **absent**. `.rdata` 50-ptr table is native `.text`, not VM opcodes. Device/IOCTL after `jmp rdx` still unrecovered.
-4. Optional next: simplify the MBA at `0x1417c4ba1` to name `rdx` targets — still static, still **no** driver load.
-5. UM-only follow-up: `GetProcAddress` in `BEClient_x64.dll` — still no live attach.
+3. **Done (static map):** SECTION.6 interpreter entry is `0x1417c4ba1` (MBA `jmp rdx`). EOS cookie/`r12` ISA is **absent**. `.rdata` 50-ptr table is native `.text`, not VM opcodes.
+4. **Done (static `jmp rdx` names):** taken target `BEDaisy_MBA_reenter` `0x1417c4d07`; alt in `r12` `BEDaisy_MBA_alt` `0x1417c4d0c` → `BEDaisy_rep_movsb_0x28` / `BEDaisy_section6_native_frame` `0x140040767`. Device/IOCTL still unrecovered. File-byte emu **does not** get past the flattening reenter without a real CR0/stack context.
+5. UM-only follow-up: `GetProcAddress` in `BEClient_x64.dll` — still no live attach. Out of this static kernel pass.
 
 ## Dead ends
 
@@ -200,3 +224,4 @@ Research clones (docs/JSON, **no** `.sys`): `research-clones\battleye-re`.
 | 2026-11-18 12:41 | Guest Ghidra `analyze` / `function` | Cyclic PE-entry thunks (`E9 F6 FF FF FF`) → `CreateThunkFunctionCmd` SOE; bridge never starts |
 | 2026-11-18 afternoon | Guest Ghidra `DumpLimitedDisasm.py` | Ghidra 12.1 Jython stub: “install Jython or port to Java/PyGhidra”. `-noanalysis` **import itself succeeded**. Java `DumpLimitedDisasm.java` is the follow-up. |
 | 2026-11-18 evening | Treat `.rdata` 50-ptr table `0x140027490` as VM opcodes | Objdump shows native CRT/helpers in `.text`, not SECTION.6 handlers |
+| 2026-11-18 night | Treat taken `jmp rdx` as IOCTL/dispatch | Emu target is `0x1417c4d07` (`jmp 0x1417c4bbd` reenter). Alt `0x1417c4d0c` is in `r12`, not `rdx`. |

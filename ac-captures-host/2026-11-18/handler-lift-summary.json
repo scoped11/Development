@@ -1,0 +1,1279 @@
+{
+  "when": "2026-11-18-handler-lift",
+  "scope": "static file-byte lift + unicorn on mapped PE; drivers not loaded; no bypass; share Z:",
+  "eos": {
+    "census": {
+      "handlers_scanned": 3903,
+      "kind_hist": {
+        "cookie_xor": 3220,
+        "cookie_cmp": 3551,
+        "no_cookie_ops_in_window": 190,
+        "nested_cookie_stub": 7,
+        "jmp_reg": 12
+      },
+      "xor_decrypted_total": 11289,
+      "xor_decrypted_in_image": 0,
+      "nested_cookie_stub_handlers": 5,
+      "errors": 0
+    },
+    "known": {
+      "DriverEntry": {
+        "body": "0x141b1df86",
+        "kinds": [
+          "cookie_xor",
+          "cookie_cmp"
+        ],
+        "xor_decrypted": [
+          {
+            "at": "0x141b1e017",
+            "dst": "rcx",
+            "imm": "0x2ac6e6484cb0a4ec",
+            "decrypted": "0x7cda990304549549",
+            "in_image": false,
+            "plus_vm_base": "0x14454fab0",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          },
+          {
+            "at": "0x141b1e03d",
+            "dst": "rdx",
+            "imm": "0xe81fb3e4c1d47e53",
+            "decrypted": "0xbe03ccaf89304ff6",
+            "in_image": false,
+            "plus_vm_base": "0x1c930b55d",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          },
+          {
+            "at": "0x141b1e1ad",
+            "dst": "rbx",
+            "imm": "0xd5670c011f3b919b",
+            "decrypted": "0x837b734a57dfa03e",
+            "in_image": false,
+            "plus_vm_base": "0x197e005a5",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          },
+          {
+            "at": "0x141b1e1d2",
+            "dst": "rax",
+            "imm": "0x1a3eacc01f2db6b2",
+            "decrypted": "0x4c22d38b57c98717",
+            "in_image": false,
+            "plus_vm_base": "0x197c9ec7e",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          }
+        ],
+        "cmps": [
+          {
+            "at": "0x141b1e04a",
+            "imm": "0xd1b5f036d844b96e",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x141b1e05e",
+            "imm": "0xd1b5f036d844b96d",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x141b1e079",
+            "imm": "0x98a9e84aa2c82263",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x141b1e08e",
+            "imm": "0x98a9e84aa2c82264",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          }
+        ],
+        "nested_stub": null,
+        "post_xor_asm": [
+          "0x141b1e017: xor rcx, rbx",
+          "0x141b1e01a: add rcx, qword ptr [r12 + 0xa0]",
+          "0x141b1e022: mov rax, rsp",
+          "0x141b1e025: mov qword ptr [rbp - 0xa8], rax",
+          "0x141b1e02c: add rax, -0x10",
+          "0x141b1e030: mov rsp, rax",
+          "0x141b1e033: movabs rdx, 0xe81fb3e4c1d47e53",
+          "0x141b1e03d: xor rdx, rbx",
+          "0x141b1e040: movabs rsi, 0xd1b5f036d844b96e",
+          "0x141b1e04a: cmp rbx, rsi",
+          "0x141b1e04d: setb byte ptr [rbp - 1]",
+          "0x141b1e051: movabs rsi, 0xd1b5f036d844b96d",
+          "0x141b1e05b: xor r9d, r9d",
+          "0x141b1e05e: cmp rbx, rsi",
+          "0x141b1e061: seta r9b",
+          "0x141b1e065: mov r11, r9",
+          "0x141b1e068: mov qword ptr [rbp - 0x78], r9",
+          "0x141b1e06c: movabs rsi, 0x98a9e84aa2c82263",
+          "0x141b1e076: xor r10d, r10d",
+          "0x141b1e079: cmp rbx, rsi",
+          "0x141b1e07c: seta r10b",
+          "0x141b1e080: mov qword ptr [rbp - 0x80], r10",
+          "0x141b1e084: movabs rsi, 0x98a9e84aa2c82264",
+          "0x141b1e08e: cmp rbx, rsi"
+        ],
+        "emu_stop": "jmp_rax",
+        "emu_insns": 676,
+        "emu_jmp_rax": [
+          {
+            "va": "0x140381325",
+            "kind": "code",
+            "first": "mov rax, qword ptr [r12 + 0x190]",
+            "section": "SECTION.7",
+            "prefix": "498b842490010000498b9c2498010000"
+          },
+          {
+            "va": "0x140381325",
+            "kind": "code",
+            "first": "mov rax, qword ptr [r12 + 0x190]",
+            "section": "SECTION.7",
+            "prefix": "498b842490010000498b9c2498010000"
+          }
+        ],
+        "emu_calls": [],
+        "emu_regs": {
+          "rax": "0x140381325",
+          "rbx": "0x0",
+          "rcx": "0x0",
+          "rdx": "0x13ff1bb36",
+          "rsi": "0x140006567",
+          "rdi": "0x12000",
+          "r8": "0x0",
+          "r9": "0x5a11e1d",
+          "r10": "0xfffffd78",
+          "r11": "0x5a11e1d",
+          "r12": "0x12000"
+        },
+        "emu_after_xor": [
+          "0x141b1e017: xor rcx, rbx",
+          "0x141b1e01a: add rcx, qword ptr [r12 + 0xa0]",
+          "0x141b1e022: mov rax, rsp",
+          "0x141b1e025: mov qword ptr [rbp - 0xa8], rax",
+          "0x141b1e02c: add rax, -0x10",
+          "0x141b1e030: mov rsp, rax",
+          "0x141b1e033: movabs rdx, 0xe81fb3e4c1d47e53",
+          "0x141b1e03d: xor rdx, rbx",
+          "0x141b1e040: movabs rsi, 0xd1b5f036d844b96e",
+          "0x141b1e04a: cmp rbx, rsi",
+          "0x141b1e04d: setb byte ptr [rbp - 1]",
+          "0x141b1e051: movabs rsi, 0xd1b5f036d844b96d",
+          "0x141b1e05b: xor r9d, r9d",
+          "0x141b1e05e: cmp rbx, rsi",
+          "0x141b1e061: seta r9b",
+          "0x141b1e065: mov r11, r9",
+          "0x141b1e068: mov qword ptr [rbp - 0x78], r9",
+          "0x141b1e06c: movabs rsi, 0x98a9e84aa2c82263",
+          "0x141b1e076: xor r10d, r10d",
+          "0x141b1e079: cmp rbx, rsi",
+          "0x141b1e07c: seta r10b",
+          "0x141b1e080: mov qword ptr [rbp - 0x80], r10",
+          "0x141b1e084: movabs rsi, 0x98a9e84aa2c82264",
+          "0x141b1e08e: cmp rbx, rsi"
+        ]
+      },
+      "FilterUnload": {
+        "body": "0x1421c00e0",
+        "kinds": [
+          "cookie_xor",
+          "cookie_cmp"
+        ],
+        "xor_decrypted": [
+          {
+            "at": "0x1421c031e",
+            "dst": "rcx",
+            "imm": "0x46c01f1d492b8af",
+            "decrypted": "0x76d90849c7d8aa78",
+            "in_image": false,
+            "plus_vm_base": "0x207d90fdf",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          },
+          {
+            "at": "0x1421c0378",
+            "dst": "rcx",
+            "imm": "0x180e7a95a0a78ba5",
+            "decrypted": "0x6abb732db3ed9972",
+            "in_image": false,
+            "plus_vm_base": "0x1f3edfed9",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          },
+          {
+            "at": "0x1421c03ea",
+            "dst": "r9",
+            "imm": "0x4b246127373d82f1",
+            "decrypted": "0x3991689f24779026",
+            "in_image": false,
+            "plus_vm_base": "0x16477f58d",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          }
+        ],
+        "cmps": [
+          {
+            "at": "0x1421c02fc",
+            "imm": "0x3a8b14f8adbaf7fd",
+            "cookie_lt": false,
+            "cookie_eq": false,
+            "cookie_gt": true,
+            "setb": 0,
+            "seta": 1,
+            "sete": 0
+          },
+          {
+            "at": "0x1421c034b",
+            "imm": "0x91bab7527ac3ae56",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x1421c0361",
+            "imm": "0x91bab7527ac3ae55",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x1421c03d6",
+            "imm": "0x96b92ad7666009ad",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          }
+        ],
+        "nested_stub": null,
+        "post_xor_asm": [
+          "0x1421c031e: xor rcx, r14",
+          "0x1421c0321: add rcx, rdx",
+          "0x1421c0324: mov rdi, rdx",
+          "0x1421c0327: mov qword ptr [rbp - 0x40], rdx",
+          "0x1421c032b: movabs rdx, 0x8926f7b638275600",
+          "0x1421c0335: add rdx, rcx",
+          "0x1421c0338: imul rdx, rsi",
+          "0x1421c033c: mov r9, rdx",
+          "0x1421c033f: movabs rcx, 0x91bab7527ac3ae56",
+          "0x1421c0349: xor edx, edx",
+          "0x1421c034b: cmp r14, rcx",
+          "0x1421c034e: setb dl",
+          "0x1421c0351: mov qword ptr [rbp - 0x68], rdx",
+          "0x1421c0355: movabs rcx, 0x91bab7527ac3ae55",
+          "0x1421c035f: xor edx, edx",
+          "0x1421c0361: cmp r14, rcx",
+          "0x1421c0364: seta dl",
+          "0x1421c0367: mov rsi, rdx",
+          "0x1421c036a: mov qword ptr [rbp - 0x38], rdx",
+          "0x1421c036e: movabs rcx, 0x180e7a95a0a78ba5",
+          "0x1421c0378: xor rcx, r14",
+          "0x1421c037b: sub r10, r11",
+          "0x1421c037e: mov rdx, r10",
+          "0x1421c0381: sub rdx, rcx"
+        ],
+        "emu_stop": "uc_error:Invalid memory read (UC_ERR_READ_UNMAPPED)",
+        "emu_insns": 323,
+        "emu_jmp_rax": [],
+        "emu_calls": [],
+        "emu_regs": {
+          "rax": "0x0",
+          "rbx": "0x78fb093d37c526e0",
+          "rcx": "0x78",
+          "rdx": "0xe71188297da1c69",
+          "rsi": "0x0",
+          "rdi": "0x0",
+          "r8": "0x1",
+          "r9": "0x3991689f24778fae",
+          "r10": "0x8e18",
+          "r11": "0x0",
+          "r12": "0x0"
+        },
+        "emu_after_xor": [
+          "0x1421c013a: xor rsi, rax",
+          "0x1421c013d: imul rsi, rax",
+          "0x1421c0141: mov rcx, rsi",
+          "0x1421c0144: shr rcx, 0x3c",
+          "0x1421c0148: mov rdx, rsi",
+          "0x1421c014b: shr rdx, 0x20",
+          "0x1421c014f: shr rdx, cl",
+          "0x1421c0152: mov r11, qword ptr [r12 + 0xa0]",
+          "0x1421c015a: xor rdx, rsi",
+          "0x1421c015d: imul rdx, rax",
+          "0x1421c0161: movabs rsi, 0xe63687da6f8c0715",
+          "0x1421c016b: mov rdi, rbx",
+          "0x1421c016e: xor rdi, rsi",
+          "0x1421c0171: imul rdi, rsi",
+          "0x1421c0175: mov rcx, rdi",
+          "0x1421c0178: shr rcx, 0x3c",
+          "0x1421c017c: mov rax, rdi",
+          "0x1421c017f: shr rax, 0x20",
+          "0x1421c0183: shr rax, cl",
+          "0x1421c0186: xor rax, rdi",
+          "0x1421c0189: imul rax, rsi",
+          "0x1421c018d: xor rdx, rax",
+          "0x1421c0190: movabs rsi, 0x8da3fb63f8606523",
+          "0x1421c019a: xor rsi, rdx"
+        ]
+      },
+      "PreCreate_SetInfo": {
+        "body": "0x140e85f02",
+        "kinds": [
+          "cookie_xor",
+          "cookie_cmp"
+        ],
+        "xor_decrypted": [
+          {
+            "at": "0x140e85fe8",
+            "dst": "rcx",
+            "imm": "0x77fcf92c94e7ab29",
+            "decrypted": "0x1cd608bc49b5a916",
+            "in_image": false,
+            "plus_vm_base": "0x189b60e7d",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          },
+          {
+            "at": "0x140e8610c",
+            "dst": "r9",
+            "imm": "0xb41cf04cc09407e5",
+            "decrypted": "0xdf3601dc1dc605da",
+            "in_image": false,
+            "plus_vm_base": "0x15dc66b41",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          }
+        ],
+        "cmps": [
+          {
+            "at": "0x140e85ff7",
+            "imm": "0x716f68a907bdc968",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x140e8600d",
+            "imm": "0x716f68a907bdc967",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x140e86191",
+            "imm": "0xc93445aa9ef5899e",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          }
+        ],
+        "nested_stub": null,
+        "post_xor_asm": [
+          "0x140e85fe8: xor rcx, rdi",
+          "0x140e85feb: movabs rsi, 0x716f68a907bdc968",
+          "0x140e85ff5: xor eax, eax",
+          "0x140e85ff7: cmp rdi, rsi",
+          "0x140e85ffa: setb al",
+          "0x140e85ffd: mov qword ptr [rbp - 0x48], rax",
+          "0x140e86001: movabs rsi, 0x716f68a907bdc967",
+          "0x140e8600b: xor eax, eax",
+          "0x140e8600d: cmp rdi, rsi",
+          "0x140e86010: seta al",
+          "0x140e86013: mov qword ptr [rbp - 0x20], rax",
+          "0x140e86017: mov rsi, rdx",
+          "0x140e8601a: sub rsi, r10",
+          "0x140e8601d: mov qword ptr [rbp - 8], rsi",
+          "0x140e86021: sub rsi, rcx",
+          "0x140e86024: movabs r8, 0x1cd608bc49b5a896",
+          "0x140e8602e: add r8, rsi",
+          "0x140e86031: imul r8, rax",
+          "0x140e86035: add rcx, r10",
+          "0x140e86038: add rcx, r8",
+          "0x140e8603b: movabs rsi, 0xe329f743b64a576a",
+          "0x140e86045: movups xmmword ptr [rsi + rcx], xmm0",
+          "0x140e86049: mov r10, rsp",
+          "0x140e8604c: add r10, -0x10"
+        ],
+        "emu_stop": "uc_error:Invalid memory write (UC_ERR_WRITE_UNMAPPED)",
+        "emu_insns": 59,
+        "emu_jmp_rax": [],
+        "emu_calls": [],
+        "emu_regs": {
+          "rax": "0x0",
+          "rbx": "0x0",
+          "rcx": "0x1cd608bc49b5a916",
+          "rdx": "0x8e68",
+          "rsi": "0xe329f743b64a576a",
+          "rdi": "0x6b2af190dd52023f",
+          "r8": "0x0",
+          "r9": "0x0",
+          "r10": "0x0",
+          "r11": "0x0",
+          "r12": "0x12000"
+        },
+        "emu_after_xor": [
+          "0x140e85fb3: xor rcx, rax",
+          "0x140e85fb6: mov qword ptr [rbp - 0x98], rcx",
+          "0x140e85fbd: mov rcx, qword ptr [r12 + 0x188]",
+          "0x140e85fc5: mov qword ptr [rbp - 0xf8], rcx",
+          "0x140e85fcc: mov rdi, qword ptr [r12 + 0x190]",
+          "0x140e85fd4: mov rdx, rsp",
+          "0x140e85fd7: add rdx, -0x10",
+          "0x140e85fdb: mov rsp, rdx",
+          "0x140e85fde: movabs rcx, 0x77fcf92c94e7ab29",
+          "0x140e85fe8: xor rcx, rdi",
+          "0x140e85feb: movabs rsi, 0x716f68a907bdc968",
+          "0x140e85ff5: xor eax, eax",
+          "0x140e85ff7: cmp rdi, rsi",
+          "0x140e85ffa: setb al",
+          "0x140e85ffd: mov qword ptr [rbp - 0x48], rax",
+          "0x140e86001: movabs rsi, 0x716f68a907bdc967",
+          "0x140e8600b: xor eax, eax",
+          "0x140e8600d: cmp rdi, rsi",
+          "0x140e86010: seta al",
+          "0x140e86013: mov qword ptr [rbp - 0x20], rax",
+          "0x140e86017: mov rsi, rdx",
+          "0x140e8601a: sub rsi, r10",
+          "0x140e8601d: mov qword ptr [rbp - 8], rsi",
+          "0x140e86021: sub rsi, rcx"
+        ]
+      },
+      "PreSectionSync": {
+        "body": "0x142618c9e",
+        "kinds": [
+          "cookie_xor",
+          "cookie_cmp"
+        ],
+        "xor_decrypted": [
+          {
+            "at": "0x142618d50",
+            "dst": "r11",
+            "imm": "0xa84341dc17ebd3fb",
+            "decrypted": "0xc27b6b3d4fcb9f00",
+            "in_image": false,
+            "plus_vm_base": "0x18fcc0467",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          },
+          {
+            "at": "0x142618f94",
+            "dst": "rax",
+            "imm": "0x397450771aa5cc58",
+            "decrypted": "0x534c7a96428580a3",
+            "in_image": false,
+            "plus_vm_base": "0x18285e60a",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          },
+          {
+            "at": "0x14261905c",
+            "dst": "rax",
+            "imm": "0x12c957f0db9b5d06",
+            "decrypted": "0x78f17d1183bb11fd",
+            "in_image": false,
+            "plus_vm_base": "0x1c3bb7764",
+            "plus_vm_base_in_image": false,
+            "wraps": []
+          }
+        ],
+        "cmps": [
+          {
+            "at": "0x142618d0d",
+            "imm": "0x9dcf3abbb0b48801",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x142618d1d",
+            "imm": "0x7ea53daa7d99f957",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          },
+          {
+            "at": "0x142618d30",
+            "imm": "0x7ea53daa7d99f958",
+            "cookie_lt": true,
+            "cookie_eq": false,
+            "cookie_gt": false,
+            "setb": 1,
+            "seta": 0,
+            "sete": 0
+          }
+        ],
+        "nested_stub": null,
+        "post_xor_asm": [
+          "0x142618d50: xor r11, r13",
+          "0x142618d53: sub rdi, r11",
+          "0x142618d56: movabs rax, 0xd7f5a709b70b14c7",
+          "0x142618d60: mov rdx, r8",
+          "0x142618d63: xor rdx, rax",
+          "0x142618d66: imul rdx, rax",
+          "0x142618d6a: mov rcx, rdx",
+          "0x142618d6d: shr rcx, 0x3c",
+          "0x142618d71: mov r15, rdx",
+          "0x142618d74: shr r15, 0x20",
+          "0x142618d78: shr r15, cl",
+          "0x142618d7b: movabs r14, 0x29da74fb09e6bba5",
+          "0x142618d85: add r14, rdi",
+          "0x142618d88: xor r15, rdx",
+          "0x142618d8b: imul r15, rax",
+          "0x142618d8f: movabs rdx, 0xc839df0d3cae1119",
+          "0x142618d99: mov rdi, r8",
+          "0x142618d9c: xor rdi, rdx",
+          "0x142618d9f: imul rdi, rdx",
+          "0x142618da3: mov rcx, rdi",
+          "0x142618da6: shr rcx, 0x3c",
+          "0x142618daa: mov rax, rdi",
+          "0x142618dad: shr rax, 0x20",
+          "0x142618db1: shr rax, cl"
+        ],
+        "emu_stop": "jmp_rax",
+        "emu_insns": 249,
+        "emu_jmp_rax": [
+          {
+            "va": "0x1403d4566",
+            "kind": "jmp_rel32",
+            "first": "jmp 0x140f1bd25",
+            "section": "SECTION.7",
+            "rel32": "0x140f1bd25"
+          },
+          {
+            "va": "0x1403d4566",
+            "kind": "jmp_rel32",
+            "first": "jmp 0x140f1bd25",
+            "section": "SECTION.7",
+            "rel32": "0x140f1bd25"
+          }
+        ],
+        "emu_calls": [],
+        "emu_regs": {
+          "rax": "0x1403d4566",
+          "rbx": "0x0",
+          "rcx": "0x140006567",
+          "rdx": "0xed7ded284833a55f",
+          "rsi": "0x140006567",
+          "rdi": "0x0",
+          "r8": "0x0",
+          "r9": "0x0",
+          "r10": "0x0",
+          "r11": "0x0",
+          "r12": "0x12000"
+        },
+        "emu_after_xor": [
+          "0x142618d0b: xor ebx, ebx",
+          "0x142618d0d: cmp r13, rcx",
+          "0x142618d10: seta bl",
+          "0x142618d13: movabs rcx, 0x7ea53daa7d99f957",
+          "0x142618d1d: cmp r13, rcx",
+          "0x142618d20: seta byte ptr [rbp - 1]",
+          "0x142618d24: movabs rcx, 0x7ea53daa7d99f958",
+          "0x142618d2e: xor edx, edx",
+          "0x142618d30: cmp r13, rcx",
+          "0x142618d33: setb dl",
+          "0x142618d36: mov qword ptr [rbp - 0x18], rdx",
+          "0x142618d3a: mov ecx, edx",
+          "0x142618d3c: or cl, bl",
+          "0x142618d3e: movzx r10d, cl",
+          "0x142618d42: imul r10, rax",
+          "0x142618d46: movabs r11, 0xa84341dc17ebd3fb",
+          "0x142618d50: xor r11, r13",
+          "0x142618d53: sub rdi, r11",
+          "0x142618d56: movabs rax, 0xd7f5a709b70b14c7",
+          "0x142618d60: mov rdx, r8",
+          "0x142618d63: xor rdx, rax",
+          "0x142618d66: imul rdx, rax",
+          "0x142618d6a: mov rcx, rdx",
+          "0x142618d6d: shr rcx, 0x3c"
+        ]
+      }
+    }
+  },
+  "bedaisy": {
+    "jmp_reg_sites": [
+      {
+        "at": "0x1417c4cda",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c4dd6",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c4dde",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c4dfd",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c4e05",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c4e0d",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c4e20",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4e27",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c4e38",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4e3f",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c4e46",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4e4d",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c4e54",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4e5b",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c4e63",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c4e6b",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c4e72",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c4e7a",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c4e92",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c4eaa",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c4ebb",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4ed2",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c4ed9",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c4ee1",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4ee8",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c4ef0",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c4f18",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4f1f",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c4f34",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4f3b",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c4f43",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4f4a",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4f51",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c4f59",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4f70",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c4f78",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4f7f",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4fa2",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c4faa",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c4fc6",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c4fcd",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c4fd5",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c4fe7",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c4fee",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c5006",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c500d",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c5015",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c5029",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c5031",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c5039",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c5041",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c5052",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c5074",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c507c",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c50a4",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c50ac",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c50b3",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c50ba",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c50d1",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c50e9",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c50f1",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c50f8",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c510f",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c5122",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c5129",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c5131",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c5139",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c5141",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c5154",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c515b",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c5172",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c517a",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c5181",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c5188",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c519a",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c51a2",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c51a9",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c5247",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c524f",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c5256",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c525e",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c5265",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c526d",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c529f",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c52a7",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c52ba",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c52d2",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c5303",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c5340",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c5348",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c5350",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c5363",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c536a",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c537d",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c5385",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c538c",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c5393",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c539a",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c53a2",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c53a9",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c53b1",
+        "reg": "r8"
+      },
+      {
+        "at": "0x1417c53b9",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c53c0",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c53d1",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c53d8",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c53e6",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c53ed",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c53f4",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c53fb",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c5402",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c540a",
+        "reg": "r9"
+      },
+      {
+        "at": "0x1417c541c",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c5423",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c542a",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c5470",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c5478",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c54b5",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c54bd",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c54d4",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c5500",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c5507",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c550e",
+        "reg": "r10"
+      },
+      {
+        "at": "0x1417c5516",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c551d",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c5538",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c554f",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c5556",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c555d",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c5564",
+        "reg": "rcx"
+      },
+      {
+        "at": "0x1417c5575",
+        "reg": "r11"
+      },
+      {
+        "at": "0x1417c5587",
+        "reg": "rax"
+      },
+      {
+        "at": "0x1417c558e",
+        "reg": "rdx"
+      },
+      {
+        "at": "0x1417c5595",
+        "reg": "rax"
+      }
+    ],
+    "emu_stop": "max_insns",
+    "emu_insns": 8001,
+    "jmp_rdx_unique": [
+      {
+        "va": "0x1417c4d07",
+        "kind": "jmp_rel32",
+        "first": "jmp 0x1417c4bbd",
+        "section": "SECTION.6",
+        "rel32": "0x1417c4bbd",
+        "from": "0x1417c4cda",
+        "reg": "rdx"
+      }
+    ],
+    "static_lea_sub_targets": {
+      "lea_r12_rip739": {
+        "va": "0x1417c5379",
+        "kind": "code",
+        "first": "cmp al, 0x3d",
+        "section": "SECTION.6",
+        "prefix": "3c3d410041ffe1e8bdb26200ffe1e8b4"
+      },
+      "r12_minus_0x672": {
+        "va": "0x1417c4d07",
+        "kind": "jmp_rel32",
+        "first": "jmp 0x1417c4bbd",
+        "section": "SECTION.6",
+        "rel32": "0x1417c4bbd"
+      },
+      "lea_rdi_rip25796": {
+        "va": "0x1417ea428",
+        "kind": "code",
+        "first": "mov eax, edx",
+        "section": "SECTION.6",
+        "prefix": "8bc248c1e00b8bd8480bda480bd8f30f"
+      },
+      "rdi_minus_0x2571c": {
+        "va": "0x1417c4d0c",
+        "kind": "code",
+        "first": "psllq xmm6, 0xf2",
+        "section": "SECTION.6",
+        "prefix": "660f73f6f266480fd7d6488d5230488d"
+      },
+      "epilogue": {
+        "va": "0x1417c4cdc",
+        "kind": "code",
+        "first": "movdqu xmm7, xmmword ptr [rsp + 0x30]",
+        "section": "SECTION.6",
+        "prefix": "f30f6f7c2430f30f6f742440488d6424"
+      },
+      "mba_reenter": {
+        "va": "0x1417c4bbd",
+        "kind": "code",
+        "first": "smsw rdx",
+        "section": "SECTION.6",
+        "prefix": "480f01e248c1ea1f660ff9f666480f7e"
+      },
+      "save_args": {
+        "va": "0x1417c4cf4",
+        "kind": "code",
+        "first": "mov rbx, rdx",
+        "section": "SECTION.6",
+        "prefix": "488bda488bf1488d8c2480000000e9b6"
+      }
+    },
+    "outside_targets": [],
+    "trace_head": [
+      "0x1417c4ba1: push rsi",
+      "0x1417c4ba2: push rbp",
+      "0x1417c4ba3: push r12",
+      "0x1417c4ba5: push r13",
+      "0x1417c4ba7: lea rsp, [rsp - 0x58]",
+      "0x1417c4bac: movdqu xmmword ptr [rsp + 0x40], xmm6",
+      "0x1417c4bb2: movdqu xmmword ptr [rsp + 0x30], xmm7",
+      "0x1417c4bb8: jmp 0x1417c4cf4",
+      "0x1417c4cf4: mov rbx, rdx",
+      "0x1417c4cf7: mov rsi, rcx",
+      "0x1417c4cfa: lea rcx, [rsp + 0x80]",
+      "0x1417c4d02: jmp 0x1417c4bbd",
+      "0x1417c4bbd: push 1",
+      "0x1417c4bbf: pop rdx",
+      "0x1417c4bc0: nop ",
+      "0x1417c4bc1: shr rdx, 0x1f",
+      "0x1417c4bc5: psubw xmm6, xmm6",
+      "0x1417c4bc9: movq rbp, xmm6",
+      "0x1417c4bce: mov rdi, rbp",
+      "0x1417c4bd1: shl dil, 1",
+      "0x1417c4bd4: mov bpl, dil",
+      "0x1417c4bd7: sbb rbp, rdx",
+      "0x1417c4bda: or rbp, rdx",
+      "0x1417c4bdd: movq xmm6, rdx",
+      "0x1417c4be2: pshufhw xmm6, xmm6, 8",
+      "0x1417c4be7: pshufhw xmm6, xmm6, 0x20",
+      "0x1417c4bec: movq rdi, xmm6",
+      "0x1417c4bf1: mov r12, rdi",
+      "0x1417c4bf4: sub r12w, dx",
+      "0x1417c4bf8: mov di, r12w",
+      "0x1417c4bfc: cmovp rdi, rbp",
+      "0x1417c4c00: shr rdi, 0x3f",
+      "0x1417c4c04: psrldq xmm6, 9",
+      "0x1417c4c09: pshufhw xmm7, xmm6, 0x10",
+      "0x1417c4c0e: psubd xmm7, xmm6",
+      "0x1417c4c12: pshuflw xmm6, xmm7, 0xc0",
+      "0x1417c4c17: movmskps edx, xmm6",
+      "0x1417c4c1b: sub rdx, rdi",
+      "0x1417c4c1e: pcmpgtb xmm7, xmm6",
+      "0x1417c4c22: pcmpgtb xmm7, xmm6"
+    ]
+  }
+}

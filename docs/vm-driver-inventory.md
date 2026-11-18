@@ -101,7 +101,7 @@ C:\re\artifacts\Betest.sys   ← copy from D:\hostdev\byovd\bin\Betest.sys
 | `VBoxManage guestcontrol` | **OK** (`vboxuser` / `lab.credentials.json`) |
 | VM power | **Running** (GUI/Qt session) |
 | EAC `.sys` on share | **Staged** EOS + legacy — see table above |
-| `BEDaisy.sys` | **Staged** offline copy `E7BCF344…` (guest hash-matched). Auto-analyze **blocked**; `-noanalysis` + objdump. See [re-notes-be.md](re-notes-be.md). |
+| `BEDaisy.sys` | **Staged** offline copy `E7BCF344…` (guest hash-matched 2026-11-18 night). Auto-analyze **blocked**; `-noanalysis` + objdump. `jmp rdx` named: taken `0x1417c4d07`, alt `0x1417c4d0c`. See [re-notes-be.md](re-notes-be.md). |
 
 **Remediation (Sam, in order):**
 

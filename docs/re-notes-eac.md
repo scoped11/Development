@@ -4,7 +4,7 @@
 **Evidence rule:** **Verified** = REA PE tools, Authenticode, Defender/VirusTotal, guest `rea inspect-*` / Ghidra, host objdump, or PE header parse of the staged SHA-256. **Hypothesis** = public GitHub notes not re-proven on this SHA-256.  
 **Scope:** static documentation only. No live bypass, hypervisor patches, or cheat payloads. Driver images were **not** loaded. Live Program Files was **not** re-copied this pass.
 
-**Session:** 2026-11-17 (sample + `analyze`), **2026-11-18** (DriverEntry / minifilter dispatch), **2026-11-18 afternoon** (`.pdata` + plaintext EOS `FLT_REGISTRATION` + objdump of VM stubs), **2026-11-18 evening** (SECTION.6/7 VM interpreter map: handler addends, cookie/`r12` stub, opcode dispatch). Guest `AI_workspace` via `VBoxManage guestcontrol` (share **`Z:\`**, not `D:`). Guest copies: `C:\re\artifacts\` (hash-matched).
+**Session:** 2026-11-17 (sample + `analyze`), **2026-11-18** (DriverEntry / minifilter dispatch), **2026-11-18 afternoon** (`.pdata` + plaintext EOS `FLT_REGISTRATION` + objdump of VM stubs), **2026-11-18 evening** (SECTION.6/7 VM interpreter map: handler addends, cookie/`r12` stub, opcode dispatch), **2026-11-18 night** (static lift of cookie-handler bodies after xor/cmp; guest hashes re-checked). Guest `AI_workspace` via `VBoxManage guestcontrol` (share **`Z:\`**, not `D:`). Guest copies: `C:\re\artifacts\` (hash-matched). Drivers **not** loaded.
 
 ---
 
@@ -19,7 +19,7 @@ Static REA + Ghidra on guest copies under `C:\re\artifacts\` (drivers **not** lo
 | **Device names** | No plaintext `\Device\…`. UTF-16 `\\EasyAntiCheat_EOS\\` at file `0x30e1ce` sits in an **Authenticode cert-store** string blob (`%s\SOFTWARE\Microsoft\SystemCertificates\%s\Certificates\`, GUIDs `F750E6C3-…` / `00AAC56B-…`) — **not** a `\Device\` path. UM stem `EasyAntiCheat_EOSSys` remains **H-EAC-02**. | Unicode `\Device\EasyAntiCheat` + `\DosDevices\EasyAntiCheat` (file `0xaecc0` / `0xaec70`). Also UTF-16 `\Registry\Machine\Software\Wow6432Node\EasyAntiCheat` at file `0x11db6e`. |
 | **IOCTL / dispatch** | **Plaintext minifilter table found** (not IRP `DEVICE_CONTROL`). `FLT_REGISTRATION` at VA **`0x1402f6230`** (file `0x2f5030`, `.rdata`): Size **112** (`0x70`), Version **`0x0203`**, Flags 0, empty `FLT_CONTEXT_REGISTRATION` (`ContextType=0xFFFF` at `0x1402f66e0`). Ops at `0x1402f6720`: `{MJ 0x00 CREATE, Pre 0x14023e237}`, `{MJ 0x06 SET_INFORMATION, Pre 0x14023e237}`, `{MJ 0xFF ACQUIRE_FOR_SECTION_SYNCHRONIZATION, Pre 0x14023e269}`, `{MJ 0x80 END}`. Unload `0x14023e209`. Each `.text` callback is a **5-byte `jmp` into SECTION.7** then the same VM stub as DriverEntry (`mov [r12+0x190], imm64; add eax,[r12+0x108]; jmp rax`). Naive `0x0022xxxx` scan is coincidental. | Minifilter: `FLT_REGISTRATION` `DAT_1401060f0` Size 104 Version `0x0202`; **all instance/name/tx callbacks NULL**; context table is terminator-only (`0xFFFF` at `0x140105d08`). Ops `{MJ 0xFF, Pre FUN_1400650ac → jmp 0x140064e48}` then `{MJ 0x80}`. Real pre-op at `0x140064e48` checks CallbackData, `MajorFunction==0xFF`, `CR8==0` (PASSIVE), then `FUN_1400855d0` dynamic resolve. Unload `0x1400650b4` resolves a second hash (`0x402778e3d078ecd2`) and zeros cookie `DAT_140186fc0`. IRP `DEVICE_CONTROL` body remains the `SECTION.6` blob. |
 
-Evidence IDs: EOS entry `ev_37c1df25…` / real-entry `ev_8177f93e…` / `FUN_140381041` `ev_ce486a5b…` / `FUN_140123b1e` `ev_8ce58779…`; legacy entry `ev_6d24798e…`; `FltRegisterFilter` `ev_1a862564…`. JSON: `ac-captures-host/2026-11-18/` (`vm-interpreter-summary.json`, `vm-interpreter-map.json`, `vm-interpreter-follow.json`).
+Evidence IDs: EOS entry `ev_37c1df25…` / real-entry `ev_8177f93e…` / `FUN_140381041` `ev_ce486a5b…` / `FUN_140123b1e` `ev_8ce58779…`; legacy entry `ev_6d24798e…`; `FltRegisterFilter` `ev_1a862564…`. JSON: `ac-captures-host/2026-11-18/` (`vm-interpreter-summary.json`, `vm-interpreter-map.json`, `vm-interpreter-follow.json`, `handler-lift-summary.json`, `handler-lift.json`, `handler-lift-follow.json`).
 
 ---
 
@@ -85,9 +85,48 @@ The **handler table is the stub set itself** (cookie + addend pairs), not a poin
 | Pre CREATE / SET_INFORMATION | `0x3c903b` | `0x1403cf5a2` | `0x140e85f02` |
 | Pre ACQUIRE_FOR_SECTION_SYNCHRONIZATION | `0x464925` | (jmp rel32) | `0x142618c9e` |
 
-Objdump: `ac-captures-host/2026-11-18/objdump-eos-handler-driverentry.txt`, `objdump-eos-handler-create.txt`, `objdump-eos-381041.txt`, `objdump-eos-381b12.txt`.
+Objdump: `ac-captures-host/2026-11-18/objdump-eos-handler-driverentry.txt`, `objdump-eos-handler-create.txt`, `objdump-eos-381041.txt`, `objdump-eos-381b12.txt`, `objdump-eos-handler-driverentry-after-xor.txt`, `objdump-eos-vm-shift-frame-381325.txt`, `objdump-eos-vm-restore-38116c.txt`.
 
-**Inference (not runtime):** addend ≈ virtualized basic-block / handler id; cookie ≈ per-call-site key the handler checks. Bodies after the cookie `xor`/`cmp` were **not** fully decompiled.
+### After cookie `xor` / `cmp` (static lift)
+
+Capstone census of all **3903** unique addend bodies (window 0x280, cookie taken from one stub per addend) + Unicorn file-byte emu of the four named landings. Image bytes only; **not** a loaded driver.
+
+| Census | Count |
+|--------|------:|
+| handlers scanned | **3903** |
+| cookie `xor` in window | **3220** |
+| cookie `cmp` (imm via `movabs` into the other operand) | **3551** |
+| nested cookie stub in window | **5** (7 kind hits) |
+| `jmp <reg>` in window | **12** |
+| no cookie ops in window | **190** |
+| xor-decrypted immediates | **11289** |
+| xor-decrypted values that are image VAs | **0** |
+
+Cookie `xor` immediates are MBA keys, not recovered function pointers. `cmp`/`setb`/`seta` against consecutive constants fold to 0/1 once the stub cookie is substituted.
+
+**Named runtime helpers (SECTION.7):**
+
+| Analyst name | VA | Role |
+|--------------|----|------|
+| `EOS_vm_save_frame` | `0x140381041` | existing: spill GPRs/XMMs, `r12=rsp+8` |
+| `EOS_vm_restore_frame` | `0x14038116c` | inverse of the save frame (reload XMM/GPRs from `[rsp+…]`) |
+| `EOS_vm_shift_frame` | `0x140381325` | `rax=[r12+0x190]` cookie used as copy length; `rbx=[r12+0x198]` continuation; `mov rsp,r12`; `movups` 0x10-byte copy loop; `jmp rbx` |
+| `EOS_vm_continuation` | `0x140381bca` | existing: `rbp=[r12+0x198]`; cookie slot treated as pointer; `jmp rbp` |
+
+**Known handler bodies after xor/cmp (Unicorn on mapped PE):**
+
+| Handler | Body | After xor/cmp | Stop |
+|---------|------|---------------|------|
+| DriverEntry | `0x141b1df86` | MBA `xor`/`cmp`/`setcc` then **676** insns | `jmp rax` → **`EOS_vm_shift_frame` `0x140381325`** |
+| FilterUnload | `0x1421c00e0` | MBA then context reads | unmapped read @ 323 insns (fake `r12` objects) |
+| Pre CREATE / SET_INFORMATION | `0x140e85f02` | cookie `xor` into `rcx`; `setb`/`seta`; `imul` kills stack-derived term; reconstructed `movups` into a VM slot | still in-body at 200 insns (no `jmp reg`) |
+| Pre ACQUIRE_FOR_SECTION_SYNCHRONIZATION | `0x142618c9e` | MBA then | `jmp rax` → `0x1403d4566` (`jmp 0x140f1bd25`) → **another** `push rbp` handler that reloads `[r12+…]` |
+
+`0x1403d4566` sits in a trampoline cluster: leave (`mov rsp,r12; call EOS_vm_restore_frame; lea rsp,[rsp+0x1c0]; call [rsp+8]`) and re-enter (`call EOS_vm_save_frame`) are **adjacent** bytes, not the taken edge. The taken edge is `jmp 0x140f1bd25` (chained handler).
+
+**Static limit:** after the cookie check, bodies are more MBA + VM frame shift / chained handlers. No plaintext `IoCreateDevice`, `FltRegisterFilter` call, or `CTL_CODE` table appears in the lifted suffix. Device name remains H-EAC-02.
+
+**Inference (not runtime):** addend ≈ virtualized basic-block / handler id; cookie ≈ per-call-site MBA key. Handler “work” is expressed as chained VM blocks, not a recovered C function.
 
 ---
 
@@ -137,6 +176,7 @@ Sidecar: `ac-captures-host/2026-11-17/hashes.json`. `.sys` bodies are gitignored
 | EOS minifilter ops: MJ **`0x00` IRP_MJ_CREATE** Pre `0x14023e237`; MJ **`0x06` IRP_MJ_SET_INFORMATION** Pre `0x14023e237`; MJ **`0xFF` IRP_MJ_ACQUIRE_FOR_SECTION_SYNCHRONIZATION** Pre `0x14023e269`; MJ **`0x80` END**. | 32-byte records at `0x1402f6720` | EOS `26797A11…` |
 | EOS FLT `.text` callbacks are **VM entry stubs**, same shape as `FUN_140123b1e`: `jmp SECTION.7` then `mov [r12+0x190],imm64; mov eax,off32; add rax,[r12+0x108]; jmp rax`. Unload `jmp 0x1403dae9e` / cookie `0x72b509b8134a12d7` / addend `0x448d15` → body `0x1421c00e0`. CREATE/SETINFO `jmp 0x14041e353` / cookie `0x6b2af190dd52023f` / addend `0x3c903b` → body `0x140e85f02`. Section-sync `jmp 0x1403eeaed` / cookie `0x6a382ae158204cfb` / addend `0x464925` → body `0x142618c9e`. | Host objdump `objdump-eos-flt-cb.txt` + follow `vm-interpreter-follow.json` | EOS `26797A11…` |
 | EOS VM interpreter: **8144** complete cookie stubs, **8144** unique cookies, **3903** unique addends. Dispatch = `[r12+0x108]+addend` then `jmp rel32` then `push rbp` handler. No 256-entry pointer table. Cookie loads from `[r12+0x190]` in handlers (4676 `rax` / 415 `rbx` / 635 `rcx`). Twin r12 stub `0x140381b12`. | `map_vm_interpreters.py` + `vm-interpreter-summary.json` | EOS `26797A11…` |
+| EOS cookie-handler lift: **3220/3903** bodies `xor` the cookie in the first 0x280; **3551** `cmp` it; **0** xor-decrypted immediates are image VAs; nested stubs **5**. DriverEntry `0x141b1df86` emu **676** insns then `jmp rax` **`EOS_vm_shift_frame` `0x140381325`**. Section-sync emu `jmp rax` `0x1403d4566` → handler `0x140f1bd25`. `EOS_vm_restore_frame` `0x14038116c` is the save-frame inverse. | `lift_vm_handlers.py` / `handler-lift-summary.json` / `handler-lift-follow.json`; objdump `objdump-eos-vm-shift-frame-381325.txt` | EOS `26797A11…` |
 | EOS UTF-16 `\\EasyAntiCheat_EOS\\` at file `0x30e1ce` is adjacent to `SOFTWARE\Microsoft\SystemCertificates\%s\Certificates\`, `SoftpubAuthenticode`, and Authenticode GUIDs — a **cert-store path fragment**, not `\Device\EasyAntiCheat_EOS`. No `\Device\` / `\DosDevices\` UTF-16 in this image. | Host UTF-16 scan `pe-kernel-static.json` | EOS `26797A11…` |
 | EOS `FltRegisterFilter` IAT RVA `0x30fdc8`; compiler thunk `FF 25` at `0x140272940` (immediately before PE entry). **Zero** `E8` callers of that thunk in any section — the static `FLT_REGISTRATION` is **not** referenced by a `.text` `call` (VM/dynamic call still required). | Host IAT/`FF25` scan of staged copy | EOS `26797A11…` |
 | Legacy Authenticode **Valid** (timestamped 2023-09-21; leaf cert expired 2023-10-28 but counter-signed). Signer **EasyAntiCheat Oy**. Defender **no threats**. VT **0 detections**. | Authenticode + Defender + VT | legacy `DD60A8CD…` |
@@ -190,8 +230,9 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 | P1 | EOS entry RVA `0x272978` | **Done** — wrapper → `FUN_1403a572e` → VM stub `FUN_140123b1e` (`ev_37c1df25…` / `ev_8177f93e…` / `ev_8ce58779…`) |
 | P1 | Legacy `FltRegisterFilter` | **Done** — `FUN_1400650f8` + `FLT_REGISTRATION` `DAT_1401060f0` (`ev_1a862564…`) |
 | P2 | `FUN_14038114f` / VM context at `[r12+0x108]` | **Done (static)** — vm_base `0x140006567`; 8144 stubs; 3903 handlers followed through trampoline to `push rbp` bodies; DriverEntry body `0x141b1df86` |
+| P2 | EOS cookie-handler bodies after xor/cmp | **Done (static limit)** — census 3220 xor / 3551 cmp; DriverEntry → `EOS_vm_shift_frame`; section-sync chains to `0x140f1bd25`; no plaintext device/IOCTL in the lifted suffix |
 | P2 | EOS `FLT_REGISTRATION` `0x1402f6230` | **Done** — Size 112 / v0x0203 / MJ 0,6,FF + VM stubs |
-| P2 | EOS `IoCreateDevice` name construction | still encoded; UM stem `EasyAntiCheat_EOSSys` remains H-EAC-02 |
+| P2 | EOS `IoCreateDevice` name construction | still encoded; UM stem `EasyAntiCheat_EOSSys` remains H-EAC-02. Static handler lift did **not** surface a name. Needs a non-static context (or a later chained block not reached by file-byte emu). |
 | P3 | Re-check adamvalves / experienceds RVAs | expected mismatch vs 22 MB public hash |
 
 **Out of scope:** live attach, callback unhooking, rollback-to-old-driver PoCs (`itsunderscores/EAC-Rollback` not cloned).
@@ -207,3 +248,4 @@ Public IOCTL sketches from other hashes stay **out** of the Verified table.
 | 2026-11-18 | Guest `decompile --file-offset 0x6b3a46` (legacy `0x14071c246`) | `procedure_not_found` — trampoline target is undefined bytes in `SECTION.6`, not a Ghidra function |
 | 2026-11-18 | Treat EOS `\\EasyAntiCheat_EOS\\` as `\Device\` | UTF-16 lives in the Authenticode cert-store string blob (`SystemCertificates\%s\Certificates\`) |
 | 2026-11-18 evening | 256-entry VM opcode pointer table in EOS | 0 `jmp [rax*8+abs]`; no 32+ image-VA QWORD runs. Dispatch is stub addends. |
+| 2026-11-18 night | Treat cookie `xor` immediates as recovered pointers | **11289** decrypted values, **0** in-image. They are MBA keys; DriverEntry continues to `EOS_vm_shift_frame`, not `IoCreateDevice`. |

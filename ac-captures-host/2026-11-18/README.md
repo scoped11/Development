@@ -11,4 +11,6 @@ Afternoon static pass (no auto-analyze on BEDaisy): `kernel-facts-pm.json`, host
 
 Evening static VM-interpreter map (drivers **not** loaded): `vm-interpreter-summary.json`, `vm-interpreter-map.json`, `vm-interpreter-follow.json`, plus objdump of EOS handler bodies / BEDaisy SECTION.6 `0x1417c4ba1`. Guest artifact hashes re-checked on `AI_workspace` via `Z:\`.
 
+Night static handler lift (still **not** loaded): `handler-lift-summary.json`, `handler-lift.json`, `handler-lift-follow.json`. EOS cookie xor/cmp census + Unicorn to `EOS_vm_shift_frame` `0x140381325`. BEDaisy taken `jmp rdx` `0x1417c4d07` / alt `0x1417c4d0c`. Guest hashes re-checked: EOS `26797A11…`, legacy `DD60A8CD…`, BEDaisy `E7BCF344…`.
+
 Guest share letter is `Z:\`.
