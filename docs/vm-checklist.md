@@ -18,14 +18,14 @@ Sam runs **REA, Ghidra, and Cursor MCP on the guest Windows VM**. The host (this
 | `guestcontrol` (bootstrap / `rea doctor`) | Blocked: guest **execution service not ready** (VBoxTray up, **VBoxService** guest-control path not healthy) |
 | Guest desktop | Logged in (**vboxuser** per unattended install + VBox log) |
 
-**Still open on guest (VM stays on):** complete Guest Additions install from the mounted ISO so **VBoxService** starts, then confirm `\\vboxsvr\hostdev` or `D:\hostdev`, run `bootstrap-vm-tools.ps1`, then `npx rea-agents doctor`. Placeholder: [rea-doctor-guest-snapshot.txt](rea-doctor-guest-snapshot.txt).
+**Guestcontrol is working.** Share is **`Z:\`** (`\\VBoxSvr\hostdev`). **`D:\` is the GA ISO.** Sam extracted Ghidra to `C:\Tools\ghidra_12.1_PUBLIC`. Host `rea doctor` (2026-11-17 21:16 America/New_York): **Ghidra 12.1 healthy** (`ghidra-version` 12.1.4, JDK 21, `analyzeHeadless.bat`). Snapshot: [rea-doctor-guest-snapshot.txt](rea-doctor-guest-snapshot.txt). Overall `healthy: false` is expected (no IDA/Hopper/JADX).
 
 ## Paths
 
 | Side | Path | Purpose |
 |------|------|---------|
 | **Host** (Windows) | `C:\Users\bj284\Downloads\TraeTesting\cursor\Development` | VirtualBox shared folder source |
-| **Guest** (typical GA mount) | `D:\hostdev` or `\\VBOXSVR\hostdev` | Same tree as host Development (per [driver-lab/vm/README.md](../driver-lab/vm/README.md)) |
+| **Guest** (typical GA mount) | **`Z:\`** (`\\VBoxSvr\hostdev`) or `D:\hostdev` if free — **not `D:\`** when the GA ISO occupies D: | Same tree as host Development (per [driver-lab/vm/README.md](../driver-lab/vm/README.md)) |
 | **Reversing skill repo** | Host: `C:\Users\bj284\Downloads\TraeTesting\cursor\Reversing` | Clone or mount into guest if Cursor project needs skills |
 | **This vault** | `D:\hostdev\docs\` | Indexes + `re-notes-*.md` |
 
