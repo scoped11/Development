@@ -13,6 +13,8 @@ Defensive static RE index — no live bypass, no cheat payloads.
 | [docs/re-notes-eac.md](docs/re-notes-eac.md) | Living notes (EAC): Verified / Hypothesis / IOCTLs |
 | [docs/re-notes-be.md](docs/re-notes-be.md) | Living notes (BattlEye) |
 | [docs/vm-checklist.md](docs/vm-checklist.md) | Shared folder, sync, REA+MCP on guest |
+| [docs/vm-driver-inventory.md](docs/vm-driver-inventory.md) | EAC/BE/lab PE paths, SHA256, guest copy targets |
+| [docs/rea-doctor-guest-expected.md](docs/rea-doctor-guest-expected.md) | Target `rea doctor` on guest |
 
 REA workflow: [Reversing/.cursor/skills/rea-ai-reversing/SKILL.md](../Reversing/.cursor/skills/rea-ai-reversing/SKILL.md) · [rea.today/get-started](https://rea.today/get-started) · Related lab map: [byovd/docs/research/16_EAC_BE_KERNEL_RESEARCH.md](byovd/docs/research/16_EAC_BE_KERNEL_RESEARCH.md).
 
