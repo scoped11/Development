@@ -22,6 +22,7 @@ Ghidra zip is the official **12.1** release asset; the folder is renamed to `ghi
 | VM name | `AI_Workspave_v3` (`lab.credentials.json`) |
 | Share source | `C:\Users\bj284\Downloads\TraeTesting\cursor\Development` |
 | Guest mount | **`Z:\`** (`\\VBoxSvr\hostdev`) — **not** bare `D:\` (GA ISO) |
+| Guestcontrol | **`\\VBoxSvr\hostdev`** — mapped `Z:\` is **not** visible in VBox guestcontrol sessions (Sam’s interactive `Z:\` is fine) |
 
 If `net use Z: \\VBoxSvr\hostdev` fails: close the VirtualBox GUI lock, then on the host:
 
@@ -36,9 +37,11 @@ cd C:\Users\bj284\Downloads\TraeTesting\cursor\Development\driver-lab\vm
 
 ```powershell
 cd C:\Users\bj284\Downloads\TraeTesting\cursor\Development\driver-lab\vm
-.\host-run-toolchain-install.ps1 -SkipHeavyWinget   # faster REA/Ghidra pass
+.\host-run-toolchain-install.ps1 -SkipHeavyWinget   # faster REA/Ghidra pass; runs UNC installer on guest
 # full winget (WinDbg, Docker, WDK): omit -SkipHeavyWinget
 ```
+
+**UAC note:** winget often returns **1602** under guestcontrol (no UAC). The installer falls back to portable **Node** + **JDK** under `C:\lab\tools\` and continues Ghidra/REA without elevation.
 
 **Guest (manual, elevated):**
 
@@ -69,11 +72,27 @@ See also: [rea-vm.md](rea-vm.md).
 ## Smoke
 
 ```powershell
-npx.cmd -y rea-agents@latest doctor
-& "$env:GHIDRA_INSTALL_DIR\support\analyzeHeadless.bat" 2>&1 | Select-Object -First 5
+$env:Path = 'C:\lab\tools\node;' + $env:Path
+$env:GHIDRA_INSTALL_DIR = 'C:\lab\tools\ghidra\ghidra_12.1.4_PUBLIC'
+$env:JAVA_HOME = 'C:\lab\tools\jdk-21'
+C:\lab\tools\node\npx.cmd -y rea-agents@latest doctor
+# or after a partial install:
+powershell -NoProfile -ExecutionPolicy Bypass -File \\VBoxSvr\hostdev\driver-lab\vm\finish-rea-guest.ps1
 ```
 
-`rea` checks should show **ghidra** healthy; Hopper/IDA missing is expected.
+**Doctor “healthy” for this lab:** `node` **26.13.1+** (not 22.19 portable default), all **`ghidra-*` checks healthy**, `analyzeHeadless` OK. Top-level `healthy: false` is **expected** (no Hopper/IDA, `rea setup` not run in guest Cursor).
+
+**Node:** portable default is **v26.13.1** (`upgrade-node-guest.ps1` if an older portable was installed).
+
+## Driver SCM lab (P_Finger_ByPass)
+
+```powershell
+# guest interactive Admin, or host:
+.\host-run-diagnose-elevated.ps1   # needs schtasks HIGHEST (may fail from guestcontrol)
+.\scripts\Vm-Lab-DiagnoseDriverLoad.ps1
+```
+
+**guestcontrol is not elevated** → `sc create` fails (OpenSCManager 5). Staging + `NotSigned` on `payload.sys` still runs. **577 control** needs one elevated guest run; repo A3 documents 577 without swap.
 
 ## WDK status
 

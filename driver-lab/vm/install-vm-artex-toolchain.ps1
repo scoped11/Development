@@ -7,7 +7,7 @@ param(
     [switch]$SkipHeavyWinget
 )
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'  # relaxed around winget / portable fallbacks
 $logDir = Join-Path $LabRoot 'logs'
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $log = Join-Path $logDir 'install-toolchain.log'
@@ -24,13 +24,13 @@ foreach ($d in @($tools, (Join-Path $tools 'artex'), (Join-Path $tools 'ghidra')
 }
 
 function Resolve-DevShare {
+  foreach ($unc in @('\\VBoxSvr\hostdev', '\\vboxsvr\hostdev')) {
+        if (Test-Path (Join-Path $unc 'docs\vm-checklist.md')) { return $unc }
+    }
     foreach ($c in @('Z:', 'D:', 'Y:', 'E:', 'X:')) {
         try {
             if (Test-Path (Join-Path $c 'docs\vm-checklist.md')) { return $c }
         } catch { }
-    }
-    foreach ($unc in @('\\VBoxSvr\hostdev', '\\vboxsvr\hostdev')) {
-        if (Test-Path (Join-Path $unc 'docs\vm-checklist.md')) { return $unc }
     }
     return $null
 }
@@ -43,20 +43,76 @@ function Refresh-Path {
         [Environment]::GetEnvironmentVariable('Path', 'User')
 }
 
-function Ensure-Winget([string]$Id) {
+function Ensure-Winget([string]$Id, [int]$TimeoutSec = 90) {
     $q = winget list --id $Id -e 2>$null | Select-String $Id
-    if ($q) { Log "winget OK: $Id"; return }
-    Log "winget install: $Id"
-    winget install --id $Id -e --accept-package-agreements --accept-source-agreements --disable-interactivity
+    if ($q) { Log "winget OK: $Id"; return $true }
+    Log "winget install: $Id (timeout ${TimeoutSec}s)"
+    $args = @('install', '--id', $Id, '-e', '--accept-package-agreements', '--accept-source-agreements', '--disable-interactivity')
+    $p = Start-Process -FilePath 'winget.exe' -ArgumentList $args -PassThru -WindowStyle Hidden
+    if (-not $p.WaitForExit($TimeoutSec * 1000)) {
+        try { $p.Kill() } catch { }
+        Log "winget TIMEOUT/UAC: $Id"
+        return $false
+    }
     Refresh-Path
+    $q2 = winget list --id $Id -e 2>$null | Select-String $Id
+    if ($q2) { return $true }
+    Log "winget FAILED rc=$($p.ExitCode): $Id"
+    return $false
 }
 
-Ensure-Winget 'OpenJS.NodeJS.LTS'
-Ensure-Winget 'Microsoft.OpenJDK.21'
-Ensure-Winget 'Python.Python.3.12'
-Ensure-Winget 'Git.Git'
-Ensure-Winget '7zip.7zip'
-Ensure-Winget 'GoLang.Go'
+function Ensure-NodePortable {
+    if (Get-Command node -ErrorAction SilentlyContinue) { Log 'node already on PATH'; return }
+    $nodeRoot = Join-Path $tools 'node'
+    $nodeExe = Join-Path $nodeRoot 'node.exe'
+    if (-not (Test-Path $nodeExe)) {
+        $ver = 'v26.13.1'
+        $zip = Join-Path $tools "node-$ver-win-x64.zip"
+        $url = "https://nodejs.org/dist/$ver/node-$ver-win-x64.zip"
+        Log "Portable Node download: $url"
+        Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+        Expand-Archive -LiteralPath $zip -DestinationPath $nodeRoot -Force
+        $inner = Get-ChildItem $nodeRoot -Directory -Filter 'node-*' | Select-Object -First 1
+        if ($inner) {
+            Get-ChildItem $inner.FullName | Move-Item -Destination $nodeRoot -Force
+            Remove-Item $inner.FullName -Force -ErrorAction SilentlyContinue
+        }
+    }
+    $p = [Environment]::GetEnvironmentVariable('Path', 'User')
+    if ($p -notlike "*$nodeRoot*") {
+        [Environment]::SetEnvironmentVariable('Path', "$nodeRoot;$p", 'User')
+    }
+    $env:Path = "$nodeRoot;" + $env:Path
+    Log ("node portable: " + (node -v))
+}
+
+function Ensure-JdkPortable {
+    $jdkRoot = Join-Path $tools 'jdk-21'
+    $javaExe = Join-Path $jdkRoot 'bin\java.exe'
+    if (-not (Test-Path $javaExe)) {
+        $zip = Join-Path $tools 'microsoft-jdk-21.zip'
+        $url = 'https://aka.ms/download-jdk/microsoft-jdk-21.0.7-windows-x64.zip'
+        Log "Portable JDK download: $url"
+        Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+        Expand-Archive -LiteralPath $zip -DestinationPath $tools -Force
+        $extracted = Get-ChildItem $tools -Directory -Filter 'jdk-*' | Select-Object -First 1
+        if ($extracted -and $extracted.FullName -ne $jdkRoot) {
+            if (Test-Path $jdkRoot) { Remove-Item $jdkRoot -Recurse -Force }
+            Rename-Item $extracted.FullName 'jdk-21'
+        }
+    }
+    return (Join-Path $tools 'jdk-21')
+}
+
+# Portable first — guestcontrol cannot complete winget UAC prompts.
+Ensure-NodePortable
+$javaHome = Ensure-JdkPortable
+Ensure-Winget 'OpenJS.NodeJS.LTS' | Out-Null
+Ensure-Winget 'Microsoft.OpenJDK.21' | Out-Null
+Ensure-Winget 'Python.Python.3.12' | Out-Null
+Ensure-Winget 'Git.Git' | Out-Null
+Ensure-Winget '7zip.7zip' | Out-Null
+Ensure-Winget 'GoLang.Go' | Out-Null
 if (-not $SkipHeavyWinget) {
     Ensure-Winget 'Microsoft.WinDbg'
     if (-not $SkipDocker) { Ensure-Winget 'Docker.DockerDesktop' }
@@ -71,7 +127,11 @@ if (-not $javaHome -or -not (Test-Path (Join-Path $javaHome 'bin\java.exe'))) {
     $javaHome = (Get-ChildItem 'C:\Program Files\Microsoft' -Filter 'jdk-*' -Directory -ErrorAction SilentlyContinue |
         Sort-Object Name -Descending | Select-Object -First 1).FullName
 }
-if (-not $javaHome) { throw 'JDK 21 not found after winget' }
+if (-not $javaHome -or -not (Test-Path (Join-Path $javaHome 'bin\java.exe'))) {
+    $javaHome = Ensure-JdkPortable
+}
+if (-not $javaHome -or -not (Test-Path (Join-Path $javaHome 'bin\java.exe'))) { throw 'JDK 21 not found after winget/portable' }
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) { Ensure-NodePortable }
 [Environment]::SetEnvironmentVariable('JAVA_HOME', $javaHome, 'User')
 $env:JAVA_HOME = $javaHome
 Log "JAVA_HOME=$javaHome"
@@ -118,7 +178,8 @@ Log "ARTEX dir: $artexDir"
 
 # Python RE stack (3.12)
 $py = (Get-Command py -ErrorAction SilentlyContinue)
-if ($py) {
+if (-not $py) { Log 'SKIP pip RE stack — Python 3.12 not installed (winget UAC)' }
+elseif ($py) {
     Log 'Installing Python RE packages ...'
     & py -3.12 -m pip install --upgrade pip 2>&1 | Out-Null
     $pkgs = @(
@@ -137,11 +198,15 @@ $cloneMap = [ordered]@{
     'Hypervisor-From-Scratch' = 'https://github.com/SinaKarvandi/Hypervisor-From-Scratch.git'
 }
 
-foreach ($name in $cloneMap.Keys) {
-    $dest = Join-Path $repos $name
-    if (Test-Path (Join-Path $dest '.git')) { Log "repo exists: $name"; continue }
-    Log "git clone $name ..."
-    git clone --depth 1 $cloneMap[$name] $dest 2>&1 | Tee-Object -FilePath $log -Append
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Log 'SKIP git clones — git not installed (winget UAC). Use share or re-run interactive winget.'
+} else {
+    foreach ($name in $cloneMap.Keys) {
+        $dest = Join-Path $repos $name
+        if (Test-Path (Join-Path $dest '.git')) { Log "repo exists: $name"; continue }
+        Log "git clone $name ..."
+        git clone --depth 1 $cloneMap[$name] $dest 2>&1 | Tee-Object -FilePath $log -Append
+    }
 }
 
 # P_Finger_ByPass lab checkout (share or git)
@@ -150,16 +215,22 @@ if (-not (Test-Path (Join-Path $bypass 'kit\install.ps1'))) {
     if ($share -and (Test-Path (Join-Path $share 'P_Finger_ByPass\kit\install.ps1'))) {
         Log "Using share P_Finger_ByPass at $share"
     } else {
-        Log 'Cloning P_Finger_ByPass ...'
-        git clone --depth 1 https://github.com/SamNZito/P_Finger_ByPass.git $bypass 2>&1 | Tee-Object -FilePath $log -Append
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            Log 'Cloning P_Finger_ByPass ...'
+            git clone --depth 1 https://github.com/SamNZito/P_Finger_ByPass.git $bypass 2>&1 | Tee-Object -FilePath $log -Append
+        } else {
+            Log 'P_Finger_ByPass available on share only (no git)'
+        }
     }
 }
 
 # Cursor MCP: REA + GhidraMCP bridge
 $mcpPath = Join-Path $env:USERPROFILE '.cursor\mcp.json'
 New-Item -ItemType Directory -Force -Path (Split-Path $mcpPath) | Out-Null
+$nodeNpx = Join-Path $tools 'node\npx.cmd'
+if (-not (Test-Path $nodeNpx)) { $nodeNpx = 'npx.cmd' }
 $reaBlock = [ordered]@{
-    command = 'npx.cmd'
+    command = $nodeNpx
     args    = @('-y', 'rea-agents@latest', 'mcp')
     env     = [ordered]@{
         JAVA_HOME          = $javaHome

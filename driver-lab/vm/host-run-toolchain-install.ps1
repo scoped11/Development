@@ -12,14 +12,11 @@ $credFile = Join-Path $here 'lab.credentials.json'
 $cred = Get-Content $credFile -Raw | ConvertFrom-Json
 if (-not $VmName) { $VmName = if ($cred.vm_name) { $cred.vm_name } else { 'AI_Workspave_v3' } }
 
-$src = Join-Path $here 'install-vm-artex-toolchain.ps1'
 $ps = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+# Guestcontrol sessions see UNC, not mapped Z:
+$guestScript = '\\VBoxSvr\hostdev\driver-lab\vm\install-vm-artex-toolchain.ps1'
 
-& $VBox guestcontrol $VmName mkdir --username=$($cred.username) --password=$($cred.password) --parents 'C:\lab\bootstrap'
-$guestScript = 'C:\lab\bootstrap\install-vm-artex-toolchain.ps1'
-& $VBox guestcontrol $VmName copyto --username=$($cred.username) --password=$($cred.password) --target-directory $guestScript $src
-
-$args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'C:\lab\bootstrap\install-vm-artex-toolchain.ps1')
+$args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $guestScript)
 if ($SkipHeavyWinget) { $args += '-SkipHeavyWinget' }
 
 Write-Host "[*] Running guest toolchain install (timeout ${TimeoutMs}ms) ..."
