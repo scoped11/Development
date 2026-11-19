@@ -1,7 +1,7 @@
 ﻿# Run a program inside DriverLab-E-26200 via VirtualBox Guest Additions (host-side).
 param(
     [Parameter(Mandatory)][string[]]$Command,
-    [string]$VmName = 'AI_workspace',
+    [string]$VmName = '',
     [string]$CredentialsFile = '',
     [int]$TimeoutMs = 120000,
     [string]$Cwd = 'C:\\Windows\\System32',
@@ -21,8 +21,14 @@ if (-not (Test-Path $CredentialsFile)) {
 }
 
 $cred = Get-Content $CredentialsFile -Raw | ConvertFrom-Json
+if (-not $VmName) {
+    $VmName = if ($cred.vm_name) { $cred.vm_name } else { 'AI_Workspave_v3' }
+}
 $exe = $Command[0]
-if ($exe -notmatch '[\\/]' -and $exe -notmatch '\.exe$') {
+$lower = $exe.ToLowerInvariant()
+if ($lower -eq 'powershell' -or $lower -eq 'powershell.exe') {
+    $exe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+} elseif ($exe -notmatch '[\\/]' -and $exe -notmatch '\.exe$') {
     $exe = Join-Path $env:SystemRoot "System32\$exe.exe"
 }
 $args = @()
