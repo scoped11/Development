@@ -16,7 +16,8 @@ $src = Join-Path $here 'install-vm-artex-toolchain.ps1'
 $ps = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
 
 & $VBox guestcontrol $VmName mkdir --username=$($cred.username) --password=$($cred.password) --parents 'C:\lab\bootstrap'
-& $VBox guestcontrol $VmName copyto --username=$($cred.username) --password=$($cred.password) --target-directory 'C:\lab\bootstrap' $src
+$guestScript = 'C:\lab\bootstrap\install-vm-artex-toolchain.ps1'
+& $VBox guestcontrol $VmName copyto --username=$($cred.username) --password=$($cred.password) --target-directory $guestScript $src
 
 $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'C:\lab\bootstrap\install-vm-artex-toolchain.ps1')
 if ($SkipHeavyWinget) { $args += '-SkipHeavyWinget' }
